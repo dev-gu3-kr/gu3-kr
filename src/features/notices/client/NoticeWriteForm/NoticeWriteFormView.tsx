@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -17,13 +17,29 @@ type NoticeWriteFormViewProps = {
   initialContent?: string
   initialIsPublished?: boolean
   submitLabel?: string
+  onUploadImageAction: (file: File) => Promise<string>
 }
 
 type ToastEditorLike = {
   getMarkdown: () => string
-  setMarkdown: (markdown: string, cursorToEnd?: boolean) => void
   on: (event: "change", handler: () => void) => void
 }
+
+type ToastEditorConstructor = new (options: {
+  el: HTMLElement
+  height: string
+  initialValue: string
+  initialEditType: "wysiwyg" | "markdown"
+  previewStyle: "vertical" | "tab"
+  hideModeSwitch: boolean
+  usageStatistics: boolean
+  hooks?: {
+    addImageBlobHook?: (
+      blob: Blob | File,
+      callback: (url: string, altText?: string) => void,
+    ) => Promise<void>
+  }
+}) => ToastEditorLike
 
 export function NoticeWriteFormView({
   onSubmitAction,
@@ -35,6 +51,7 @@ export function NoticeWriteFormView({
   initialContent,
   initialIsPublished,
   submitLabel = "공지 저장",
+  onUploadImageAction,
 }: NoticeWriteFormViewProps) {
   const {
     register,
@@ -55,16 +72,33 @@ export function NoticeWriteFormView({
   const content = watch("content")
   const mountRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<ToastEditorLike | null>(null)
+  const isUploadingImageRef = useRef(false)
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [imageUploadProgress, setImageUploadProgress] = useState(0)
+
+  useEffect(() => {
+    if (!isUploadingImage) {
+      setImageUploadProgress(0)
+      return
+    }
+
+    setImageUploadProgress(8)
+    const timer = window.setInterval(() => {
+      setImageUploadProgress((prev) =>
+        prev >= 90 ? prev : prev + Math.max(2, Math.round((90 - prev) * 0.14)),
+      )
+    }, 140)
+
+    return () => window.clearInterval(timer)
+  }, [isUploadingImage])
 
   useEffect(() => {
     let disposed = false
 
     void import("@toast-ui/editor").then((module) => {
-      if (disposed || !mountRef.current || editorRef.current) {
-        return
-      }
+      if (disposed || !mountRef.current || editorRef.current) return
 
-      const Editor = module.default
+      const Editor = module.default as ToastEditorConstructor
       const editor = new Editor({
         el: mountRef.current,
         height: window.innerWidth < 640 ? "240px" : "360px",
@@ -73,6 +107,45 @@ export function NoticeWriteFormView({
         previewStyle: "vertical",
         hideModeSwitch: false,
         usageStatistics: false,
+        hooks: {
+          addImageBlobHook: async (blob, callback) => {
+            if (isUploadingImageRef.current) return
+
+            isUploadingImageRef.current = true
+            setIsUploadingImage(true)
+            setImageUploadProgress(10)
+
+            try {
+              const file =
+                blob instanceof File
+                  ? blob
+                  : new File([blob], "notice-image.png", {
+                      type: blob.type || "image/png",
+                    })
+
+              const imageUrl = await onUploadImageAction(file)
+              setImageUploadProgress(100)
+              callback(imageUrl, file.name)
+
+              setValue("content", editor.getMarkdown(), {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            } catch (error) {
+              window.alert(
+                error instanceof Error
+                  ? error.message
+                  : "이미지 업로드에 실패했습니다.",
+              )
+            } finally {
+              isUploadingImageRef.current = false
+              window.setTimeout(() => {
+                setIsUploadingImage(false)
+                setImageUploadProgress(0)
+              }, 150)
+            }
+          },
+        },
       }) as ToastEditorLike
 
       editor.on("change", () => {
@@ -89,11 +162,9 @@ export function NoticeWriteFormView({
     return () => {
       disposed = true
       editorRef.current = null
-      if (mountRef.current) {
-        mountRef.current.innerHTML = ""
-      }
+      if (mountRef.current) mountRef.current.innerHTML = ""
     }
-  }, [initialContent, setValue])
+  }, [initialContent, onUploadImageAction, setValue])
 
   return (
     <form onSubmit={handleSubmit(onSubmitAction)} className="min-w-0 space-y-4">
@@ -147,6 +218,20 @@ export function NoticeWriteFormView({
           })}
           value={content}
         />
+
+        {isUploadingImage ? (
+          <div className="mt-2 space-y-1">
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
+              <div
+                className="h-full rounded-full bg-primary transition-[width] duration-150"
+                style={{ width: `${imageUploadProgress}%` }}
+              />
+            </div>
+            <p className="text-xs text-neutral-500">
+              이미지 업로드 중... {imageUploadProgress}%
+            </p>
+          </div>
+        ) : null}
       </div>
 
       <label htmlFor="is-published" className="flex items-center gap-2 text-sm">

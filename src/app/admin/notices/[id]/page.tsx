@@ -2,7 +2,10 @@ import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { NoticeDeleteButton } from "@/features/notices/client"
+import {
+  NoticeContentViewer,
+  NoticeDeleteButton,
+} from "@/features/notices/client"
 import type { NoticeDetailDto } from "@/features/notices/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
 
@@ -11,21 +14,15 @@ export default async function AdminNoticeViewPage(props: {
 }) {
   const { id } = await props.params
 
-  // API 계층을 통해 공지 상세를 조회한다.
   const response = await serverApiFetch.get(`/api/admin/notices/${id}`).send()
-
-  if (response.status === 404) {
-    notFound()
-  }
+  if (response.status === 404) notFound()
 
   const json = (await response.json().catch(() => null)) as {
     ok?: boolean
     item?: NoticeDetailDto
   } | null
 
-  if (!response.ok || !json?.ok || !json.item) {
-    notFound()
-  }
+  if (!response.ok || !json?.ok || !json.item) notFound()
 
   const notice = json.item
 
@@ -56,8 +53,8 @@ export default async function AdminNoticeViewPage(props: {
           <p className="text-base text-neutral-700">{notice.summary}</p>
         ) : null}
 
-        <article className="whitespace-pre-wrap wrap-break-word text-[15px] leading-7 text-neutral-900">
-          {notice.content}
+        <article className="toastui-editor-contents text-[15px] leading-7 text-neutral-900">
+          <NoticeContentViewer content={notice.content} />
         </article>
 
         <div className="flex items-center justify-end gap-2 border-t pt-4">

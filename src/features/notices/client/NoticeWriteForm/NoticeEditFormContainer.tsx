@@ -27,6 +27,28 @@ export function NoticeEditFormContainer({
   const [isError, setIsError] = useState(false)
   const router = useRouter()
 
+  async function uploadNoticeImage(file: File) {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await apiFetch
+      .post("/api/admin/uploads/notice-image")
+      .init({ body: formData })
+      .send()
+
+    const json = (await response.json().catch(() => null)) as {
+      ok?: boolean
+      url?: string
+      message?: string
+    } | null
+
+    if (!response.ok || !json?.ok || !json.url) {
+      throw new Error(json?.message ?? "이미지 업로드에 실패했습니다.")
+    }
+
+    return json.url
+  }
+
   const handleSubmit = async (values: CreateNoticeInputDto) => {
     setIsLoading(true)
     setMessage(null)
@@ -72,6 +94,7 @@ export function NoticeEditFormContainer({
       initialContent={initialContent}
       initialIsPublished={initialIsPublished}
       submitLabel="수정 저장"
+      onUploadImageAction={uploadNoticeImage}
     />
   )
 }
