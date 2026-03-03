@@ -1,3 +1,4 @@
+// 공지 상세: Toast UI Viewer로 마크다운 본문 렌더링
 import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import Link from "next/link"
@@ -9,6 +10,7 @@ import {
 import type { NoticeDetailDto } from "@/features/notices/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
 
+// 공지 상세를 조회하고, 없으면 404로 처리한다.
 export default async function AdminNoticeViewPage(props: {
   params: Promise<{ id: string }>
 }) {

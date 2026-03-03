@@ -1,3 +1,4 @@
+// 수녀 수정 페이지: 상세 돌아가기 + 폼 컨테이너
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { NunFormContainer } from "@/features/clergy-nuns/client"
@@ -12,6 +13,7 @@ type NunDetailResponseDto = {
   item?: NunDetailDto
 }
 
+// 상세 DTO를 폼 초기값 DTO로 변환한다.
 function toInput(item: NunDetailDto): UpsertNunInputDto {
   return {
     name: item.name,
@@ -28,6 +30,7 @@ function toInput(item: NunDetailDto): UpsertNunInputDto {
   }
 }
 
+// 수녀님 상세를 조회해 수정 폼 초기값으로 주입한다.
 export default async function AdminNunEditPage(props: {
   params: Promise<{ id: string }>
 }) {

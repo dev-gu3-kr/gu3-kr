@@ -1,3 +1,4 @@
+// 수녀 목록 페이지: 카드 레이아웃/이미지 비율/메타 정보 표시
 import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -9,6 +10,7 @@ type NunListResponseDto = {
   items?: NunListItemDto[]
 }
 
+// 수녀님 목록을 조회해 카드 형태로 렌더링한다.
 export default async function AdminNunsPage() {
   const response = await serverApiFetch
     .get("/api/admin/clergy/nuns")

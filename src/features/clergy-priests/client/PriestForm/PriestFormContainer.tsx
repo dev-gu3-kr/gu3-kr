@@ -1,3 +1,4 @@
+// 신부 폼 컨테이너: 저장/이미지 업로드/교체/삭제 로직
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -7,6 +8,7 @@ import type { UpsertPriestInputDto } from "@/features/clergy-priests/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { PriestFormView } from "./PriestFormView"
 
+// datetime-local/로케일 문자열을 ISO로 변환한다.
 function toIsoDateTime(input?: string) {
   if (!input || input.trim() === "") return undefined
 
@@ -38,11 +40,13 @@ function toIsoDateTime(input?: string) {
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
+// 숫자 필드의 NaN/비정상 값을 제거한다.
 function normalizeNumber(input?: number) {
   if (typeof input !== "number" || Number.isNaN(input)) return undefined
   return input
 }
 
+// 폼 입력값을 trim/타입 정규화해 API payload 형태로 맞춘다.
 function normalizeInput(values: UpsertPriestInputDto): UpsertPriestInputDto {
   return {
     ...values,
@@ -63,6 +67,7 @@ type Props = {
   initialValues?: UpsertPriestInputDto
 }
 
+// 생성/수정 모드 분기, 저장 API 호출, 성공 후 상세 이동을 담당한다.
 export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -115,6 +120,7 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
     }
   }
 
+  // 이미지 업로드 후(edit 모드) DB imageUrl 즉시 반영 + 이전 이미지 정리.
   async function uploadClergyImage(file: File, previousUrl?: string) {
     const formData = new FormData()
     formData.append("file", file)
@@ -156,6 +162,7 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
     return json.url
   }
 
+  // 저장소 이미지 물리 삭제 API 호출.
   async function removeClergyImage(url: string) {
     const response = await apiFetch
       .del("/api/admin/uploads/clergy-image")

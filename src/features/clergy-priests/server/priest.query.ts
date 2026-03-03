@@ -1,6 +1,8 @@
+// PRIEST 전용 Prisma 조회/저장 쿼리를 모아둔 레이어다. (정렬/페이징 기준의 단일 소스)
+
 import { prisma } from "@/lib/prisma"
 
-// 신부님 목록을 커서 기반으로 조회한다.
+// 목록 페이지 조회: 정렬 기준(sortOrder asc, createdAt desc)과 cursor 기반 페이징을 적용한다.
 export async function findPriestPage(params: {
   take: number
   cursor?: string
@@ -18,14 +20,14 @@ export async function findPriestPage(params: {
   })
 }
 
-// 신부님 상세를 ID로 조회한다.
+// 단건 조회: PRIEST 타입 조건을 포함해 다른 타입 데이터 혼입을 막는다.
 export async function findPriestById(id: string) {
   return prisma.clergyProfile.findFirst({
     where: { id, type: "PRIEST" },
   })
 }
 
-// 신부님 프로필 레코드를 생성한다.
+// 프로필 생성: type=PRIEST를 강제 주입해 저장한다.
 export async function createPriest(data: {
   name: string
   baptismalName?: string
@@ -47,7 +49,7 @@ export async function createPriest(data: {
   })
 }
 
-// 신부님 프로필 레코드를 수정한다.
+// 프로필 수정: PK(id) 기준으로 필드를 갱신한다.
 export async function updatePriest(
   id: string,
   data: {
@@ -70,7 +72,7 @@ export async function updatePriest(
   })
 }
 
-// 신부님 프로필 레코드를 삭제한다.
+// 프로필 삭제: PK(id) 기준으로 레코드를 제거한다.
 export async function deletePriest(id: string) {
   return prisma.clergyProfile.delete({ where: { id } })
 }

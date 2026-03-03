@@ -1,3 +1,4 @@
+// 신부 수정 페이지: 상세 돌아가기 + 폼 컨테이너
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { PriestFormContainer } from "@/features/clergy-priests/client"
@@ -12,6 +13,7 @@ type PriestDetailResponseDto = {
   item?: PriestDetailDto
 }
 
+// 상세 DTO를 폼 초기값 DTO로 변환한다.
 function toInput(item: PriestDetailDto): UpsertPriestInputDto {
   return {
     name: item.name,
@@ -28,6 +30,7 @@ function toInput(item: PriestDetailDto): UpsertPriestInputDto {
   }
 }
 
+// 신부님 상세를 조회해 수정 폼 초기값으로 주입한다.
 export default async function AdminPriestEditPage(props: {
   params: Promise<{ id: string }>
 }) {

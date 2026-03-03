@@ -1,3 +1,4 @@
+// 공지 작성 컨테이너: 저장 API 연동 + 에디터 이미지 업로드
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -7,12 +8,14 @@ import type { CreateNoticeInputDto } from "@/features/notices/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { NoticeWriteFormView } from "./NoticeWriteFormView"
 
+// 공지 작성 컨테이너: 생성 API 호출/성공 이동/에러 메시지 상태를 담당한다.
 export function NoticeWriteFormContainer() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
 
+  // 본문 이미지 업로드: formData 전송 후 삽입 가능한 이미지 URL을 반환한다.
   async function uploadNoticeImage(file: File) {
     const formData = new FormData()
     formData.append("file", file)
@@ -35,6 +38,7 @@ export function NoticeWriteFormContainer() {
     return json.url
   }
 
+  // 저장 처리: 성공 시 상세 페이지로 이동하고, 실패 시 사용자 메시지를 표시한다.
   const handleSubmit = async (values: CreateNoticeInputDto) => {
     setIsLoading(true)
     setMessage(null)

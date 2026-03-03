@@ -1,3 +1,4 @@
+// 수녀 폼 뷰: RHF 입력 + 공용 이미지 크롭/업로드 필드
 "use client"
 
 import { useEffect, useState } from "react"

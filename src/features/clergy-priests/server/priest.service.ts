@@ -1,3 +1,5 @@
+// 신부 프로필 도메인 서비스: 입력 정규화, 검증, 쿼리 레이어 호출을 담당한다.
+
 import type { UpsertPriestInputDto } from "@/features/clergy-priests/isomorphic"
 import {
   createPriest,
@@ -7,11 +9,13 @@ import {
   updatePriest,
 } from "./priest.query"
 
+// ISO 문자열(또는 undefined)을 Date 타입으로 변환한다.
 function toDate(input?: string) {
   return input ? new Date(input) : undefined
 }
 
 // 신부님 목록 페이지를 조회한다.
+// 목록 조회 서비스: 쿼리 결과와 다음 커서(nextCursor)를 함께 반환한다.
 export async function getPriestPage(params: {
   take?: number
   cursor?: string
@@ -25,11 +29,13 @@ export async function getPriestPage(params: {
 }
 
 // 신부님 상세를 조회한다.
+// 단건 조회 서비스: id로 신부 프로필 1건을 조회한다.
 export async function getPriestById(id: string) {
   return findPriestById(id)
 }
 
 // 신부님 프로필을 생성한다.
+// 생성 서비스: trim/기본값 정규화 후 PRIEST 프로필을 저장한다.
 export async function createPriestProfile(input: UpsertPriestInputDto) {
   return createPriest({
     name: input.name.trim(),
@@ -47,6 +53,7 @@ export async function createPriestProfile(input: UpsertPriestInputDto) {
 }
 
 // 신부님 프로필을 수정한다.
+// 수정 서비스: 입력값 정규화 후 기존 PRIEST 프로필을 갱신한다.
 export async function updatePriestProfile(
   id: string,
   input: UpsertPriestInputDto,
@@ -67,6 +74,7 @@ export async function updatePriestProfile(
 }
 
 // 신부님 프로필을 삭제한다.
+// 삭제 서비스: id 기준으로 PRIEST 프로필을 제거한다.
 export async function removePriestProfile(id: string) {
   return deletePriest(id)
 }

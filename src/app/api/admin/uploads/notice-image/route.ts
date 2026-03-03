@@ -1,9 +1,11 @@
+// 공지사항 본문 이미지 MinIO 업로드 API
 import { randomUUID } from "node:crypto"
 import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
 
+// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 function getAuthorIdFromCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
@@ -12,6 +14,7 @@ function getAuthorIdFromCookieHeader(cookieHeader: string) {
     ?.split("=")[1]
 }
 
+// 세션 쿠키를 기준으로 관리자 로그인 여부를 검증한다.
 async function assertAdmin(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -19,6 +22,7 @@ async function assertAdmin(request: Request) {
   return authService.getLoginCandidateById(authorId)
 }
 
+// MinIO 환경변수를 검증한 뒤 S3Client를 생성한다.
 function getS3Client() {
   const endpoint = process.env.MINIO_ENDPOINT
   const accessKeyId = process.env.MINIO_ACCESS_KEY
@@ -36,6 +40,7 @@ function getS3Client() {
   })
 }
 
+// 이미지 파일 검증 후 MinIO에 업로드하고 접근 URL을 반환한다.
 export async function POST(request: Request) {
   const author = await assertAdmin(request)
   if (!author) {

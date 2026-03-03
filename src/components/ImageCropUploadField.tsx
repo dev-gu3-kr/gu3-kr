@@ -1,3 +1,4 @@
+// 신부/수녀 폼 공용: 이미지 선택→크롭→업로드/제거 UI 컴포넌트
 "use client"
 
 import Image from "next/image"
@@ -17,6 +18,7 @@ type Props = {
   disabled?: boolean
 }
 
+// 업로드/삭제 진행률 표시 전용 프리젠테이션 컴포넌트.
 function UploadProgressBar({
   progress,
   text,
@@ -39,6 +41,7 @@ function UploadProgressBar({
   )
 }
 
+// 이미지 선택→크롭(13:16)→업로드/삭제를 한 필드에서 처리한다.
 export function ImageCropUploadField({
   label = "프로필 이미지",
   value,
@@ -69,10 +72,12 @@ export function ImageCropUploadField({
     return () => window.clearInterval(timer)
   }, [isUploading, isRemoving])
 
+  // 숨김 file input을 열어 이미지 선택을 시작한다.
   function handleSelectClick() {
     fileInputRef.current?.click()
   }
 
+  // 선택 파일을 읽어 크롭 편집 상태(sourceImage)로 전환한다.
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
@@ -100,11 +105,13 @@ export function ImageCropUploadField({
     event.target.value = ""
   }
 
+  // 크롭 편집 모드를 종료하고 선택 상태를 해제한다.
   function handleCancelCrop() {
     if (isUploading || isPreparing || isRemoving) return
     setSourceImage(null)
   }
 
+  // 현재 이미지 URL 제거 + 필요 시 서버 물리 삭제를 수행한다.
   async function handleRemoveImage() {
     if (isUploading || isPreparing || isRemoving) return
 
@@ -127,6 +134,7 @@ export function ImageCropUploadField({
     }
   }
 
+  // 크롭 결과를 webp로 변환해 업로드하고 form 값을 최신 URL로 교체한다.
   function handleUploadCropped() {
     if (!cropperRef.current?.cropper) return
 

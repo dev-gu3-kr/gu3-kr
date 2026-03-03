@@ -39,10 +39,12 @@ const CHOSEONG = [
   "ㅎ",
 ] as const
 
+// 검색어가 초성(ㄱ-ㅎ)만으로 구성됐는지 판별한다.
 function isChoseongQuery(query: string) {
   return /^[ㄱ-ㅎ\s]+$/.test(query.trim())
 }
 
+// 한글 완성형 문자열을 초성 문자열로 변환해 초성 검색 비교에 사용한다.
 function toChoseongText(input: string) {
   let result = ""
 
@@ -61,6 +63,7 @@ function toChoseongText(input: string) {
   return result
 }
 
+// 서버에서 받은 아이템을 초성 기준으로 클라이언트에서 후처리 필터링한다.
 function matchByChoseong(item: NoticeListItemDto, rawQuery: string) {
   const query = rawQuery.replace(/\s+/g, "")
   const haystack = `${item.title} ${item.content}`.replace(/\s+/g, "")
@@ -68,6 +71,8 @@ function matchByChoseong(item: NoticeListItemDto, rawQuery: string) {
   return toChoseongText(haystack).includes(query)
 }
 
+// 공지 목록 1페이지를 조회한다.
+// 일반 텍스트 검색은 서버 q 파라미터를 사용하고, 초성 검색은 클라이언트 후처리로 동작한다.
 async function fetchNoticePage(params: {
   cursor?: string | null
   filters: NoticeListFilters
@@ -108,6 +113,8 @@ async function fetchNoticePage(params: {
   }
 }
 
+// 공지 목록 무한 스크롤 쿼리를 구성한다.
+// 필터가 없는 첫 진입에서만 initialPage를 초기 데이터로 사용한다.
 export function useNoticeListInfinite(params: {
   initialPage?: NoticePageResponse
   filters: NoticeListFilters

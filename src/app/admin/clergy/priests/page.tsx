@@ -1,3 +1,4 @@
+// 신부 목록 페이지: 카드 레이아웃/이미지 비율/메타 정보 표시
 import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
@@ -9,6 +10,7 @@ type PriestListResponseDto = {
   items?: PriestListItemDto[]
 }
 
+// 신부님 목록을 조회해 카드 형태로 렌더링한다.
 export default async function AdminPriestsPage() {
   const response = await serverApiFetch
     .get("/api/admin/clergy/priests")

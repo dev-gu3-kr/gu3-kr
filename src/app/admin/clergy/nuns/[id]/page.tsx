@@ -1,3 +1,4 @@
+// 수녀 상세 페이지: 사진 + 정보 아이콘 레이아웃
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -17,6 +18,7 @@ type NunDetailResponseDto = {
   item?: NunDetailDto
 }
 
+// 수녀님 상세를 조회하고, 없으면 404로 처리한다.
 export default async function AdminNunViewPage(props: {
   params: Promise<{ id: string }>
 }) {

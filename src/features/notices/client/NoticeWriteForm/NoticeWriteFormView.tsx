@@ -1,3 +1,4 @@
+// 공지 작성/수정 폼 UI: RHF + Toast UI Editor 동기화/이미지 업로드 훅
 "use client"
 
 import { useEffect, useRef, useState } from "react"
@@ -41,6 +42,7 @@ type ToastEditorConstructor = new (options: {
   }
 }) => ToastEditorLike
 
+// 공지 폼 렌더러: RHF 상태와 Toast UI 에디터 상태를 동기화한다.
 export function NoticeWriteFormView({
   onSubmitAction,
   isLoading,
@@ -108,6 +110,7 @@ export function NoticeWriteFormView({
         hideModeSwitch: false,
         usageStatistics: false,
         hooks: {
+          // 에디터 이미지 삽입 시 업로드 API를 호출하고 반환 URL을 본문에 삽입한다.
           addImageBlobHook: async (blob, callback) => {
             if (isUploadingImageRef.current) return
 
@@ -148,6 +151,7 @@ export function NoticeWriteFormView({
         },
       }) as ToastEditorLike
 
+      // 에디터 변경을 hidden content 필드에 반영해 RHF 검증/제출과 연결한다.
       editor.on("change", () => {
         const markdown = editor.getMarkdown()
         setValue("content", markdown, {

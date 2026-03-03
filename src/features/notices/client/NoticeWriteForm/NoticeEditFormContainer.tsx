@@ -1,3 +1,4 @@
+// 공지 수정 컨테이너: PATCH 연동 + 에디터 이미지 업로드
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -15,6 +16,7 @@ type NoticeEditFormContainerProps = {
   initialIsPublished: boolean
 }
 
+// 공지 수정 컨테이너: PATCH 요청과 수정 완료 후 상세 복귀 흐름을 담당한다.
 export function NoticeEditFormContainer({
   noticeId,
   initialTitle,
@@ -27,6 +29,7 @@ export function NoticeEditFormContainer({
   const [isError, setIsError] = useState(false)
   const router = useRouter()
 
+  // 본문 이미지 업로드: formData 전송 후 삽입 가능한 이미지 URL을 반환한다.
   async function uploadNoticeImage(file: File) {
     const formData = new FormData()
     formData.append("file", file)
@@ -49,6 +52,7 @@ export function NoticeEditFormContainer({
     return json.url
   }
 
+  // 수정 저장: 성공 시 상세로 이동, 실패 시 메시지 상태로 피드백한다.
   const handleSubmit = async (values: CreateNoticeInputDto) => {
     setIsLoading(true)
     setMessage(null)
