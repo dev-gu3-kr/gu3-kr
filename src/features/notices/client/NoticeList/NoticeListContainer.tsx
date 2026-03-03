@@ -20,9 +20,19 @@ type NoticeListContainerProps = {
 }
 
 export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
+  const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<NoticePublishFilterDto>("all")
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
+
+  // 입력 중에는 즉시 UI만 반영하고, 네트워크 검색은 300ms 디바운스로 실행한다.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setQuery(queryInput)
+    }, 300)
+
+    return () => window.clearTimeout(timer)
+  }, [queryInput])
 
   const {
     data,
@@ -93,8 +103,8 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
 
         <div className="relative sm:max-w-sm sm:flex-1">
           <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            value={queryInput}
+            onChange={(event) => setQueryInput(event.target.value)}
             placeholder="검색"
             className="w-full rounded-md border px-3 py-2 pr-10 text-sm"
           />
