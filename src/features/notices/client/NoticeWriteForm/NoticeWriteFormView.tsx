@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react"
 import { useForm } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import type { CreateNoticeInputDto } from "@/features/notices/isomorphic"
 
 type NoticeWriteFormViewProps = {
@@ -98,7 +101,7 @@ export function NoticeWriteFormView({
         <label htmlFor="title" className="text-sm">
           제목 <span className="text-red-500">*</span>
         </label>
-        <input
+        <Input
           id="title"
           {...register("title", {
             validate: (value) =>
@@ -116,7 +119,7 @@ export function NoticeWriteFormView({
         <label htmlFor="summary" className="text-sm">
           요약
         </label>
-        <input
+        <Input
           id="summary"
           {...register("summary")}
           className="w-full rounded-md border px-3 py-2"
@@ -146,8 +149,14 @@ export function NoticeWriteFormView({
         />
       </div>
 
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" {...register("isPublished")} />
+      <label htmlFor="is-published" className="flex items-center gap-2 text-sm">
+        <Checkbox
+          id="is-published"
+          checked={Boolean(watch("isPublished"))}
+          onCheckedChange={(checked: boolean | "indeterminate") =>
+            setValue("isPublished", Boolean(checked), { shouldDirty: true })
+          }
+        />
         작성 후 바로 공개
       </label>
 
@@ -161,13 +170,13 @@ export function NoticeWriteFormView({
         </p>
       ) : null}
 
-      <button
+      <Button
         type="submit"
         disabled={isLoading}
         className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60 sm:w-auto"
       >
         {isLoading ? "저장 중..." : submitLabel}
-      </button>
+      </Button>
     </form>
   )
 }
