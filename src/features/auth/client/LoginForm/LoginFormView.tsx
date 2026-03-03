@@ -1,9 +1,17 @@
 type Props = {
+  // 로그인 폼 제출 핸들러
   onSubmit: (formData: FormData) => void
+  // 로그인 요청 중 버튼 비활성화 제어
   isLoading?: boolean
+  // 로그인 실패 시 노출할 에러 메시지
+  errorMessage?: string | null
 }
 
-export function LoginFormView({ onSubmit, isLoading = false }: Props) {
+export function LoginFormView({
+  onSubmit,
+  isLoading = false,
+  errorMessage = null,
+}: Props) {
   return (
     <form
       action={(formData) => {
@@ -36,6 +44,11 @@ export function LoginFormView({ onSubmit, isLoading = false }: Props) {
           className="w-full rounded-md border px-3 py-2"
         />
       </div>
+
+      {/* 로그인 실패 메시지 노출 영역 */}
+      {errorMessage ? (
+        <p className="text-sm text-red-600">{errorMessage}</p>
+      ) : null}
 
       <button
         type="submit"

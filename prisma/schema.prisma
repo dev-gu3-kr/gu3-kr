@@ -2,15 +2,198 @@ generator client {
   provider = "prisma-client-js"
 }
 
-datasource db {
+ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  VIEWER
+}
+
+enum PostCategory {
+  NOTICE
+  BULLETIN
+  GALLERY
+  YOUTH_BLOG
+}
+
+enum ClergyType {
+  PRIEST
+  NUN
+}
+
+enum InquiryStatus {
+  RECEIVED
+  IN_PROGRESS
+  DONE
+}
+
+
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  role         String   @default("admin")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id           String      @id @default(cuid())  // 고유 식별자
+  email        String?     @unique               // 관리자 이메일(선택, 중복 불가)
+  username     String      @unique               // 로그인 계정 ID(중복 불가)
+  passwordHash String                            // 해시된 비밀번호
+  displayName  String                            // 관리자 표시 이름
+  role         UserRole    @default(EDITOR)      // 관리자 권한 역할
+  isActive     Boolean     @default(true)        // 활성/비활성 상태
+  createdAt    DateTime    @default(now())       // 생성 시각
+  updatedAt    DateTime    @updatedAt            // 수정 시각
+
+  posts        Post[]                            // 작성한 게시글 목록
+  events       Event[]                           // 작성한 일정 목록
+  inquiryNotes InquiryNote[]                     // 작성한 문의 처리 메모 목록
+}
+
+model Post {
+  id            String        @id @default(cuid())                             // 고유 식별자
+  category      PostCategory                                                   // 게시글 카테고리
+  title         String                                                         // 제목
+  slug          String        @unique                                          // URL 식별자(중복 불가)
+  summary       String?                                                        // 요약문
+  content       String        @db.Text                                         // 본문 내용
+  isPublished   Boolean       @default(false)                                  // 공개 여부
+  publishedAt   DateTime?                                                      // 공개 시각
+  isPinned      Boolean       @default(false)                                  // 상단 고정 여부
+  viewCount     Int           @default(0)                                      // 조회수
+  authorId      String                                                         // 작성자(User) FK
+  createdAt     DateTime      @default(now())                                  // 생성 시각
+  updatedAt     DateTime      @updatedAt                                       // 수정 시각
+
+  author        User          @relation(fields: [authorId], references: [id])  // 작성자(User) 관계
+  attachments   Attachment[]                                                   // 첨부파일 목록
+  galleryImages GalleryImage[]                                                 // 갤러리 이미지 목록
+
+  @@index([category, isPublished, publishedAt])
+  @@index([createdAt])
+}
+
+model Attachment {
+  id           String   @id @default(cuid())                                              // 고유 식별자
+  postId       String                                                                     // 게시글(Post) FK
+  fileName     String                                                                     // 저장 파일명
+  originalName String                                                                     // 업로드 원본 파일명
+  mimeType     String                                                                     // 파일 MIME 타입
+  sizeBytes    Int                                                                        // 파일 크기(byte)
+  url          String                                                                     // 파일 접근 URL
+  createdAt    DateTime @default(now())                                                   // 생성 시각
+
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)  // 게시글(Post) 관계
+
+  @@index([postId])
+}
+
+model GalleryImage {
+  id           String   @id @default(cuid())                                              // 고유 식별자
+  postId       String                                                                     // 게시글(Post) FK
+  fileName     String                                                                     // 저장 파일명
+  originalName String                                                                     // 업로드 원본 파일명
+  mimeType     String                                                                     // 파일 MIME 타입
+  sizeBytes    Int                                                                        // 파일 크기(byte)
+  url          String                                                                     // 파일 접근 URL
+  sortOrder    Int      @default(0)                                                       // 노출 정렬 순서
+  isCover      Boolean  @default(false)                                                   // 대표 이미지 여부
+  createdAt    DateTime @default(now())                                                   // 생성 시각
+
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)  // 게시글(Post) 관계
+
+  @@index([postId, sortOrder])
+}
+
+model Event {
+  id          String    @id @default(cuid())                                // 고유 식별자
+  title       String                                                        // 제목
+  description String?   @db.Text                                            // 설명/본문(선택)
+  startsAt    DateTime                                                      // 일정 시작 일시
+  endsAt      DateTime                                                      // 일정 종료 일시
+  isPublished Boolean   @default(true)                                      // 공개 여부
+  createdById String                                                        // 작성자(User) FK
+  createdAt   DateTime  @default(now())                                     // 생성 시각
+  updatedAt   DateTime  @updatedAt                                          // 수정 시각
+
+  createdBy   User      @relation(fields: [createdById], references: [id])  // 작성자(User) 관계
+
+  @@index([startsAt, endsAt])
+  @@index([isPublished])
+}
+
+model MassSchedule {
+  id          String   @id @default(cuid())  // 고유 식별자
+  title       String                         // 제목
+  description String?  @db.Text              // 설명/본문(선택)
+  sortOrder   Int      @default(0)           // 노출 정렬 순서
+  isActive    Boolean  @default(true)        // 활성/비활성 상태
+  createdAt   DateTime @default(now())       // 생성 시각
+  updatedAt   DateTime @updatedAt            // 수정 시각
+
+  @@index([isActive, sortOrder])
+}
+
+model ClergyProfile {
+  id            String     @id @default(cuid())  // 고유 식별자
+  type          ClergyType                       // 성직자 구분(신부/수녀)
+  name          String                           // 이름
+  baptismalName String?                          // 세례명
+  duty          String                           // 담당 직무/영역
+  feastMonth    Int?                             // 축일 월(선택)
+  feastDay      Int?                             // 축일 일(선택)
+  termStart     DateTime?                        // 재임 시작일(선택)
+  termEnd       DateTime?                        // 재임 종료일(선택)
+  phone         String?                          // 연락처(선택)
+  imageUrl      String?                          // 프로필 이미지 URL(선택)
+  isCurrent     Boolean    @default(true)        // 현직 여부
+  sortOrder     Int        @default(0)           // 노출 정렬 순서
+  createdAt     DateTime   @default(now())       // 생성 시각
+  updatedAt     DateTime   @updatedAt            // 수정 시각
+
+  @@index([type, isCurrent, sortOrder])
+}
+
+model PastoralCouncilMember {
+  id            String   @id @default(cuid())  // 고유 식별자
+  name          String                         // 이름
+  baptismalName String?                        // 세례명
+  duty          String                         // 담당 직무/영역
+  phone         String                         // 연락처(선택)
+  imageUrl      String?                        // 프로필 이미지 URL(선택)
+  sortOrder     Int      @default(0)           // 노출 정렬 순서
+  isActive      Boolean  @default(true)        // 활성/비활성 상태
+  createdAt     DateTime @default(now())       // 생성 시각
+  updatedAt     DateTime @updatedAt            // 수정 시각
+
+  @@index([isActive, sortOrder])
+}
+
+
+model Inquiry {
+  id        String        @id @default(cuid())  // 고유 식별자
+  title     String                              // 제목
+  email     String?                             // 관리자 이메일(선택, 중복 불가)
+  phone     String?                             // 연락처(선택)
+  content   String        @db.Text              // 본문 내용
+  status    InquiryStatus @default(RECEIVED)    // 문의 처리 상태
+  isPrivate Boolean       @default(true)        // 비공개 문의 여부
+  createdAt DateTime      @default(now())       // 생성 시각
+  updatedAt DateTime      @updatedAt            // 수정 시각
+  handledAt DateTime?                           // 처리 완료 시각(선택)
+
+  notes InquiryNote[]                           // 문의 처리 메모 목록
+
+  @@index([status, createdAt])
+}
+
+model InquiryNote {
+  id        String   @id @default(cuid())                                              // 고유 식별자
+  inquiryId String                                                                     // 문의(Inquiry) FK
+  authorId  String                                                                     // 작성자(User) FK
+  note      String   @db.Text                                                          // 처리 메모 내용
+  createdAt DateTime @default(now())                                                   // 생성 시각
+
+  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)  // 문의(Inquiry) 관계
+  author  User    @relation(fields: [authorId], references: [id])                      // 작성자(User) 관계
+
+  @@index([inquiryId])
 }
