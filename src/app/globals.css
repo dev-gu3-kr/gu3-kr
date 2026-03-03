@@ -124,3 +124,93 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Toast UI 내부 Markdown 탭(Write/Preview)이 본문 영역에 텍스트로 섞여 보이는 현상을 숨긴다. */
+.toastui-editor-defaultUI .toastui-editor-md-tab-container {
+  display: none !important;
+}
+
+/* Markdown 탭을 숨긴 뒤 에디터 본문 영역의 상단 오프셋을 보정한다. */
+.toastui-editor-main .toastui-editor-md-tab-style > .toastui-editor,
+.toastui-editor-main .toastui-editor-md-tab-style > .toastui-editor-md-preview {
+  top: 0 !important;
+}
+
+/* 모바일에서 Toast UI 편집기 가독성과 조작성을 보정한다. */
+@media (max-width: 640px) {
+  .toastui-editor-defaultUI-toolbar {
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .toastui-editor-defaultUI-toolbar .toastui-editor-toolbar-group {
+    flex-shrink: 0;
+  }
+
+  .toastui-editor-contents {
+    font-size: 15px;
+    line-height: 1.65;
+  }
+}
+
+
+/* 모바일에서 Toast UI가 고정 폭으로 커져 가로 스크롤을 만드는 현상을 방지한다. */
+@media (max-width: 640px) {
+  .toastui-editor-defaultUI,
+  .toastui-editor-main,
+  .toastui-editor-main-container,
+  .toastui-editor-md-container,
+  .toastui-editor-ww-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .toastui-editor-defaultUI {
+    overflow: hidden;
+  }
+
+  .toastui-editor-md-tab-container {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+}
+
+/* 모바일에서 Toast UI 더보기(…) 팝오버가 잘리지 않도록 overflow/z-index를 보정한다. */
+@media (max-width: 640px) {
+  .toastui-editor-defaultUI-toolbar {
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .toastui-editor-toolbar-group,
+  .toastui-editor-toolbar-item-wrapper {
+    overflow: visible;
+  }
+
+  .toastui-editor-dropdown-toolbar,
+  .toastui-editor-popup {
+    z-index: 80 !important;
+  }
+}
+
+/* 모바일에서 Toast UI 더보기 툴바가 좌측으로 밀리며 잘리는 현상을 보정한다. */
+@media (max-width: 640px) {
+  .toastui-editor-dropdown-toolbar {
+    left: 8px !important;
+    right: 8px !important;
+    width: auto !important;
+    max-width: calc(100vw - 16px) !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0 4px;
+    box-sizing: border-box;
+  }
+
+  .toastui-editor-dropdown-toolbar .toastui-editor-toolbar-group {
+    flex-shrink: 0;
+  }
+}
