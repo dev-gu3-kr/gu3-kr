@@ -21,9 +21,9 @@ export default async function AdminNoticesPage() {
     <main className="space-y-6">
       <section className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">공지사항 목록</h1>
+          <h1 className="text-2xl font-semibold">공지사항 관리</h1>
           <p className="text-sm text-neutral-600">
-            등록된 공지사항 목록을 확인하고 새 글을 작성합니다.
+            공지사항 목록을 확인하고 등록/수정합니다.
           </p>
         </div>
 
