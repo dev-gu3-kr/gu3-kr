@@ -1,0 +1,59 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.4/schema.json",
+  "files": {
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "**/*.mjs",
+      "**/*.cjs",
+      "**/*.json",
+      "**/*.jsonc",
+      "!node_modules",
+      "!.next",
+      "!out",
+      "!dist",
+      "!coverage"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "style": {
+        "noRestrictedImports": {
+          "level": "error",
+          "options": {
+            "patterns": [
+              {
+                "group": [
+                  "@/features/*/**",
+                  "**/features/*/**",
+                  "!@/features/*/server",
+                  "!@/features/*/server/index",
+                  "!@/features/*/client",
+                  "!@/features/*/client/index",
+                  "!@/features/*/isomorphic",
+                  "!@/features/*/isomorphic/index"
+                ],
+                "message": "Deep import 금지: feature 배럴(index) 경유 import만 허용됩니다."
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "double",
+      "semicolons": "asNeeded"
+    }
+  }
+}
