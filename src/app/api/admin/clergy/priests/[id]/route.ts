@@ -88,6 +88,38 @@ export async function PATCH(
   }
 
   const json = await request.json().catch(() => null)
+
+  const imageOnlyPayload =
+    json &&
+    typeof json === "object" &&
+    Object.keys(json as Record<string, unknown>).length === 1 &&
+    typeof (json as { imageUrl?: unknown }).imageUrl === "string"
+
+  if (imageOnlyPayload) {
+    const { id } = await context.params
+    const item = await priestService.getPriestById(id)
+    if (!item)
+      return NextResponse.json(
+        { ok: false, message: "Target not found." },
+        { status: 404 },
+      )
+
+    await priestService.updatePriestProfile(id, {
+      name: item.name,
+      baptismalName: item.baptismalName ?? undefined,
+      duty: item.duty,
+      feastMonth: item.feastMonth ?? undefined,
+      feastDay: item.feastDay ?? undefined,
+      termStart: item.termStart ? item.termStart.toISOString() : undefined,
+      termEnd: item.termEnd ? item.termEnd.toISOString() : undefined,
+      phone: item.phone ?? undefined,
+      imageUrl: (json as { imageUrl: string }).imageUrl,
+      isCurrent: item.isCurrent,
+      sortOrder: item.sortOrder,
+    })
+
+    return NextResponse.json({ ok: true })
+  }
   const parsed = upsertPriestSchema.safeParse(json)
 
   if (!parsed.success) {

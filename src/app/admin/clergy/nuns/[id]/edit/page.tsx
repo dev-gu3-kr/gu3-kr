@@ -32,39 +32,43 @@ export default async function AdminNunEditPage(props: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await props.params
+
   const response = await serverApiFetch
     .get(`/api/admin/clergy/nuns/${id}`)
     .send()
+
   if (response.status === 404) notFound()
 
   const json = (await response
     .json()
     .catch(() => null)) as NunDetailResponseDto | null
+
   if (!response.ok || !json?.ok || !json.item) notFound()
 
   return (
     <main className="space-y-6">
-      <section className="flex items-start justify-between gap-4">
+      <section className="space-y-4 rounded-xl bg-white p-5">
+        <Link
+          href={`/admin/clergy/nuns/${id}`}
+          className="inline-flex text-sm text-neutral-500 hover:text-neutral-800"
+        >
+          ← 상세로 돌아가기
+        </Link>
+
         <div className="space-y-2">
           <h1 className="text-2xl font-semibold">수녀님 수정</h1>
           <p className="text-sm text-neutral-600">
             수녀님 소개 정보를 수정합니다.
           </p>
         </div>
-        <Link
-          href={`/admin/clergy/nuns/${id}`}
-          className="inline-flex rounded-md border px-3 py-2 text-sm hover:bg-neutral-50"
-        >
-          상세로 돌아가기
-        </Link>
-      </section>
 
-      <section className="rounded-lg border p-4">
-        <NunFormContainer
-          mode="edit"
-          nunId={id}
-          initialValues={toInput(json.item)}
-        />
+        <section className="pt-1">
+          <NunFormContainer
+            mode="edit"
+            nunId={id}
+            initialValues={toInput(json.item)}
+          />
+        </section>
       </section>
     </main>
   )

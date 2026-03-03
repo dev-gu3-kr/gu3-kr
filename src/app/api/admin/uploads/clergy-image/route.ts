@@ -1,5 +1,9 @@
 import { randomUUID } from "node:crypto"
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import {
+  DeleteObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
@@ -17,6 +21,24 @@ async function assertAdmin(request: Request) {
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
   if (!authorId) return null
   return authService.getLoginCandidateById(authorId)
+}
+
+function resolveObjectKey(params: {
+  key?: string
+  url?: string
+  bucket: string
+}) {
+  const { key, url, bucket } = params
+
+  if (key?.trim()) return key.trim()
+  if (!url?.trim()) return null
+
+  const normalizedUrl = url.trim()
+  const marker = `/${bucket}/`
+  const markerIndex = normalizedUrl.indexOf(marker)
+  if (markerIndex < 0) return null
+
+  return normalizedUrl.slice(markerIndex + marker.length)
 }
 
 function getS3Client() {
@@ -91,10 +113,54 @@ export async function POST(request: Request) {
     }),
   )
 
-  const base = (process.env.MINIO_PUBLIC_BASE_URL || "").replace(/\/$/, "")
-  const url = base
-    ? `${base}/${bucket}/${key}`
-    : `${process.env.MINIO_ENDPOINT}/${bucket}/${key}`
+  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
+  const url = `${endpoint}/${bucket}/${key}`
 
   return NextResponse.json({ ok: true, url, key })
+}
+
+export async function DELETE(request: Request) {
+  const author = await assertAdmin(request)
+  if (!author) {
+    return NextResponse.json(
+      { ok: false, message: "로그인이 필요합니다." },
+      { status: 401 },
+    )
+  }
+
+  const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
+  if (!bucket) {
+    return NextResponse.json(
+      { ok: false, message: "버킷 설정이 비어 있습니다." },
+      { status: 500 },
+    )
+  }
+
+  const body = (await request.json().catch(() => null)) as {
+    key?: string
+    url?: string
+  } | null
+
+  const objectKey = resolveObjectKey({
+    key: body?.key,
+    url: body?.url,
+    bucket,
+  })
+
+  if (!objectKey) {
+    return NextResponse.json(
+      { ok: false, message: "삭제할 이미지 정보를 확인할 수 없습니다." },
+      { status: 400 },
+    )
+  }
+
+  const client = getS3Client()
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: bucket,
+      Key: objectKey,
+    }),
+  )
+
+  return NextResponse.json({ ok: true })
 }

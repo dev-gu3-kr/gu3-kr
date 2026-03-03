@@ -9,7 +9,32 @@ import { PriestFormView } from "./PriestFormView"
 
 function toIsoDateTime(input?: string) {
   if (!input || input.trim() === "") return undefined
-  const date = new Date(input)
+
+  const trimmed = input.trim()
+
+  const koreanMatch = trimmed.match(
+    /^(\d{4})\.\s*(\d{1,2})\.\s*(\d{1,2})\.\s*(오전|오후)\s*(\d{1,2}):(\d{2})$/,
+  )
+
+  if (koreanMatch) {
+    const [, y, m, d, meridiem, hh, mm] = koreanMatch
+    let hour = Number(hh)
+    if (meridiem === "오후" && hour < 12) hour += 12
+    if (meridiem === "오전" && hour === 12) hour = 0
+
+    const date = new Date(
+      Number(y),
+      Number(m) - 1,
+      Number(d),
+      hour,
+      Number(mm),
+      0,
+      0,
+    )
+    return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
+  }
+
+  const date = new Date(trimmed)
   return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
 }
 
@@ -90,10 +115,69 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
     }
   }
 
+  async function uploadClergyImage(file: File, previousUrl?: string) {
+    const formData = new FormData()
+    formData.append("file", file)
+
+    const response = await apiFetch
+      .post("/api/admin/uploads/clergy-image")
+      .init({ body: formData })
+      .send()
+    const json = (await response.json().catch(() => null)) as {
+      ok?: boolean
+      url?: string
+      message?: string
+    } | null
+
+    if (!response.ok || !json?.ok || !json.url) {
+      throw new Error(json?.message ?? "이미지 업로드에 실패했습니다.")
+    }
+
+    if (mode === "edit" && priestId) {
+      const patchResponse = await apiFetch
+        .patch(`/api/admin/clergy/priests/${priestId}`)
+        .json({ imageUrl: json.url })
+        .send()
+
+      const patchJson = (await patchResponse.json().catch(() => null)) as {
+        ok?: boolean
+        message?: string
+      } | null
+
+      if (!patchResponse.ok || !patchJson?.ok) {
+        throw new Error(patchJson?.message ?? "image change save failed")
+      }
+
+      if (previousUrl && previousUrl !== json.url) {
+        await removeClergyImage(previousUrl)
+      }
+    }
+
+    return json.url
+  }
+
+  async function removeClergyImage(url: string) {
+    const response = await apiFetch
+      .del("/api/admin/uploads/clergy-image")
+      .json({ url })
+      .send()
+
+    const json = (await response.json().catch(() => null)) as {
+      ok?: boolean
+      message?: string
+    } | null
+
+    if (!response.ok || !json?.ok) {
+      throw new Error(json?.message ?? "이미지 삭제에 실패했습니다.")
+    }
+  }
+
   return (
     <PriestFormView
       initialValues={initialValues}
       onSubmitAction={handleSubmit}
+      onUploadImageAction={uploadClergyImage}
+      onRemoveImageAction={removeClergyImage}
       submitLabel={mode === "create" ? "저장" : "수정 저장"}
       isLoading={isLoading}
       message={message}

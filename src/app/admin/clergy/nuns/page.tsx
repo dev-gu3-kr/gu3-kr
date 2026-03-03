@@ -1,3 +1,5 @@
+import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
+import Image from "next/image"
 import Link from "next/link"
 import type { NunListItemDto } from "@/features/clergy-nuns/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
@@ -44,27 +46,53 @@ export default async function AdminNunsPage() {
             <Link
               key={item.id}
               href={`/admin/clergy/nuns/${item.id}`}
-              className="grid grid-cols-[80px_1fr] gap-3 rounded-md border p-3 hover:bg-neutral-50"
+              className="grid grid-cols-[104px_1fr] gap-4 rounded-md border p-3 hover:bg-neutral-50"
             >
-              <div className="flex h-20 w-20 items-center justify-center rounded-md border bg-neutral-100 text-xs text-neutral-500">
-                {item.imageUrl ? "이미지" : "사진"}
-              </div>
-              <div className="space-y-1">
-                <p className="font-medium">
-                  이름(세례명): {item.name}
-                  {item.baptismalName ? `(${item.baptismalName})` : ""}
+              {item.imageUrl ? (
+                <Image
+                  src={item.imageUrl}
+                  alt={`${item.name} 사진`}
+                  unoptimized
+                  width={104}
+                  height={128}
+                  className="h-[128px] w-[104px] rounded-md border object-cover"
+                />
+              ) : (
+                <div className="flex h-[128px] w-[104px] items-center justify-center rounded-md border bg-neutral-100 text-xs text-neutral-500">
+                  사진
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <p className="text-base font-medium leading-tight">
+                  {item.name}
+                  {item.baptismalName ? ` · ${item.baptismalName}` : ""}
                 </p>
-                <p className="text-sm text-neutral-600">
-                  담당 영역: {item.duty}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  축일: {item.feastMonth ?? "-"}월 {item.feastDay ?? "-"}일
-                </p>
-                <p className="text-xs text-neutral-500">
-                  재임 기간:{" "}
-                  {item.termStart ? item.termStart.slice(0, 10) : "-"} ~{" "}
-                  {item.termEnd ? item.termEnd.slice(0, 10) : "현재"}
-                </p>
+
+                <div className="space-y-1.5 text-sm text-neutral-700">
+                  <p className="flex items-center gap-1.5">
+                    <BriefcaseBusiness className="h-4 w-4 text-primary" />
+                    <span>
+                      <span className="text-neutral-500">담당영역:</span>{" "}
+                      {item.duty}
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span>
+                      <span className="text-neutral-500">축일:</span>{" "}
+                      {item.feastMonth ?? "-"}월 {item.feastDay ?? "-"}일
+                    </span>
+                  </p>
+                  <p className="flex items-center gap-1.5 text-sm text-neutral-600">
+                    <Clock3 className="h-4 w-4 text-primary" />
+                    <span>
+                      <span className="text-neutral-500">재임기간:</span>{" "}
+                      {item.termStart ? item.termStart.slice(0, 10) : "-"} ~{" "}
+                      {item.termEnd ? item.termEnd.slice(0, 10) : "현재"}
+                    </span>
+                  </p>
+                </div>
               </div>
             </Link>
           ))

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { Controller, useForm } from "react-hook-form"
+import { ImageCropUploadField } from "@/components/ImageCropUploadField"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -15,9 +16,24 @@ import {
 import { Switch } from "@/components/ui/switch"
 import type { UpsertPriestInputDto } from "@/features/clergy-priests/isomorphic"
 
+function toDateTimeLocalValue(input: Date | string) {
+  const date = typeof input === "string" ? new Date(input) : input
+  if (Number.isNaN(date.getTime())) return ""
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  const hours = String(date.getHours()).padStart(2, "0")
+  const minutes = String(date.getMinutes()).padStart(2, "0")
+
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
 type Props = {
   initialValues?: UpsertPriestInputDto
   onSubmitAction: (v: UpsertPriestInputDto) => void
+  onUploadImageAction: (file: File, previousUrl?: string) => Promise<string>
+  onRemoveImageAction: (url: string) => Promise<void>
   submitLabel: string
   isLoading: boolean
   message: string | null
@@ -27,6 +43,8 @@ type Props = {
 export function PriestFormView({
   initialValues,
   onSubmitAction,
+  onUploadImageAction,
+  onRemoveImageAction,
   submitLabel,
   isLoading,
   message,
@@ -48,11 +66,28 @@ export function PriestFormView({
       imageUrl: "",
       isCurrent: true,
       sortOrder: 0,
+      termStart: toDateTimeLocalValue(new Date()),
     },
     mode: "onSubmit",
   })
   const [isNoTermEnd, setIsNoTermEnd] = useState(!initialValues?.termEnd)
+
+  useEffect(() => {
+    if (!initialValues) return
+
+    if (initialValues.termStart) {
+      const formatted = toDateTimeLocalValue(initialValues.termStart)
+      if (formatted) setValue("termStart", formatted)
+    }
+
+    if (initialValues.termEnd) {
+      const formatted = toDateTimeLocalValue(initialValues.termEnd)
+      if (formatted) setValue("termEnd", formatted)
+    }
+  }, [initialValues, setValue])
   const termEnd = watch("termEnd")
+  const imageUrl = watch("imageUrl")
+
   useEffect(() => {
     if (isNoTermEnd && termEnd)
       setValue("termEnd", undefined, { shouldDirty: true })
@@ -60,6 +95,7 @@ export function PriestFormView({
 
   return (
     <form onSubmit={handleSubmit(onSubmitAction)} className="space-y-4">
+      <input type="hidden" {...register("imageUrl")} />
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor="name" className="text-sm">
@@ -253,16 +289,18 @@ export function PriestFormView({
             className="w-full rounded-md border px-3 py-2"
           />
         </div>
-        <div className="space-y-1">
-          <label htmlFor="imageUrl" className="text-sm">
-            이미지 URL
-          </label>
-          <Input
-            id="imageUrl"
-            {...register("imageUrl")}
-            className="w-full rounded-md border px-3 py-2"
-          />
-        </div>
+        <ImageCropUploadField
+          value={imageUrl}
+          onUploadAction={onUploadImageAction}
+          onRemoveImageAction={onRemoveImageAction}
+          onChangeAction={(nextUrl) =>
+            setValue("imageUrl", nextUrl, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+          disabled={isLoading}
+        />
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="flex items-center gap-2 text-sm">
