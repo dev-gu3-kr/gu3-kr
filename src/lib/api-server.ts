@@ -100,5 +100,6 @@ export const serverApiFetch = {
   get: (path: string) => createServerApiBuilder("GET", path),
   post: (path: string) => createServerApiBuilder("POST", path),
   put: (path: string) => createServerApiBuilder("PUT", path),
+  patch: (path: string) => createServerApiBuilder("PATCH", path),
   del: (path: string) => createServerApiBuilder("DELETE", path),
 }

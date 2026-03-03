@@ -26,11 +26,24 @@ export async function createNoticeRecord(params: {
 export async function findNoticePage(params: {
   take: number
   cursor?: string
+  query?: string
+  isPublished?: boolean
 }) {
   // 공지 목록 페이지를 최신순으로 조회한다(cursor 기반 페이지네이션).
   return prisma.post.findMany({
     where: {
       category: "NOTICE",
+      ...(typeof params.isPublished === "boolean"
+        ? { isPublished: params.isPublished }
+        : {}),
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
     },
     orderBy: {
       createdAt: "desc",
@@ -46,6 +59,7 @@ export async function findNoticePage(params: {
       id: true,
       title: true,
       summary: true,
+      content: true,
       isPublished: true,
       createdAt: true,
     },

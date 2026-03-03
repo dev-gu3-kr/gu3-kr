@@ -2,6 +2,8 @@
 
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { toast } from "sonner"
+import type { CreateNoticeInputDto } from "@/features/notices/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { NoticeWriteFormView } from "./NoticeWriteFormView"
 
@@ -20,33 +22,20 @@ export function NoticeEditFormContainer({
   initialContent,
   initialIsPublished,
 }: NoticeEditFormContainerProps) {
-  // 저장 처리 중 상태를 관리한다.
   const [isLoading, setIsLoading] = useState(false)
-  // 사용자 안내 메시지를 관리한다.
   const [message, setMessage] = useState<string | null>(null)
-  // 안내 메시지의 에러 여부를 관리한다.
   const [isError, setIsError] = useState(false)
-  // Toast UI 본문 마크다운 값을 관리한다.
-  const [content, setContent] = useState(initialContent)
   const router = useRouter()
 
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = async (values: CreateNoticeInputDto) => {
     setIsLoading(true)
     setMessage(null)
     setIsError(false)
 
-    const payload = {
-      title: String(formData.get("title") ?? ""),
-      summary: String(formData.get("summary") ?? ""),
-      content: String(formData.get("content") ?? ""),
-      isPublished: formData.get("isPublished") === "true",
-    }
-
     try {
-      // 공지 수정 API를 호출한다.
       const response = await apiFetch
-        .put(`/api/admin/notices/${noticeId}`)
-        .json(payload)
+        .patch(`/api/admin/notices/${noticeId}`)
+        .json(values)
         .send()
 
       const json = (await response.json().catch(() => null)) as {
@@ -59,6 +48,7 @@ export function NoticeEditFormContainer({
       }
 
       setMessage("공지사항이 수정되었습니다.")
+      toast.success("공지사항이 수정되었습니다.")
       router.push(`/admin/notices/${noticeId}`)
       router.refresh()
     } catch (error) {
@@ -77,10 +67,9 @@ export function NoticeEditFormContainer({
       isLoading={isLoading}
       message={message}
       isError={isError}
-      content={content}
-      onContentChangeAction={setContent}
       initialTitle={initialTitle}
       initialSummary={initialSummary ?? undefined}
+      initialContent={initialContent}
       initialIsPublished={initialIsPublished}
       submitLabel="수정 저장"
     />

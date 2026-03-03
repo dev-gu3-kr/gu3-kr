@@ -4,6 +4,7 @@ import { authService } from "@/features/auth/server"
 import type {
   ApiResponseDto,
   NoticePageDto,
+  NoticePublishFilterDto,
 } from "@/features/notices/isomorphic"
 import { createNoticeSchema } from "@/features/notices/isomorphic"
 import { noticeService } from "@/features/notices/server"
@@ -38,17 +39,24 @@ export async function GET(request: Request) {
     )
   }
 
-  // cursor/take 쿼리를 파싱해 페이지를 조회한다.
+  // cursor/take/status/q 쿼리를 파싱해 페이지를 조회한다.
   const { searchParams } = new URL(request.url)
   const cursor = searchParams.get("cursor") || undefined
+  const q = searchParams.get("q")?.trim() || undefined
+  const status = (searchParams.get("status") || "all") as NoticePublishFilterDto
   const takeParam = Number(searchParams.get("take") || 10)
   const take = Number.isFinite(takeParam)
     ? Math.min(Math.max(takeParam, 1), 30)
     : 10
 
+  const isPublished =
+    status === "published" ? true : status === "draft" ? false : undefined
+
   const page = await noticeService.getNoticePage({
     take,
     cursor,
+    query: q,
+    isPublished,
   })
 
   const response: ApiResponseDto<NoticePageDto> = { ok: true, ...page }
@@ -91,10 +99,10 @@ export async function POST(request: Request) {
   }
 
   // 공지사항 레코드를 생성한다.
-  await noticeService.createNotice({
+  const created = await noticeService.createNotice({
     ...parsed.data,
     authorId,
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, id: created.id })
 }

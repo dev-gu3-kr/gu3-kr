@@ -10,11 +10,15 @@ export type CreateNoticeInputDto = {
   isPublished?: boolean
 }
 
+// 공지 공개 상태 필터 DTO 타입이다.
+export type NoticePublishFilterDto = "all" | "published" | "draft"
+
 // 공지 목록 아이템 DTO 타입이다.
 export type NoticeListItemDto = {
   id: string
   title: string
   summary: string | null
+  content: string
   isPublished: boolean
   createdAt: string | Date
 }

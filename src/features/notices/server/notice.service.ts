@@ -43,12 +43,16 @@ export async function createNotice(input: {
 export async function getNoticePage(params: {
   take?: number
   cursor?: string
+  query?: string
+  isPublished?: boolean
 }) {
   // 인피니티 스크롤용 공지 페이지를 반환한다.
   const take = params.take ?? 10
   const items = await findNoticePage({
     take,
     cursor: params.cursor,
+    query: params.query,
+    isPublished: params.isPublished,
   })
 
   const nextCursor = items.length === take ? items[items.length - 1]?.id : null

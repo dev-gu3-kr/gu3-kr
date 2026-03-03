@@ -81,5 +81,6 @@ export const apiFetch = {
   get: (path: string) => createApiBuilder("GET", path),
   post: (path: string) => createApiBuilder("POST", path),
   put: (path: string) => createApiBuilder("PUT", path),
+  patch: (path: string) => createApiBuilder("PATCH", path),
   del: (path: string) => createApiBuilder("DELETE", path),
 }
