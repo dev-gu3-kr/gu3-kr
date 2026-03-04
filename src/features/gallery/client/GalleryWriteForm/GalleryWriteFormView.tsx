@@ -208,6 +208,7 @@ export function GalleryWriteFormView({
           outputWidth={1600}
           outputHeight={900}
           previewClassName="h-28 w-48 rounded-md border object-cover"
+          allowRemove={requireThumbnail}
           disabled={isLoading}
         />
         <input

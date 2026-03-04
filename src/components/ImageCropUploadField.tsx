@@ -19,6 +19,7 @@ type Props = {
   outputWidth?: number
   outputHeight?: number
   previewClassName?: string
+  allowRemove?: boolean
 }
 
 function UploadProgressBar({
@@ -54,6 +55,7 @@ export function ImageCropUploadField({
   outputWidth = 1040,
   outputHeight = 1280,
   previewClassName = "h-32 w-26 rounded-md border object-cover",
+  allowRemove = true,
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cropperRef = useRef<ReactCropperElement | null>(null)
@@ -114,6 +116,11 @@ export function ImageCropUploadField({
   }
 
   async function handleRemoveImage() {
+    if (!allowRemove) {
+      toast.info("썸네일은 삭제할 수 없습니다. 다른 이미지로 교체해 주세요.")
+      return
+    }
+
     if (isUploading || isPreparing || isRemoving) return
 
     try {
@@ -212,7 +219,12 @@ export function ImageCropUploadField({
               variant="outline"
               onClick={handleRemoveImage}
               disabled={
-                disabled || isUploading || isPreparing || isRemoving || !value
+                disabled ||
+                isUploading ||
+                isPreparing ||
+                isRemoving ||
+                !value ||
+                !allowRemove
               }
             >
               이미지 제거
