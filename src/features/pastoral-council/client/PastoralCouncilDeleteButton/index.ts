@@ -1,0 +1,1 @@
+export { PastoralCouncilDeleteButton } from "./PastoralCouncilDeleteButton"
