@@ -1,4 +1,3 @@
-// 신부/수녀 폼 공용: 이미지 선택→크롭→업로드/제거 UI 컴포넌트
 "use client"
 
 import Image from "next/image"
@@ -16,9 +15,12 @@ type Props = {
   onUploadAction: (file: File, previousUrl?: string) => Promise<string>
   onRemoveImageAction?: (currentUrl: string) => Promise<void>
   disabled?: boolean
+  cropAspectRatio?: number
+  outputWidth?: number
+  outputHeight?: number
+  previewClassName?: string
 }
 
-// 업로드/삭제 진행률 표시 전용 프리젠테이션 컴포넌트.
 function UploadProgressBar({
   progress,
   text,
@@ -41,7 +43,6 @@ function UploadProgressBar({
   )
 }
 
-// 이미지 선택→크롭(13:16)→업로드/삭제를 한 필드에서 처리한다.
 export function ImageCropUploadField({
   label = "프로필 이미지",
   value,
@@ -49,6 +50,10 @@ export function ImageCropUploadField({
   onUploadAction,
   onRemoveImageAction,
   disabled = false,
+  cropAspectRatio = 13 / 16,
+  outputWidth = 1040,
+  outputHeight = 1280,
+  previewClassName = "h-32 w-26 rounded-md border object-cover",
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const cropperRef = useRef<ReactCropperElement | null>(null)
@@ -72,12 +77,10 @@ export function ImageCropUploadField({
     return () => window.clearInterval(timer)
   }, [isUploading, isRemoving])
 
-  // 숨김 file input을 열어 이미지 선택을 시작한다.
   function handleSelectClick() {
     fileInputRef.current?.click()
   }
 
-  // 선택 파일을 읽어 크롭 편집 상태(sourceImage)로 전환한다.
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0]
     if (!file) return
@@ -105,13 +108,11 @@ export function ImageCropUploadField({
     event.target.value = ""
   }
 
-  // 크롭 편집 모드를 종료하고 선택 상태를 해제한다.
   function handleCancelCrop() {
     if (isUploading || isPreparing || isRemoving) return
     setSourceImage(null)
   }
 
-  // 현재 이미지 URL 제거 + 필요 시 서버 물리 삭제를 수행한다.
   async function handleRemoveImage() {
     if (isUploading || isPreparing || isRemoving) return
 
@@ -134,7 +135,6 @@ export function ImageCropUploadField({
     }
   }
 
-  // 크롭 결과를 webp로 변환해 업로드하고 form 값을 최신 URL로 교체한다.
   function handleUploadCropped() {
     if (!cropperRef.current?.cropper) return
 
@@ -143,8 +143,8 @@ export function ImageCropUploadField({
 
     cropperRef.current.cropper
       .getCroppedCanvas({
-        width: 1040,
-        height: 1280,
+        width: outputWidth,
+        height: outputHeight,
         imageSmoothingQuality: "high",
       })
       .toBlob(
@@ -152,10 +152,7 @@ export function ImageCropUploadField({
           try {
             if (!blob) throw new Error("크롭 이미지를 생성하지 못했습니다.")
 
-            const file = new File([blob], filename, {
-              type: "image/webp",
-            })
-
+            const file = new File([blob], filename, { type: "image/webp" })
             const nextUrl = await onUploadAction(file, value)
             setUploadProgress(100)
             onChangeAction(nextUrl)
@@ -244,10 +241,10 @@ export function ImageCropUploadField({
             <Image
               src={value}
               alt="preview"
-              width={112}
-              height={112}
+              width={320}
+              height={192}
               unoptimized
-              className="h-32 w-26 rounded-md border object-cover"
+              className={previewClassName}
             />
           ) : null}
         </div>
@@ -258,7 +255,7 @@ export function ImageCropUploadField({
               ref={cropperRef}
               src={sourceImage}
               style={{ height: 360, width: "100%" }}
-              aspectRatio={13 / 16}
+              aspectRatio={cropAspectRatio}
               viewMode={1}
               background={false}
               responsive
