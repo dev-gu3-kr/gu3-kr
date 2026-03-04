@@ -87,6 +87,10 @@ export function BulletinWriteFormView({
           className={errors.file ? "border-red-500 ring-1 ring-red-500" : ""}
         />
 
+        <p className="text-xs text-neutral-500">
+          지원 형식: pdf, doc, docx, hwp, hwpx (최대 20MB)
+        </p>
+
         {!requireFile && currentFileName && currentFileUrl ? (
           <p className="text-xs text-neutral-600">
             현재 파일:{" "}
