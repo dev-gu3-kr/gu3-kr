@@ -82,7 +82,7 @@ function createServerApiBuilder(
       // reverse proxy 환경을 포함해 절대 URL을 계산한다.
       const baseUrl = await getBaseUrl()
 
-      return fetch(`${baseUrl}${requestPath}`, {
+      const init: RequestInit = {
         ...requestInit,
         headers: {
           ...(requestInit.headers ?? {}),
@@ -90,7 +90,14 @@ function createServerApiBuilder(
         },
         // 서버 페이지 데이터는 기본적으로 최신 상태를 우선한다.
         cache: requestInit.cache ?? "no-store",
-      })
+      }
+
+      try {
+        return await fetch(`${baseUrl}${requestPath}`, init)
+      } catch {
+        // reverse proxy/터널 호스트가 개발 머신에서 접근 불가할 때 localhost로 재시도한다.
+        return fetch(`http://localhost:3000${requestPath}`, init)
+      }
     },
   }
 }
