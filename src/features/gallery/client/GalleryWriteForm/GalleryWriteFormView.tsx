@@ -22,6 +22,7 @@ type ToastEditorLike = {
 type ToastEditorConstructor = new (options: {
   el: HTMLElement
   height: string
+  minHeight?: string
   initialValue: string
   initialEditType: "wysiwyg" | "markdown"
   previewStyle: "vertical" | "tab"
@@ -115,7 +116,8 @@ export function GalleryWriteFormView({
       const Editor = module.default as ToastEditorConstructor
       const editor = new Editor({
         el: mountRef.current,
-        height: window.innerWidth < 640 ? "260px" : "360px",
+        height: "auto",
+        minHeight: window.innerWidth < 640 ? "320px" : "520px",
         initialValue: initialContent ?? "",
         initialEditType: "wysiwyg",
         previewStyle: "vertical",
