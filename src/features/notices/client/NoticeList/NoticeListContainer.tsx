@@ -25,7 +25,6 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
   const [status, setStatus] = useState<NoticePublishFilterDto>("all")
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
-  // 입력 중에는 즉시 UI만 반영하고, 네트워크 검색은 300ms 디바운스로 실행한다.
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setQuery(queryInput)
@@ -80,26 +79,39 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
   return (
     <div className="space-y-3">
       <section className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <ToggleGroup
-          type="single"
-          value={status}
-          onValueChange={(value) => {
-            if (value === "all" || value === "published" || value === "draft") {
-              setStatus(value)
-            }
-          }}
-          className="justify-start"
-        >
-          <ToggleGroupItem value="all" aria-label="전체">
-            전체
-          </ToggleGroupItem>
-          <ToggleGroupItem value="published" aria-label="공개">
-            공개
-          </ToggleGroupItem>
-          <ToggleGroupItem value="draft" aria-label="비공개">
-            비공개
-          </ToggleGroupItem>
-        </ToggleGroup>
+        <div className="flex items-center gap-2">
+          <ToggleGroup
+            type="single"
+            value={status}
+            onValueChange={(value) => {
+              if (
+                value === "all" ||
+                value === "published" ||
+                value === "draft"
+              ) {
+                setStatus(value)
+              }
+            }}
+            className="justify-start"
+          >
+            <ToggleGroupItem value="all" aria-label="전체">
+              전체
+            </ToggleGroupItem>
+            <ToggleGroupItem value="published" aria-label="공개">
+              공개
+            </ToggleGroupItem>
+            <ToggleGroupItem value="draft" aria-label="비공개">
+              비공개
+            </ToggleGroupItem>
+          </ToggleGroup>
+
+          {isFilterFetching || isFetchingNextPage ? (
+            <p className="inline-flex items-center gap-1 text-xs text-neutral-500 sm:hidden">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              불러오는 중
+            </p>
+          ) : null}
+        </div>
 
         <div className="relative sm:max-w-sm sm:flex-1">
           <input
@@ -111,8 +123,8 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         </div>
 
-        {isFilterFetching ? (
-          <p className="inline-flex items-center gap-1 text-xs text-neutral-500">
+        {isFilterFetching || isFetchingNextPage ? (
+          <p className="hidden items-center gap-1 text-xs text-neutral-500 sm:inline-flex">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             불러오는 중
           </p>
@@ -130,8 +142,8 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
       <div
         className={
           isFilterFetching
-            ? "pointer-events-none space-y-2 opacity-60"
-            : "space-y-2"
+            ? "pointer-events-none relative space-y-2 opacity-60"
+            : "relative space-y-2"
         }
       >
         {items.length === 0 ? (
@@ -160,17 +172,7 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
           ))
         )}
 
-        <div ref={loadMoreRef} className="h-8" />
-
-        {isFetchingNextPage ? (
-          <p className="text-center text-xs text-neutral-500">불러오는 중...</p>
-        ) : null}
-
-        {!hasNextPage && items.length > 0 ? (
-          <p className="text-center text-xs text-neutral-400">
-            마지막 공지입니다.
-          </p>
-        ) : null}
+        <div ref={loadMoreRef} className="h-1" />
       </div>
     </div>
   )

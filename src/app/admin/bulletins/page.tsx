@@ -1,10 +1,65 @@
-export default function AdminBulletinsPage() {
+import Link from "next/link"
+import { BulletinListContainer } from "@/features/bulletins/client"
+import { serverApiFetch } from "@/lib/api-server"
+
+type BulletinListItemDto = {
+  id: string
+  title: string
+  isPublished: boolean
+  createdAt: string
+  attachments: Array<{
+    url: string
+    originalName: string
+  }>
+}
+
+type BulletinListResponseDto = {
+  ok?: boolean
+  items?: BulletinListItemDto[]
+  pageInfo?: {
+    hasMore: boolean
+    nextCursor: string | null
+  }
+}
+
+// 본당주보 목록 초기 페이지를 렌더링하고, 이후 스크롤 로딩은 클라이언트 컨테이너가 이어받는다.
+export default async function AdminBulletinsPage() {
+  const response = await serverApiFetch
+    .get("/api/admin/bulletins")
+    .query({ take: 20 })
+    .send()
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as BulletinListResponseDto | null
+
+  const items = json?.ok && Array.isArray(json.items) ? json.items : []
+  const hasMore = Boolean(json?.pageInfo?.hasMore)
+  const nextCursor = json?.pageInfo?.nextCursor ?? null
+
   return (
-    <main className="space-y-2">
-      {/* 본당주보 관리 페이지 제목 */}
-      <h1 className="text-2xl font-semibold">본당주보 관리</h1>
-      {/* 추후 주보 업로드/목록 UI가 들어올 자리 */}
-      <p className="text-sm text-neutral-600">준비 중입니다.</p>
+    <main className="space-y-6">
+      <section className="flex items-start justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-semibold">본당주보 관리</h1>
+          <p className="text-sm text-neutral-600">
+            주보를 확인하고 바로 다운로드하거나 상세 화면으로 이동할 수
+            있습니다.
+          </p>
+        </div>
+        <Link
+          href="/admin/bulletins/new"
+          className="inline-flex min-w-[92px] items-center justify-center whitespace-nowrap rounded-md bg-black px-3 py-2 text-sm font-medium text-white"
+        >
+          + 등록
+        </Link>
+      </section>
+
+      <BulletinListContainer
+        initialItems={items}
+        initialHasMore={hasMore}
+        initialNextCursor={nextCursor}
+      />
     </main>
   )
 }
