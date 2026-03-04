@@ -2,6 +2,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "react-day-picker/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -213,5 +214,83 @@
 
   .toastui-editor-dropdown-toolbar .toastui-editor-toolbar-group {
     flex-shrink: 0;
+  }
+}
+
+
+/* 모바일 일정 스케줄러 헤더가 줄바꿈되며 깨지지 않도록 툴바를 2단으로 정렬한다. */
+@media (max-width: 640px) {
+  .event-scheduler .fc .fc-toolbar {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .event-scheduler .fc .fc-toolbar-chunk {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: space-between;
+  }
+
+  .event-scheduler .fc .fc-toolbar-title {
+    font-size: 1.75rem;
+    line-height: 1.2;
+  }
+
+  .event-scheduler .fc .fc-button-group {
+    display: inline-flex;
+    flex-wrap: nowrap;
+  }
+
+  .event-scheduler .fc .fc-button {
+    padding: 0.45rem 0.65rem;
+  }
+}
+
+/* 모바일 일정 스케줄러 헤더 재보정: title/left/right를 그리드 영역으로 고정 배치 */
+@media (max-width: 640px) {
+  .event-scheduler .fc .fc-header-toolbar {
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;
+    grid-template-areas:
+      "title title"
+      "left right" !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+
+  .event-scheduler .fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(1) {
+    grid-area: left !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  .event-scheduler .fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(2) {
+    grid-area: title !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .event-scheduler .fc .fc-header-toolbar .fc-toolbar-chunk:nth-child(3) {
+    grid-area: right !important;
+    display: inline-flex !important;
+    justify-content: flex-end !important;
+  }
+
+  .event-scheduler .fc .fc-toolbar-title {
+    font-size: 1.9rem !important;
+    line-height: 1.2 !important;
+  }
+
+  .event-scheduler .fc .fc-button-group {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .event-scheduler .fc .fc-button {
+    padding: 0.45rem 0.65rem !important;
   }
 }
