@@ -1,6 +1,5 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -12,34 +11,13 @@ import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { PriestDeleteButton } from "@/features/clergy-priests/client"
-import type { PriestDetailDto } from "@/features/clergy-priests/isomorphic"
-import { apiFetch } from "@/lib/api"
-
-type PriestDetailResponseDto = {
-  ok?: boolean
-  item?: PriestDetailDto
-}
+import { usePriestDetailQuery } from "@/features/clergy-priests/isomorphic"
 
 export default function AdminPriestViewPage() {
   const params = useParams<{ id: string }>()
   const id = String(params?.id ?? "")
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin", "clergy", "priests", "detail", id],
-    enabled: id.length > 0,
-    queryFn: async () => {
-      const response = await apiFetch
-        .get(`/api/admin/clergy/priests/${id}`)
-        .send()
-      if (!response.ok) throw new Error("신부님 상세를 불러오지 못했습니다.")
-      const json = (await response
-        .json()
-        .catch(() => null)) as PriestDetailResponseDto | null
-      if (!json?.ok || !json.item)
-        throw new Error("신부님 상세를 불러오지 못했습니다.")
-      return json.item
-    },
-  })
+  const { data, isLoading, isError } = usePriestDetailQuery(id)
 
   if (isLoading) {
     return (

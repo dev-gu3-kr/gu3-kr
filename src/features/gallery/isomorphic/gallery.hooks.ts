@@ -1,6 +1,10 @@
 "use client"
 
-import { useInfiniteQuery } from "@tanstack/react-query"
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
 import type { GalleryListItemDto } from "./gallery.types"
 
@@ -12,10 +16,20 @@ type GalleryInfinitePageDto = {
   nextCursor: string | null
 }
 
+type GalleryDetailDto = {
+  id: string
+  title: string
+  content: string
+  isPublished: boolean
+  createdAt: string
+  galleryImages: Array<{ id: string; originalName: string; url: string }>
+}
+
 export const galleryQueryKeys = {
   all: ["admin", "gallery"] as const,
   list: (filters: { query: string; status: GalleryPublishFilterDto }) =>
     [...galleryQueryKeys.all, "list", filters] as const,
+  detail: (id: string) => [...galleryQueryKeys.all, "detail", id] as const,
 } as const
 
 type GalleryListResponseDto = {
@@ -55,6 +69,21 @@ async function fetchGalleryPage(params: {
   }
 }
 
+async function fetchGalleryDetail(id: string) {
+  const response = await apiFetch.get(`/api/admin/gallery/${id}`).send()
+  if (!response.ok) throw new Error("갤러리 상세를 불러오지 못했습니다.")
+
+  const json = (await response.json().catch(() => null)) as {
+    ok?: boolean
+    item?: GalleryDetailDto
+  } | null
+
+  if (!json?.ok || !json.item)
+    throw new Error("갤러리 상세를 불러오지 못했습니다.")
+
+  return json.item
+}
+
 export function useGalleryListInfinite(params: {
   filters: { query: string; status: GalleryPublishFilterDto }
 }) {
@@ -66,5 +95,39 @@ export function useGalleryListInfinite(params: {
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
     placeholderData: (previousData) => previousData,
+  })
+}
+
+export function useGalleryDetailQuery(id: string) {
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: galleryQueryKeys.detail(id),
+    enabled: id.length > 0,
+    queryFn: () => fetchGalleryDetail(id),
+    initialData: () => {
+      const listQueries = queryClient.getQueriesData<{
+        pages: GalleryInfinitePageDto[]
+      }>({
+        queryKey: galleryQueryKeys.all,
+      })
+
+      for (const [, data] of listQueries) {
+        const pages = data?.pages ?? []
+        for (const page of pages) {
+          const matched = page.items.find((item) => item.id === id)
+          if (matched) {
+            return {
+              ...matched,
+              content: "",
+              createdAt: String(matched.createdAt),
+              galleryImages: [],
+            } as GalleryDetailDto
+          }
+        }
+      }
+
+      return undefined
+    },
   })
 }

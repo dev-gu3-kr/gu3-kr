@@ -1,6 +1,10 @@
 "use client"
 
-import { useInfiniteQuery } from "@tanstack/react-query"
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
 import type {
   ApiResponseDto,
@@ -14,9 +18,13 @@ export const noticeQueryKeys = {
   all: ["admin", "notices"] as const,
   list: (filters: { query: string; status: NoticePublishFilterDto }) =>
     [...noticeQueryKeys.all, "list", filters] as const,
+  detail: (id: string) => [...noticeQueryKeys.all, "detail", id] as const,
 } as const
 
 type NoticePageResponse = ApiResponseDto<NoticePageDto>
+type NoticeDetailResponse = ApiResponseDto<{
+  item: NoticeListItemDto & { createdAt: string }
+}>
 
 type NoticeListFilters = {
   query: string
@@ -134,5 +142,46 @@ export function useNoticeListInfinite(params: {
     ...(params.initialPage && !hasFilters
       ? { initialData: { pages: [params.initialPage], pageParams: [null] } }
       : {}),
+  })
+}
+
+async function fetchNoticeDetail(id: string) {
+  const response = await apiFetch.get(`/api/admin/notices/${id}`).send()
+  if (!response.ok) throw new Error("공지 상세를 불러오지 못했습니다.")
+  const json = (await response
+    .json()
+    .catch(() => null)) as NoticeDetailResponse | null
+  if (!json?.ok || !json.item)
+    throw new Error("공지 상세를 불러오지 못했습니다.")
+  return json.item
+}
+
+export function useNoticeDetailQuery(id: string) {
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: noticeQueryKeys.detail(id),
+    enabled: id.length > 0,
+    queryFn: () => fetchNoticeDetail(id),
+    initialData: () => {
+      const listQueries = queryClient.getQueriesData<{
+        pages: NoticePageResponse[]
+      }>({
+        queryKey: noticeQueryKeys.all,
+      })
+
+      for (const [, data] of listQueries) {
+        const pages = data?.pages ?? []
+        for (const page of pages) {
+          const matched = page.items.find((item) => item.id === id)
+          if (matched)
+            return {
+              ...matched,
+              createdAt: new Date(matched.createdAt).toISOString(),
+            }
+        }
+      }
+      return undefined
+    },
   })
 }

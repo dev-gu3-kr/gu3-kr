@@ -1,32 +1,39 @@
-// 공지 상세: Toast UI Viewer로 마크다운 본문 렌더링
+"use client"
+
 import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import {
   NoticeContentViewer,
   NoticeDeleteButton,
 } from "@/features/notices/client"
-import type { NoticeDetailDto } from "@/features/notices/isomorphic"
-import { serverApiFetch } from "@/lib/api-server"
+import { useNoticeDetailQuery } from "@/features/notices/isomorphic"
 
-// 공지 상세를 조회하고, 없으면 404로 처리한다.
-export default async function AdminNoticeViewPage(props: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await props.params
+export default function AdminNoticeViewPage() {
+  const params = useParams<{ id: string }>()
+  const id = String(params?.id ?? "")
+  const { data: notice, isLoading, isError } = useNoticeDetailQuery(id)
 
-  const response = await serverApiFetch.get(`/api/admin/notices/${id}`).send()
-  if (response.status === 404) notFound()
+  if (isLoading) {
+    return (
+      <main className="space-y-6">
+        <section className="rounded-lg border bg-white p-4">
+          불러오는 중...
+        </section>
+      </main>
+    )
+  }
 
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean
-    item?: NoticeDetailDto
-  } | null
-
-  if (!response.ok || !json?.ok || !json.item) notFound()
-
-  const notice = json.item
+  if (isError || !notice) {
+    return (
+      <main className="space-y-6">
+        <section className="rounded-lg border bg-white p-4 text-sm text-red-600">
+          공지 상세를 불러오지 못했습니다.
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="space-y-6">

@@ -1,6 +1,10 @@
 "use client"
 
-import { useInfiniteQuery } from "@tanstack/react-query"
+import {
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
 import type {
   ApiResponseDto,
@@ -14,9 +18,13 @@ export const youthBlogQueryKeys = {
   all: ["admin", "youth-blog"] as const,
   list: (filters: { query: string; status: YouthBlogPublishFilterDto }) =>
     [...youthBlogQueryKeys.all, "list", filters] as const,
+  detail: (id: string) => [...youthBlogQueryKeys.all, "detail", id] as const,
 } as const
 
 type YouthBlogPageResponse = ApiResponseDto<YouthBlogPageDto>
+type YouthBlogDetailResponse = ApiResponseDto<{
+  item: YouthBlogListItemDto & { createdAt: string }
+}>
 
 type YouthBlogListFilters = {
   query: string
@@ -133,5 +141,46 @@ export function useYouthBlogListInfinite(params: {
     ...(params.initialPage && !hasFilters
       ? { initialData: { pages: [params.initialPage], pageParams: [null] } }
       : {}),
+  })
+}
+
+async function fetchYouthBlogDetail(id: string) {
+  const response = await apiFetch.get(`/api/admin/youth-blog/${id}`).send()
+  if (!response.ok) throw new Error("청소년 블로그 상세를 불러오지 못했습니다.")
+  const json = (await response
+    .json()
+    .catch(() => null)) as YouthBlogDetailResponse | null
+  if (!json?.ok || !json.item)
+    throw new Error("청소년 블로그 상세를 불러오지 못했습니다.")
+  return json.item
+}
+
+export function useYouthBlogDetailQuery(id: string) {
+  const queryClient = useQueryClient()
+
+  return useQuery({
+    queryKey: youthBlogQueryKeys.detail(id),
+    enabled: id.length > 0,
+    queryFn: () => fetchYouthBlogDetail(id),
+    initialData: () => {
+      const listQueries = queryClient.getQueriesData<{
+        pages: YouthBlogPageResponse[]
+      }>({
+        queryKey: youthBlogQueryKeys.all,
+      })
+
+      for (const [, data] of listQueries) {
+        const pages = data?.pages ?? []
+        for (const page of pages) {
+          const matched = page.items.find((item) => item.id === id)
+          if (matched)
+            return {
+              ...matched,
+              createdAt: new Date(matched.createdAt).toISOString(),
+            }
+        }
+      }
+      return undefined
+    },
   })
 }

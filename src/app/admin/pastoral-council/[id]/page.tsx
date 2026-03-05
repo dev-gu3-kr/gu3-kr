@@ -1,37 +1,17 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import { BadgeCheck, BriefcaseBusiness, Phone } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { PastoralCouncilDeleteButton } from "@/features/pastoral-council/client"
-import type { PastoralCouncilDetailDto } from "@/features/pastoral-council/isomorphic"
-import { apiFetch } from "@/lib/api"
-
-type DetailResponse = { ok?: boolean; item?: PastoralCouncilDetailDto }
+import { usePastoralCouncilDetailQuery } from "@/features/pastoral-council/isomorphic"
 
 export default function AdminPastoralCouncilViewPage() {
   const params = useParams<{ id: string }>()
   const id = String(params?.id ?? "")
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin", "pastoral-council", "detail", id],
-    enabled: id.length > 0,
-    queryFn: async () => {
-      const response = await apiFetch
-        .get(`/api/admin/pastoral-council/${id}`)
-        .send()
-      if (!response.ok)
-        throw new Error("사목협의회 상세를 불러오지 못했습니다.")
-      const json = (await response
-        .json()
-        .catch(() => null)) as DetailResponse | null
-      if (!json?.ok || !json.item)
-        throw new Error("사목협의회 상세를 불러오지 못했습니다.")
-      return json.item
-    },
-  })
+  const { data, isLoading, isError } = usePastoralCouncilDetailQuery(id)
 
   if (isLoading) {
     return (

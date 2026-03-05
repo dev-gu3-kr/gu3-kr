@@ -1,35 +1,36 @@
+"use client"
+
 import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import Image from "next/image"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import {
   GalleryContentViewer,
   GalleryDeleteButton,
 } from "@/features/gallery/client"
-import { serverApiFetch } from "@/lib/api-server"
+import { useGalleryDetailQuery } from "@/features/gallery/isomorphic"
 
-type GalleryDetailDto = {
-  id: string
-  title: string
-  content: string
-  isPublished: boolean
-  createdAt: string
-  galleryImages: Array<{ id: string; originalName: string; url: string }>
-}
+export default function AdminGalleryDetailPage() {
+  const params = useParams<{ id: string }>()
+  const id = String(params?.id ?? "")
+  const { data: item, isLoading, isError } = useGalleryDetailQuery(id)
 
-export default async function AdminGalleryDetailPage(props: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await props.params
-  const response = await serverApiFetch.get(`/api/admin/gallery/${id}`).send()
-  if (response.status === 404) notFound()
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean
-    item?: GalleryDetailDto
-  } | null
-  if (!response.ok || !json?.ok || !json.item) notFound()
-  const item = json.item
+  if (isLoading)
+    return (
+      <main className="space-y-6">
+        <section className="rounded-md border p-4">불러오는 중...</section>
+      </main>
+    )
+  if (isError || !item)
+    return (
+      <main className="space-y-6">
+        <section className="rounded-md border p-4 text-sm text-red-600">
+          갤러리 상세를 불러오지 못했습니다.
+        </section>
+      </main>
+    )
+
   const thumb = item.galleryImages[0]
 
   return (
@@ -50,7 +51,6 @@ export default async function AdminGalleryDetailPage(props: {
           })}
         </p>
       </section>
-
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-neutral-700">썸네일</h2>
         {thumb ? (
@@ -65,14 +65,12 @@ export default async function AdminGalleryDetailPage(props: {
           <p className="text-sm text-neutral-500">등록된 썸네일이 없습니다.</p>
         )}
       </section>
-
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-neutral-700">내용</h2>
         <article className="toastui-editor-contents text-[15px] leading-7 text-neutral-900">
           <GalleryContentViewer content={item.content} />
         </article>
       </section>
-
       <section className="flex items-center gap-2">
         <Link
           href={`/admin/gallery/${item.id}/edit`}

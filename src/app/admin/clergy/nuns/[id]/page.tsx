@@ -1,6 +1,5 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -12,32 +11,13 @@ import Image from "next/image"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { NunDeleteButton } from "@/features/clergy-nuns/client"
-import type { NunDetailDto } from "@/features/clergy-nuns/isomorphic"
-import { apiFetch } from "@/lib/api"
-
-type NunDetailResponseDto = {
-  ok?: boolean
-  item?: NunDetailDto
-}
+import { useNunDetailQuery } from "@/features/clergy-nuns/isomorphic"
 
 export default function AdminNunViewPage() {
   const params = useParams<{ id: string }>()
   const id = String(params?.id ?? "")
 
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin", "clergy", "nuns", "detail", id],
-    enabled: id.length > 0,
-    queryFn: async () => {
-      const response = await apiFetch.get(`/api/admin/clergy/nuns/${id}`).send()
-      if (!response.ok) throw new Error("수녀님 상세를 불러오지 못했습니다.")
-      const json = (await response
-        .json()
-        .catch(() => null)) as NunDetailResponseDto | null
-      if (!json?.ok || !json.item)
-        throw new Error("수녀님 상세를 불러오지 못했습니다.")
-      return json.item
-    },
-  })
+  const { data, isLoading, isError } = useNunDetailQuery(id)
 
   if (isLoading) {
     return (
