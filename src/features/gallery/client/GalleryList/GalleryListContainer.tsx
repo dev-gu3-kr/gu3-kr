@@ -5,37 +5,15 @@ import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import type { GalleryListItemDto } from "@/features/gallery/isomorphic"
-import { apiFetch } from "@/lib/api"
+import type { GalleryPublishFilterDto } from "@/features/gallery/isomorphic"
+import { useGalleryListInfinite } from "@/features/gallery/isomorphic"
 
-type GalleryPublishFilter = "all" | "published" | "draft"
-
-type GalleryListResponseDto = {
-  ok?: boolean
-  items?: GalleryListItemDto[]
-  pageInfo?: { hasMore: boolean; nextCursor: string | null }
-}
-
-export function GalleryListContainer({
-  initialItems = [],
-  initialHasMore = false,
-  initialNextCursor = null,
-}: {
-  initialItems?: GalleryListItemDto[]
-  initialHasMore?: boolean
-  initialNextCursor?: string | null
-} = {}) {
+export function GalleryListContainer() {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
-  const [status, setStatus] = useState<GalleryPublishFilter>("all")
-
-  const [items, setItems] = useState(initialItems)
-  const [hasMore, setHasMore] = useState(initialHasMore)
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor)
-  const [isFilterFetching, setIsFilterFetching] = useState(false)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const [status, setStatus] = useState<GalleryPublishFilterDto>("all")
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -43,84 +21,41 @@ export function GalleryListContainer({
     return () => window.clearTimeout(timer)
   }, [queryInput])
 
-  useEffect(() => {
-    const run = async () => {
-      setIsFilterFetching(true)
-      try {
-        const response = await apiFetch
-          .get("/api/admin/gallery")
-          .query({ take: 20, query: query || undefined, status })
-          .send()
-        const json = (await response
-          .json()
-          .catch(() => null)) as GalleryListResponseDto | null
+  const {
+    data,
+    isLoading,
+    isError,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+  } = useGalleryListInfinite({
+    filters: { query, status },
+  })
 
-        if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-          setItems([])
-          setHasMore(false)
-          setNextCursor(null)
-          return
-        }
+  const items = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data?.pages],
+  )
 
-        setItems(json.items)
-        setHasMore(Boolean(json.pageInfo?.hasMore))
-        setNextCursor(json.pageInfo?.nextCursor ?? null)
-      } finally {
-        setIsFilterFetching(false)
-      }
-    }
-
-    void run()
-  }, [query, status])
-
-  const canLoadMore =
-    hasMore && !!nextCursor && !isLoadingMore && !isFilterFetching
+  const isFilterFetching = isFetching && !isFetchingNextPage
 
   useEffect(() => {
-    const node = sentinelRef.current
-    if (!node) return
+    if (!sentinelRef.current || !hasNextPage || isFetchingNextPage) return
 
     const observer = new IntersectionObserver(
       async (entries) => {
-        if (!entries[0]?.isIntersecting || !canLoadMore) return
-
-        setIsLoadingMore(true)
-        try {
-          const response = await apiFetch
-            .get("/api/admin/gallery")
-            .query({
-              take: 20,
-              cursor: nextCursor,
-              query: query || undefined,
-              status,
-            })
-            .send()
-          const json = (await response
-            .json()
-            .catch(() => null)) as GalleryListResponseDto | null
-
-          if (!response.ok || !json?.ok || !Array.isArray(json.items)) return
-
-          setItems((prev) => {
-            const known = new Set(prev.map((x) => x.id))
-            const merged = [...prev]
-            for (const item of json.items || []) {
-              if (!known.has(item.id)) merged.push(item)
-            }
-            return merged
-          })
-          setHasMore(Boolean(json.pageInfo?.hasMore))
-          setNextCursor(json.pageInfo?.nextCursor ?? null)
-        } finally {
-          setIsLoadingMore(false)
-        }
+        const firstEntry = entries[0]
+        if (!firstEntry?.isIntersecting || !hasNextPage || isFetchingNextPage)
+          return
+        await fetchNextPage()
       },
       { rootMargin: "240px 0px" },
     )
 
-    observer.observe(node)
+    observer.observe(sentinelRef.current)
     return () => observer.disconnect()
-  }, [canLoadMore, nextCursor, query, status])
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
 
   return (
     <div className="space-y-3">
@@ -144,7 +79,7 @@ export function GalleryListContainer({
             <ToggleGroupItem value="published">공개</ToggleGroupItem>
             <ToggleGroupItem value="draft">비공개</ToggleGroupItem>
           </ToggleGroup>
-          {isFilterFetching || isLoadingMore ? (
+          {isFilterFetching || isFetchingNextPage ? (
             <p className="inline-flex items-center gap-1 text-xs text-neutral-500 sm:hidden">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               불러오는 중
@@ -155,14 +90,14 @@ export function GalleryListContainer({
         <div className="relative sm:max-w-sm sm:flex-1">
           <input
             value={queryInput}
-            onChange={(e) => setQueryInput(e.target.value)}
+            onChange={(event) => setQueryInput(event.target.value)}
             placeholder="검색"
             className="w-full rounded-md border px-3 py-2 pr-10 text-sm"
           />
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         </div>
 
-        {isFilterFetching || isLoadingMore ? (
+        {isFilterFetching || isFetchingNextPage ? (
           <p className="hidden items-center gap-1 text-xs text-neutral-500 sm:inline-flex">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             불러오는 중
@@ -170,7 +105,7 @@ export function GalleryListContainer({
         ) : null}
       </section>
 
-      {isFilterFetching && items.length === 0 ? (
+      {isLoading && items.length === 0 ? (
         <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
           {["g-sk-1", "g-sk-2", "g-sk-3", "g-sk-4", "g-sk-5", "g-sk-6"].map(
             (key) => (
@@ -187,12 +122,22 @@ export function GalleryListContainer({
             ),
           )}
         </ul>
+      ) : isError && items.length === 0 ? (
+        <p className="text-sm text-red-600">
+          갤러리 목록을 불러오지 못했습니다.
+        </p>
       ) : items.length === 0 ? (
         <div className="rounded-md border p-6 text-sm text-neutral-500">
           검색 결과가 없습니다.
         </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+        <ul
+          className={
+            isFilterFetching
+              ? "pointer-events-none grid grid-cols-1 gap-3 opacity-60 lg:grid-cols-2 xl:grid-cols-3"
+              : "grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3"
+          }
+        >
           {items.map((item) => (
             <li key={item.id} className="overflow-hidden rounded-md border">
               <Link href={`/admin/gallery/${item.id}`} className="block">
