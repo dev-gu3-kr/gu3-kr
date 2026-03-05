@@ -129,5 +129,6 @@ export function useBulletinDetailQuery(id: string) {
 
       return undefined
     },
+    initialDataUpdatedAt: 0,
   })
 }

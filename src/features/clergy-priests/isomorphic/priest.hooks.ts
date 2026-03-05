@@ -66,5 +66,6 @@ export function usePriestDetailQuery(id: string) {
       if (!matched) return undefined
       return { ...matched, phone: null } as PriestDetailDto
     },
+    initialDataUpdatedAt: 0,
   })
 }

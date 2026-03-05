@@ -169,5 +169,6 @@ export function useEventDetailQuery(id: string) {
 
       return undefined
     },
+    initialDataUpdatedAt: 0,
   })
 }

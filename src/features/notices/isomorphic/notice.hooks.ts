@@ -183,5 +183,6 @@ export function useNoticeDetailQuery(id: string) {
       }
       return undefined
     },
+    initialDataUpdatedAt: 0,
   })
 }

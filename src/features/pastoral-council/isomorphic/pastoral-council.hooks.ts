@@ -70,5 +70,6 @@ export function usePastoralCouncilDetailQuery(id: string) {
         | PastoralCouncilDetailDto
         | undefined
     },
+    initialDataUpdatedAt: 0,
   })
 }

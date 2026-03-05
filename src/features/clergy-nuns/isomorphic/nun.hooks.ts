@@ -66,5 +66,6 @@ export function useNunDetailQuery(id: string) {
       if (!matched) return undefined
       return { ...matched, phone: null } as NunDetailDto
     },
+    initialDataUpdatedAt: 0,
   })
 }

@@ -182,5 +182,6 @@ export function useYouthBlogDetailQuery(id: string) {
       }
       return undefined
     },
+    initialDataUpdatedAt: 0,
   })
 }

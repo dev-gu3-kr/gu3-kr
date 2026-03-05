@@ -129,5 +129,6 @@ export function useGalleryDetailQuery(id: string) {
 
       return undefined
     },
+    initialDataUpdatedAt: 0,
   })
 }
