@@ -1,42 +1,7 @@
 import Link from "next/link"
 import { BulletinListContainer } from "@/features/bulletins/client"
-import { serverApiFetch } from "@/lib/api-server"
 
-type BulletinListItemDto = {
-  id: string
-  title: string
-  isPublished: boolean
-  createdAt: string
-  attachments: Array<{
-    url: string
-    originalName: string
-  }>
-}
-
-type BulletinListResponseDto = {
-  ok?: boolean
-  items?: BulletinListItemDto[]
-  pageInfo?: {
-    hasMore: boolean
-    nextCursor: string | null
-  }
-}
-
-// 본당주보 목록 초기 페이지를 렌더링하고, 이후 스크롤 로딩은 클라이언트 컨테이너가 이어받는다.
-export default async function AdminBulletinsPage() {
-  const response = await serverApiFetch
-    .get("/api/admin/bulletins")
-    .query({ take: 20 })
-    .send()
-
-  const json = (await response
-    .json()
-    .catch(() => null)) as BulletinListResponseDto | null
-
-  const items = json?.ok && Array.isArray(json.items) ? json.items : []
-  const hasMore = Boolean(json?.pageInfo?.hasMore)
-  const nextCursor = json?.pageInfo?.nextCursor ?? null
-
+export default function AdminBulletinsPage() {
   return (
     <main className="space-y-6">
       <section className="flex items-start justify-between gap-4">
@@ -55,11 +20,7 @@ export default async function AdminBulletinsPage() {
         </Link>
       </section>
 
-      <BulletinListContainer
-        initialItems={items}
-        initialHasMore={hasMore}
-        initialNextCursor={nextCursor}
-      />
+      <BulletinListContainer />
     </main>
   )
 }

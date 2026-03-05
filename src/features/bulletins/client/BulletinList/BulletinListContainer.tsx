@@ -31,14 +31,14 @@ type BulletinListResponseDto = {
 }
 
 export function BulletinListContainer({
-  initialItems,
-  initialNextCursor,
-  initialHasMore,
+  initialItems = [],
+  initialNextCursor = null,
+  initialHasMore = false,
 }: {
-  initialItems: BulletinListItemDto[]
-  initialNextCursor: string | null
-  initialHasMore: boolean
-}) {
+  initialItems?: BulletinListItemDto[]
+  initialNextCursor?: string | null
+  initialHasMore?: boolean
+} = {}) {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<BulletinPublishFilter>("all")
@@ -50,7 +50,6 @@ export function BulletinListContainer({
   const [isFilterFetching, setIsFilterFetching] = useState(false)
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)
-  const didMountRef = useRef(false)
 
   // 검색 입력은 즉시 반영하지 않고 300ms 디바운스로 서버 요청 횟수를 줄인다.
   useEffect(() => {
@@ -63,11 +62,6 @@ export function BulletinListContainer({
 
   // 필터/검색이 바뀌면 첫 페이지를 다시 조회해 목록 상태를 초기화한다.
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true
-      return
-    }
-
     const run = async () => {
       setIsFilterFetching(true)
       try {
@@ -208,7 +202,16 @@ export function BulletinListContainer({
       </section>
 
       <section className="overflow-hidden rounded-md border">
-        {items.length === 0 ? (
+        {isFilterFetching && items.length === 0 ? (
+          <ul className="divide-y">
+            {["b-sk-1", "b-sk-2", "b-sk-3", "b-sk-4"].map((key) => (
+              <li key={key} className="animate-pulse px-4 py-4">
+                <div className="h-5 w-2/3 rounded bg-neutral-200" />
+                <div className="mt-2 h-4 w-1/2 rounded bg-neutral-200" />
+              </li>
+            ))}
+          </ul>
+        ) : items.length === 0 ? (
           <p className="px-4 py-6 text-sm text-neutral-500">
             등록된 본당주보가 없습니다.
           </p>
