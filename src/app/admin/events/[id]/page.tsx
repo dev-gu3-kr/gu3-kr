@@ -1,36 +1,32 @@
+"use client"
+
 import { format, formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import { EventDeleteButton } from "@/features/events/client"
-import { serverApiFetch } from "@/lib/api-server"
+import { useEventDetailQuery } from "@/features/events/isomorphic"
 
-type EventDetailDto = {
-  id: string
-  title: string
-  description: string | null
-  startsAt: string
-  endsAt: string
-  isPublished: boolean
-  createdAt: string
-}
+export default function AdminEventDetailPage() {
+  const params = useParams<{ id: string }>()
+  const id = String(params?.id ?? "")
+  const { data: item, isLoading, isError } = useEventDetailQuery(id)
 
-export default async function AdminEventDetailPage(props: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await props.params
+  if (isLoading)
+    return (
+      <main className="space-y-6">
+        <section className="rounded-md border p-4">불러오는 중...</section>
+      </main>
+    )
+  if (isError || !item)
+    return (
+      <main className="space-y-6">
+        <section className="rounded-md border p-4 text-sm text-red-600">
+          일정 상세를 불러오지 못했습니다.
+        </section>
+      </main>
+    )
 
-  const response = await serverApiFetch.get(`/api/admin/events/${id}`).send()
-  if (response.status === 404) notFound()
-
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean
-    item?: EventDetailDto
-  } | null
-
-  if (!response.ok || !json?.ok || !json.item) notFound()
-
-  const item = json.item
   const startsAtText = format(new Date(item.startsAt), "yyyy.MM.dd HH:mm", {
     locale: ko,
   })

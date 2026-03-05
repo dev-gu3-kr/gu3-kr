@@ -6,145 +6,57 @@ import { Loader2, Search } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import { apiFetch } from "@/lib/api"
+import {
+  type BulletinPublishFilterDto,
+  useBulletinListInfinite,
+} from "@/features/bulletins/isomorphic"
 
-type BulletinPublishFilter = "all" | "published" | "draft"
-
-type BulletinListItemDto = {
-  id: string
-  title: string
-  isPublished: boolean
-  createdAt: string
-  attachments: Array<{
-    url: string
-    originalName: string
-  }>
-}
-
-type BulletinListResponseDto = {
-  ok?: boolean
-  items?: BulletinListItemDto[]
-  pageInfo?: {
-    hasMore: boolean
-    nextCursor: string | null
-  }
-}
-
-export function BulletinListContainer({
-  initialItems = [],
-  initialNextCursor = null,
-  initialHasMore = false,
-}: {
-  initialItems?: BulletinListItemDto[]
-  initialNextCursor?: string | null
-  initialHasMore?: boolean
-} = {}) {
+export function BulletinListContainer() {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
-  const [status, setStatus] = useState<BulletinPublishFilter>("all")
-
-  const [items, setItems] = useState(initialItems)
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor)
-  const [hasMore, setHasMore] = useState(initialHasMore)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [isFilterFetching, setIsFilterFetching] = useState(false)
-
+  const [status, setStatus] = useState<BulletinPublishFilterDto>("all")
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
-  // 검색 입력은 즉시 반영하지 않고 300ms 디바운스로 서버 요청 횟수를 줄인다.
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setQuery(queryInput)
+      setQuery(queryInput.trim())
     }, 300)
-
     return () => window.clearTimeout(timer)
   }, [queryInput])
 
-  // 필터/검색이 바뀌면 첫 페이지를 다시 조회해 목록 상태를 초기화한다.
-  useEffect(() => {
-    const run = async () => {
-      setIsFilterFetching(true)
-      try {
-        const response = await apiFetch
-          .get("/api/admin/bulletins")
-          .query({ take: 20, query: query || undefined, status })
-          .send()
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isFetchingNextPage,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+  } = useBulletinListInfinite({ filters: { query, status } })
 
-        const json = (await response
-          .json()
-          .catch(() => null)) as BulletinListResponseDto | null
-        if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-          setItems([])
-          setHasMore(false)
-          setNextCursor(null)
-          return
-        }
-
-        setItems(json.items)
-        setHasMore(Boolean(json.pageInfo?.hasMore))
-        setNextCursor(json.pageInfo?.nextCursor ?? null)
-      } finally {
-        setIsFilterFetching(false)
-      }
-    }
-
-    void run()
-  }, [query, status])
-
-  const canLoadMore = useMemo(
-    () => hasMore && !!nextCursor && !isLoadingMore && !isFilterFetching,
-    [hasMore, nextCursor, isLoadingMore, isFilterFetching],
+  const items = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data?.pages],
   )
 
-  // 하단 sentinel이 보이면 다음 페이지를 자동으로 이어서 불러온다(인피니티 스크롤).
+  const isFilterFetching = isFetching && !isFetchingNextPage
+
   useEffect(() => {
-    const node = sentinelRef.current
-    if (!node) return
+    if (!sentinelRef.current || !hasNextPage || isFetchingNextPage) return
 
     const observer = new IntersectionObserver(
       async (entries) => {
-        if (!entries[0]?.isIntersecting || !canLoadMore) return
-
-        setIsLoadingMore(true)
-        try {
-          const response = await apiFetch
-            .get("/api/admin/bulletins")
-            .query({
-              take: 20,
-              cursor: nextCursor,
-              query: query || undefined,
-              status,
-            })
-            .send()
-
-          const json = (await response
-            .json()
-            .catch(() => null)) as BulletinListResponseDto | null
-          if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-            return
-          }
-
-          setItems((prev) => {
-            const known = new Set(prev.map((item) => item.id))
-            const merged = [...prev]
-            for (const item of json.items || []) {
-              if (!known.has(item.id)) merged.push(item)
-            }
-            return merged
-          })
-
-          setHasMore(Boolean(json.pageInfo?.hasMore))
-          setNextCursor(json.pageInfo?.nextCursor ?? null)
-        } finally {
-          setIsLoadingMore(false)
+        if (!entries[0]?.isIntersecting || !hasNextPage || isFetchingNextPage) {
+          return
         }
+        await fetchNextPage()
       },
       { rootMargin: "240px 0px" },
     )
 
-    observer.observe(node)
+    observer.observe(sentinelRef.current)
     return () => observer.disconnect()
-  }, [canLoadMore, nextCursor, query, status])
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
 
   return (
     <div className="space-y-3">
@@ -175,7 +87,7 @@ export function BulletinListContainer({
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {isFilterFetching || isLoadingMore ? (
+          {isFilterFetching || isFetchingNextPage ? (
             <p className="inline-flex items-center gap-1 text-xs text-neutral-500 sm:hidden">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               불러오는 중
@@ -193,7 +105,7 @@ export function BulletinListContainer({
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         </div>
 
-        {isFilterFetching || isLoadingMore ? (
+        {isFilterFetching || isFetchingNextPage ? (
           <p className="hidden items-center gap-1 text-xs text-neutral-500 sm:inline-flex">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             불러오는 중
@@ -202,7 +114,7 @@ export function BulletinListContainer({
       </section>
 
       <section className="overflow-hidden rounded-md border">
-        {isFilterFetching && items.length === 0 ? (
+        {isLoading && items.length === 0 ? (
           <ul className="divide-y">
             {["b-sk-1", "b-sk-2", "b-sk-3", "b-sk-4"].map((key) => (
               <li key={key} className="animate-pulse px-4 py-4">
@@ -211,6 +123,10 @@ export function BulletinListContainer({
               </li>
             ))}
           </ul>
+        ) : isError && items.length === 0 ? (
+          <p className="px-4 py-6 text-sm text-red-600">
+            주보 목록을 불러오지 못했습니다.
+          </p>
         ) : items.length === 0 ? (
           <p className="px-4 py-6 text-sm text-neutral-500">
             등록된 본당주보가 없습니다.
@@ -224,7 +140,6 @@ export function BulletinListContainer({
                   key={item.id}
                   className="relative flex items-center justify-between gap-3 px-4 py-4 text-sm"
                 >
-                  {/* 행 전체를 클릭 타겟으로 만들어 제목 외 영역에서도 상세로 진입할 수 있게 한다. */}
                   <Link
                     href={`/admin/bulletins/${item.id}`}
                     aria-label={`${item.title} 상세 보기`}

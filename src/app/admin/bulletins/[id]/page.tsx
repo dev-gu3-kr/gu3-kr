@@ -1,38 +1,30 @@
+"use client"
+
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import { BulletinDeleteButton } from "@/features/bulletins/client"
-import { serverApiFetch } from "@/lib/api-server"
+import { useBulletinDetailQuery } from "@/features/bulletins/isomorphic"
 
-type BulletinDetailDto = {
-  id: string
-  title: string
-  content: string
-  isPublished: boolean
-  createdAt: string
-  attachments: Array<{ id: string; originalName: string; url: string }>
-}
+export default function AdminBulletinDetailPage() {
+  const params = useParams<{ id: string }>()
+  const id = String(params?.id ?? "")
+  const { data: item, isLoading, isError } = useBulletinDetailQuery(id)
 
-// 본당주보 상세 페이지: 본문과 첨부 파일을 확인하고 수정/삭제 액션으로 이동한다.
-export default async function AdminBulletinDetailPage(props: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await props.params
+  if (isLoading)
+    return (
+      <main className="space-y-6">
+        <section className="rounded-md border p-4">불러오는 중...</section>
+      </main>
+    )
+  if (isError || !item)
+    return (
+      <main className="space-y-6">
+        <section className="rounded-md border p-4 text-sm text-red-600">
+          주보 상세를 불러오지 못했습니다.
+        </section>
+      </main>
+    )
 
-  const response = await serverApiFetch.get(`/api/admin/bulletins/${id}`).send()
-  if (response.status === 404) {
-    notFound()
-  }
-
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean
-    item?: BulletinDetailDto
-  } | null
-
-  if (!response.ok || !json?.ok || !json.item) {
-    notFound()
-  }
-
-  const item = json.item
   const attachment = item.attachments[0]
 
   return (

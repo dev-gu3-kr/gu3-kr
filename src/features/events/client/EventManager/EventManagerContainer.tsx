@@ -11,54 +11,24 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
-import type { EventListItemDto } from "@/features/events/isomorphic"
-import { apiFetch } from "@/lib/api"
+import {
+  type EventPublishFilterDto,
+  useEventListInfinite,
+  useEventSchedulerQuery,
+} from "@/features/events/isomorphic"
 import { useEventManagerViewMode } from "../EventManagerViewModeContext"
 
-type EventManagerContainerProps = {
-  initialItems?: EventListItemDto[]
-  initialHasMore?: boolean
-  initialNextCursor?: string | null
-}
-
-type EventPublishFilter = "all" | "published" | "draft"
-
-type EventListResponseDto = {
-  ok?: boolean
-  items?: EventListItemDto[]
-  pageInfo?: {
-    hasMore: boolean
-    nextCursor: string | null
-  }
-}
-
-export function EventManagerContainer({
-  initialItems = [],
-  initialHasMore = false,
-  initialNextCursor = null,
-}: EventManagerContainerProps = {}) {
+export function EventManagerContainer() {
   const router = useRouter()
   const { viewMode, setViewMode } = useEventManagerViewMode()
 
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
-  const [status, setStatus] = useState<EventPublishFilter>("all")
-
-  // 리스트용(최근 등록순 + 인피니티)
-  const [items, setItems] = useState(initialItems)
-  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor)
-  const [hasMore, setHasMore] = useState(initialHasMore)
-  const [isLoadingMore, setIsLoadingMore] = useState(false)
-  const [isFilterFetching, setIsFilterFetching] = useState(false)
-
-  // 스케줄러용(현재 보이는 월/주/일 범위 전체)
-  const [schedulerItems, setSchedulerItems] = useState<EventListItemDto[]>([])
+  const [status, setStatus] = useState<EventPublishFilterDto>("all")
   const [calendarRange, setCalendarRange] = useState<{
     from: string
     to: string
   } | null>(null)
-  const [isSchedulerFetching, setIsSchedulerFetching] = useState(false)
-
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -69,123 +39,42 @@ export function EventManagerContainer({
     return () => window.clearTimeout(timer)
   }, [queryInput])
 
-  // 리스트: 필터 변경 시 첫 페이지 재조회
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
+    useEventListInfinite({
+      filters: { query, status },
+    })
+
+  const { data: schedulerItems = [], isFetching: isSchedulerFetching } =
+    useEventSchedulerQuery({
+      from: calendarRange?.from,
+      to: calendarRange?.to,
+      query,
+      status,
+    })
+
+  const items = useMemo(
+    () => data?.pages.flatMap((page) => page.items) ?? [],
+    [data?.pages],
+  )
+
+  const isFilterFetching = isFetching && !isFetchingNextPage
+
   useEffect(() => {
-    const run = async () => {
-      setIsFilterFetching(true)
-      try {
-        const response = await apiFetch
-          .get("/api/admin/events")
-          .query({ take: 20, query: query || undefined, status })
-          .send()
-
-        const json = (await response
-          .json()
-          .catch(() => null)) as EventListResponseDto | null
-
-        if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-          setItems([])
-          setHasMore(false)
-          setNextCursor(null)
-          return
-        }
-
-        setItems(json.items)
-        setHasMore(Boolean(json.pageInfo?.hasMore))
-        setNextCursor(json.pageInfo?.nextCursor ?? null)
-      } finally {
-        setIsFilterFetching(false)
-      }
-    }
-
-    void run()
-  }, [query, status])
-
-  const canLoadMore =
-    hasMore && !!nextCursor && !isLoadingMore && !isFilterFetching
-
-  // 리스트: 하단 sentinel 인피니티 로딩
-  useEffect(() => {
-    const node = sentinelRef.current
-    if (!node) return
+    if (!sentinelRef.current || !hasNextPage || isFetchingNextPage) return
 
     const observer = new IntersectionObserver(
       async (entries) => {
-        if (!entries[0]?.isIntersecting || !canLoadMore) return
-
-        setIsLoadingMore(true)
-        try {
-          const response = await apiFetch
-            .get("/api/admin/events")
-            .query({
-              take: 20,
-              cursor: nextCursor,
-              query: query || undefined,
-              status,
-            })
-            .send()
-
-          const json = (await response
-            .json()
-            .catch(() => null)) as EventListResponseDto | null
-          if (!response.ok || !json?.ok || !Array.isArray(json.items)) return
-
-          setItems((prev) => {
-            const known = new Set(prev.map((item) => item.id))
-            const merged = [...prev]
-            for (const item of json.items || []) {
-              if (!known.has(item.id)) merged.push(item)
-            }
-            return merged
-          })
-
-          setHasMore(Boolean(json.pageInfo?.hasMore))
-          setNextCursor(json.pageInfo?.nextCursor ?? null)
-        } finally {
-          setIsLoadingMore(false)
+        if (!entries[0]?.isIntersecting || !hasNextPage || isFetchingNextPage) {
+          return
         }
+        await fetchNextPage()
       },
       { rootMargin: "240px 0px" },
     )
 
-    observer.observe(node)
+    observer.observe(sentinelRef.current)
     return () => observer.disconnect()
-  }, [canLoadMore, nextCursor, query, status])
-
-  // 스케줄러: 현재 보이는 범위(from/to) 전체 데이터 조회
-  useEffect(() => {
-    if (!calendarRange) return
-
-    const run = async () => {
-      setIsSchedulerFetching(true)
-      try {
-        const response = await apiFetch
-          .get("/api/admin/events")
-          .query({
-            take: 500,
-            from: calendarRange.from,
-            to: calendarRange.to,
-            query: query || undefined,
-            status,
-          })
-          .send()
-
-        const json = (await response
-          .json()
-          .catch(() => null)) as EventListResponseDto | null
-        if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-          setSchedulerItems([])
-          return
-        }
-
-        setSchedulerItems(json.items)
-      } finally {
-        setIsSchedulerFetching(false)
-      }
-    }
-
-    void run()
-  }, [calendarRange, query, status])
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
 
   const calendarEvents = useMemo(
     () =>
@@ -272,7 +161,7 @@ export function EventManagerContainer({
             </ToggleGroupItem>
           </ToggleGroup>
 
-          {isFilterFetching || isLoadingMore || isSchedulerFetching ? (
+          {isFilterFetching || isFetchingNextPage || isSchedulerFetching ? (
             <p className="inline-flex items-center gap-1 text-xs text-neutral-500 sm:hidden">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               불러오는 중
@@ -290,7 +179,7 @@ export function EventManagerContainer({
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         </div>
 
-        {isFilterFetching || isLoadingMore || isSchedulerFetching ? (
+        {isFilterFetching || isFetchingNextPage || isSchedulerFetching ? (
           <p className="hidden items-center gap-1 text-xs text-neutral-500 sm:inline-flex">
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
             불러오는 중
@@ -316,12 +205,7 @@ export function EventManagerContainer({
               center: "title",
               right: "dayGridMonth,timeGridWeek,timeGridDay",
             }}
-            buttonText={{
-              today: "오늘",
-              month: "월",
-              week: "주",
-              day: "일",
-            }}
+            buttonText={{ today: "오늘", month: "월", week: "주", day: "일" }}
             height="auto"
             events={calendarEvents}
             eventTimeFormat={{
