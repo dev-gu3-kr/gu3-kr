@@ -1,9 +1,8 @@
 @import "shadcn/tailwind.css";
-@import "react-day-picker/src/style.css";
+@import "../styles/vendor/react-day-picker.css";
 @import "@fontsource/pretendard";
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "react-day-picker/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
