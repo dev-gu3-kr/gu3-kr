@@ -130,5 +130,6 @@ export function useGalleryDetailQuery(id: string) {
       return undefined
     },
     initialDataUpdatedAt: 0,
+    refetchOnMount: "always",
   })
 }

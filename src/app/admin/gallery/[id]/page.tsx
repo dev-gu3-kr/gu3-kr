@@ -14,7 +14,12 @@ import { useGalleryDetailQuery } from "@/features/gallery/isomorphic"
 export default function AdminGalleryDetailPage() {
   const params = useParams<{ id: string }>()
   const id = String(params?.id ?? "")
-  const { data: item, isLoading, isError } = useGalleryDetailQuery(id)
+  const {
+    data: item,
+    isLoading,
+    isError,
+    isFetching,
+  } = useGalleryDetailQuery(id)
 
   if (isLoading)
     return (
@@ -68,7 +73,13 @@ export default function AdminGalleryDetailPage() {
       <section className="space-y-2">
         <h2 className="text-sm font-semibold text-neutral-700">내용</h2>
         <article className="toastui-editor-contents text-[15px] leading-7 text-neutral-900">
-          <GalleryContentViewer content={item.content} />
+          {item.content ? (
+            <GalleryContentViewer content={item.content} />
+          ) : isFetching ? (
+            <p className="text-sm text-neutral-500">본문 불러오는 중...</p>
+          ) : (
+            <p className="text-sm text-neutral-500">본문이 없습니다.</p>
+          )}
         </article>
       </section>
       <section className="flex items-center gap-2">
