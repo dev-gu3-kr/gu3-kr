@@ -3,12 +3,16 @@
 import { BriefcaseBusiness, Phone } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { usePastoralCouncilListQuery } from "@/features/pastoral-council/isomorphic"
 
 export function PastoralCouncilListContainer() {
   const { data, isLoading, isError } = usePastoralCouncilListQuery()
 
   const items = data ?? []
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
 
   if (isLoading) {
     return (
@@ -51,7 +55,7 @@ export function PastoralCouncilListContainer() {
             href={`/admin/pastoral-council/${item.id}`}
             className="grid grid-cols-[104px_1fr] gap-4 rounded-md border p-3 hover:bg-neutral-50"
           >
-            {item.imageUrl ? (
+            {item.imageUrl && !failedImageIds.has(item.id) ? (
               <Image
                 src={item.imageUrl}
                 alt={`${item.name} 사진`}
@@ -59,6 +63,9 @@ export function PastoralCouncilListContainer() {
                 height={128}
                 sizes="104px"
                 className="h-[128px] w-[104px] rounded-md border object-cover"
+                onError={() => {
+                  setFailedImageIds((prev) => new Set(prev).add(item.id))
+                }}
               />
             ) : (
               <div className="flex h-[128px] w-[104px] items-center justify-center rounded-md border bg-neutral-100 text-xs text-neutral-500">

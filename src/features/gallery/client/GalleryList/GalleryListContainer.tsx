@@ -40,9 +40,20 @@ export function GalleryListContainer() {
   const [loadedImageIds, setLoadedImageIds] = useState<Set<string>>(
     () => new Set(),
   )
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
 
   useEffect(() => {
     setLoadedImageIds((prev) => {
+      const next = new Set<string>()
+      for (const item of items) {
+        if (prev.has(item.id)) next.add(item.id)
+      }
+      return next
+    })
+
+    setFailedImageIds((prev) => {
       const next = new Set<string>()
       for (const item of items) {
         if (prev.has(item.id)) next.add(item.id)
@@ -155,7 +166,7 @@ export function GalleryListContainer() {
             <li key={item.id} className="overflow-hidden rounded-md border">
               <Link href={`/admin/gallery/${item.id}`} className="block">
                 <div className="relative aspect-[16/9] bg-neutral-100">
-                  {item.thumbnailUrl ? (
+                  {item.thumbnailUrl && !failedImageIds.has(item.id) ? (
                     <>
                       {!loadedImageIds.has(item.id) ? (
                         <div className="absolute inset-0 animate-pulse bg-neutral-200" />
@@ -174,6 +185,11 @@ export function GalleryListContainer() {
                         }
                         onLoad={() => {
                           setLoadedImageIds((prev) =>
+                            new Set(prev).add(item.id),
+                          )
+                        }}
+                        onError={() => {
+                          setFailedImageIds((prev) =>
                             new Set(prev).add(item.id),
                           )
                         }}

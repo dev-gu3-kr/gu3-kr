@@ -2,11 +2,15 @@
 import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
+import { useState } from "react"
 import { usePriestListQuery } from "@/features/clergy-priests/isomorphic"
 
 export function PriestListContainer() {
   const { data, isLoading, isError } = usePriestListQuery()
   const items = data ?? []
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
 
   if (isLoading)
     return (
@@ -47,7 +51,7 @@ export function PriestListContainer() {
             href={`/admin/clergy/priests/${item.id}`}
             className="grid grid-cols-[104px_1fr] gap-4 rounded-md border p-3 hover:bg-neutral-50"
           >
-            {item.imageUrl ? (
+            {item.imageUrl && !failedImageIds.has(item.id) ? (
               <Image
                 src={item.imageUrl}
                 alt={`${item.name} 사진`}
@@ -55,6 +59,9 @@ export function PriestListContainer() {
                 height={128}
                 sizes="104px"
                 className="h-[128px] w-[104px] rounded-md border object-cover"
+                onError={() => {
+                  setFailedImageIds((prev) => new Set(prev).add(item.id))
+                }}
               />
             ) : (
               <div className="flex h-[128px] w-[104px] items-center justify-center rounded-md border bg-neutral-100 text-xs text-neutral-500">
