@@ -62,6 +62,7 @@ export function AdminSidebarContainer({
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               onClick={onNavigate}
               className={
                 isActive
