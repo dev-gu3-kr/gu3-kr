@@ -24,14 +24,13 @@ export type PriestListItemDto = {
   isCurrent: boolean
   sortOrder: number
   imageUrl: string | null
-  createdAt: string
-}
-
-export type PriestDetailDto = PriestListItemDto & {
   phone: string | null
+  createdAt: string
 }
 
 export type PriestPageDto = {
   items: PriestListItemDto[]
   nextCursor: string | null
 }
+
+export type PriestDetailDto = PriestListItemDto

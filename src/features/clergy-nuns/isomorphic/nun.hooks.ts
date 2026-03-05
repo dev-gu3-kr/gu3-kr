@@ -64,7 +64,7 @@ export function useNunDetailQuery(id: string) {
       )
       const matched = cachedList?.find((item) => item.id === id)
       if (!matched) return undefined
-      return { ...matched, phone: null } as NunDetailDto
+      return matched as NunDetailDto
     },
     initialDataUpdatedAt: 0,
   })

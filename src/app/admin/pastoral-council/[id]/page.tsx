@@ -16,7 +16,34 @@ export default function AdminPastoralCouncilViewPage() {
   if (isLoading) {
     return (
       <main className="space-y-6">
-        <section className="rounded-xl bg-white p-5">불러오는 중...</section>
+        <section className="space-y-6 rounded-xl bg-white p-5">
+          <div className="h-4 w-20 animate-pulse rounded bg-neutral-200" />
+
+          <div className="mx-auto mt-2 flex w-full max-w-3xl flex-col items-center gap-5 sm:mt-0">
+            <div className="h-[320px] w-[260px] animate-pulse rounded-xl bg-neutral-200" />
+            <div className="h-9 w-64 animate-pulse rounded bg-neutral-200" />
+
+            <div className="w-full max-w-xl">
+              <div className="mx-auto grid w-fit gap-y-4">
+                {["sk-1", "sk-2", "sk-3", "sk-4", "sk-5"].map((key) => (
+                  <div
+                    key={key}
+                    className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3"
+                  >
+                    <div className="h-5 w-5 animate-pulse rounded bg-neutral-200" />
+                    <div className="h-4 w-16 animate-pulse rounded bg-neutral-200" />
+                    <div className="h-5 w-44 animate-pulse rounded bg-neutral-200" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-center gap-2 pt-2">
+              <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+            </div>
+          </div>
+        </section>
       </main>
     )
   }

@@ -24,6 +24,7 @@ function mapNun(
     isCurrent: item.isCurrent,
     sortOrder: item.sortOrder,
     imageUrl: item.imageUrl,
+    phone: item.phone,
     createdAt: item.createdAt.toISOString(),
   }
 }

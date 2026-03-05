@@ -24,14 +24,13 @@ export type NunListItemDto = {
   isCurrent: boolean
   sortOrder: number
   imageUrl: string | null
-  createdAt: string
-}
-
-export type NunDetailDto = NunListItemDto & {
   phone: string | null
+  createdAt: string
 }
 
 export type NunPageDto = {
   items: NunListItemDto[]
   nextCursor: string | null
 }
+
+export type NunDetailDto = NunListItemDto

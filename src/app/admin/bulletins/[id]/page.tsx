@@ -13,7 +13,31 @@ export default function AdminBulletinDetailPage() {
   if (isLoading)
     return (
       <main className="space-y-6">
-        <section className="rounded-md border p-4">불러오는 중...</section>
+        <section className="space-y-2">
+          <Link
+            href="/admin/bulletins"
+            className="text-sm text-neutral-500 hover:text-neutral-800"
+          >
+            ← 목록으로
+          </Link>
+          <div className="h-8 w-2/3 animate-pulse rounded bg-neutral-200" />
+          <div className="h-4 w-44 animate-pulse rounded bg-neutral-200" />
+        </section>
+        <section className="space-y-3">
+          <div className="h-4 w-16 animate-pulse rounded bg-neutral-200" />
+          <div className="h-4 w-56 animate-pulse rounded bg-neutral-200" />
+        </section>
+        <section className="space-y-2">
+          <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+          <div className="space-y-2">
+            <div className="h-4 w-full animate-pulse rounded bg-neutral-200" />
+            <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-200" />
+          </div>
+        </section>
+        <section className="flex items-center gap-2">
+          <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+        </section>
       </main>
     )
   if (isError || !item)

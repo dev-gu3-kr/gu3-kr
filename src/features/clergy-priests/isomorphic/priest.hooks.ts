@@ -64,7 +64,7 @@ export function usePriestDetailQuery(id: string) {
       )
       const matched = cachedList?.find((item) => item.id === id)
       if (!matched) return undefined
-      return { ...matched, phone: null } as PriestDetailDto
+      return matched as PriestDetailDto
     },
     initialDataUpdatedAt: 0,
   })
