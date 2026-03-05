@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
+import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
 // 관리자 세션 쿠키에서 로그인 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
 
 // 사이드바 권한 분기와 헤더 사용자명 표시를 위해 현재 관리자 세션 정보를 반환한다.
 export async function GET(request: Request) {

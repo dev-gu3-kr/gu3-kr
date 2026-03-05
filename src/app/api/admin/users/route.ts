@@ -1,33 +1,17 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
 import type { ApiResponseDto } from "@/features/notices/isomorphic"
 import type { AdminUserListItemDto } from "@/features/users/isomorphic"
 import { createAdminUserSchema } from "@/features/users/isomorphic"
 import { userService } from "@/features/users/server"
+import { assertSuperAdminSession } from "@/lib/admin/session"
 
 // 관리자 세션 쿠키에서 로그인 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
 
 // 사용자 등록 관리 API는 최고관리자만 접근 가능하도록 서버에서 최종 검증한다.
-async function assertSuperAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  const author = await authService.getLoginCandidateById(authorId)
-  if (!author || author.role !== "SUPER_ADMIN") return null
-  return author
-}
 
 // 관리자 사용자 목록을 반환한다.
 export async function GET(request: Request) {
-  const author = await assertSuperAdmin(request)
+  const author = await assertSuperAdminSession(request)
   if (!author)
     return NextResponse.json(
       { ok: false, message: "최고관리자 권한이 필요합니다." },
@@ -52,7 +36,7 @@ export async function GET(request: Request) {
 
 // 관리자 사용자 계정을 생성한다.
 export async function POST(request: Request) {
-  const author = await assertSuperAdmin(request)
+  const author = await assertSuperAdminSession(request)
   if (!author)
     return NextResponse.json(
       { ok: false, message: "최고관리자 권한이 필요합니다." },

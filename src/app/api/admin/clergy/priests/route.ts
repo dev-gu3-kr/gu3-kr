@@ -1,19 +1,10 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
 import type { PriestPageDto } from "@/features/clergy-priests/isomorphic"
 import { upsertPriestSchema } from "@/features/clergy-priests/isomorphic"
 import { priestService } from "@/features/clergy-priests/server"
 import type { ApiResponseDto } from "@/features/notices/isomorphic"
-
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  // Cookie 헤더에서 관리자 세션 값을 추출한다.
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
+import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
 function mapPriest(
   item: Awaited<

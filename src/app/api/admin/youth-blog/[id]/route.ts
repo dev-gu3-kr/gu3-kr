@@ -1,37 +1,23 @@
 // 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
 import type {
   ApiResponseDto,
   NoticeDetailDto,
 } from "@/features/youth-blog/isomorphic"
 import { createNoticeSchema } from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
+import { assertAdminSession } from "@/lib/admin/session"
 
 // 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
 
 // 관리자 세션 유효성을 검사한다.
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
-}
 
 // 목록/상세 조회 요청을 처리한다.
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
@@ -68,7 +54,7 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
@@ -99,7 +85,7 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(

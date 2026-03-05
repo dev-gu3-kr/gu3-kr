@@ -1,29 +1,14 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
+import { assertAdminSession } from "@/lib/admin/session"
 import { prisma } from "@/lib/prisma"
 
 // 단건 조회/수정/삭제 모두 동일한 관리자 인증 규칙을 사용한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
-
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
-}
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },
@@ -59,7 +44,7 @@ export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },
@@ -136,7 +121,7 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },

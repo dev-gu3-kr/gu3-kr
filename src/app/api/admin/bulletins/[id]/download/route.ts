@@ -1,29 +1,13 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
+import { assertAdminSession } from "@/lib/admin/session"
 import { prisma } from "@/lib/prisma"
-
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
-
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
-}
 
 // 본당주보 첨부 파일을 same-origin 응답으로 중계해 브라우저 다운로드를 강제한다.
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },

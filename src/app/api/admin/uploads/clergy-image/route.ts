@@ -1,30 +1,13 @@
 // 신부/수녀 프로필 이미지 MinIO 업로드/삭제 API
 import { randomUUID } from "node:crypto"
-import {
-  DeleteObjectCommand,
-  PutObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3"
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
+import { assertAdminSession } from "@/lib/admin/session"
+import { getMinioS3Client } from "@/lib/admin/storage"
 
 // 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
 
 // 세션 쿠키를 기준으로 관리자 로그인 여부를 검증한다.
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
-}
 
 // key 또는 URL에서 실제 S3 object key를 안전하게 복원한다.
 function resolveObjectKey(params: {
@@ -46,26 +29,10 @@ function resolveObjectKey(params: {
 }
 
 // MinIO 환경변수를 검증한 뒤 S3Client를 생성한다.
-function getS3Client() {
-  const endpoint = process.env.MINIO_ENDPOINT
-  const accessKeyId = process.env.MINIO_ACCESS_KEY
-  const secretAccessKey = process.env.MINIO_SECRET_KEY
-
-  if (!endpoint || !accessKeyId || !secretAccessKey) {
-    throw new Error("MINIO 설정이 비어 있습니다.")
-  }
-
-  return new S3Client({
-    endpoint,
-    region: process.env.MINIO_REGION || "us-east-1",
-    forcePathStyle: true,
-    credentials: { accessKeyId, secretAccessKey },
-  })
-}
 
 // 이미지 파일 검증 후 MinIO에 업로드하고 접근 URL을 반환한다.
 export async function POST(request: Request) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },
@@ -109,7 +76,7 @@ export async function POST(request: Request) {
   const key = `cathedral/clergy/${Date.now()}-${randomUUID()}.${ext}`
   const body = Buffer.from(await file.arrayBuffer())
 
-  const client = getS3Client()
+  const client = getMinioS3Client()
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
@@ -127,7 +94,7 @@ export async function POST(request: Request) {
 
 // 요청 key/url 기준으로 MinIO 이미지를 물리 삭제한다.
 export async function DELETE(request: Request) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },
@@ -161,7 +128,7 @@ export async function DELETE(request: Request) {
     )
   }
 
-  const client = getS3Client()
+  const client = getMinioS3Client()
   await client.send(
     new DeleteObjectCommand({
       Bucket: bucket,

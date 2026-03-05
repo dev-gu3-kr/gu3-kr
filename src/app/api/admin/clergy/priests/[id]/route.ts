@@ -1,17 +1,8 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
 import { upsertPriestSchema } from "@/features/clergy-priests/isomorphic"
 import { priestService } from "@/features/clergy-priests/server"
-
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  // Cookie 헤더에서 관리자 세션 값을 추출한다.
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
+import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
 async function getSessionAuthor(request: Request) {
   // 요청 쿠키를 바탕으로 로그인 사용자 정보를 확인한다.

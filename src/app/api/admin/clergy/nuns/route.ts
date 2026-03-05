@@ -1,20 +1,13 @@
 // 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
 import type { NunPageDto } from "@/features/clergy-nuns/isomorphic"
 import { upsertNunSchema } from "@/features/clergy-nuns/isomorphic"
 import { nunService } from "@/features/clergy-nuns/server"
 import type { ApiResponseDto } from "@/features/notices/isomorphic"
+import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
 // 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
 
 function mapNun(
   item: Awaited<ReturnType<typeof nunService.getNunPage>>["items"][number],

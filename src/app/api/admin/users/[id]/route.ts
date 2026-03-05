@@ -1,34 +1,18 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
 import { updateAdminUserSchema } from "@/features/users/isomorphic"
 import { userService } from "@/features/users/server"
+import { assertSuperAdminSession } from "@/lib/admin/session"
 
 // 관리자 세션 쿠키에서 로그인 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
 
 // 개별 사용자 수정/삭제도 최고관리자 권한으로만 허용한다.
-async function assertSuperAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  const author = await authService.getLoginCandidateById(authorId)
-  if (!author || author.role !== "SUPER_ADMIN") return null
-  return author
-}
 
 // PATCH는 일반 정보 변경과 비밀번호 초기화를 함께 처리한다.
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertSuperAdmin(request)
+  const author = await assertSuperAdminSession(request)
   if (!author)
     return NextResponse.json(
       { ok: false, message: "최고관리자 권한이 필요합니다." },
@@ -66,7 +50,7 @@ export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
-  const author = await assertSuperAdmin(request)
+  const author = await assertSuperAdminSession(request)
   if (!author)
     return NextResponse.json(
       { ok: false, message: "최고관리자 권한이 필요합니다." },

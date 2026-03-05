@@ -1,26 +1,11 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
+import { assertAdminSession } from "@/lib/admin/session"
 import { prisma } from "@/lib/prisma"
 
 // 관리자 세션 쿠키에서 작성자 식별자를 추출한다.
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
-
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
-}
 
 export async function GET(request: Request) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },
@@ -98,7 +83,7 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
       { ok: false, message: "로그인이 필요합니다." },

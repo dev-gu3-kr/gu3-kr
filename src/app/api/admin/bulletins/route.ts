@@ -1,55 +1,24 @@
 import { randomUUID } from "node:crypto"
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
+import { assertAdminSession } from "@/lib/admin/session"
+import { createTimestampSlug } from "@/lib/admin/slug"
+import { getMinioS3Client } from "@/lib/admin/storage"
 import { prisma } from "@/lib/prisma"
 
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
+// 관리자 API 라우트: 본당주보 목록 조회와 파일 업로드 기반 생성을 처리한다.
 
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
-}
+// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 
-function getS3Client() {
-  const endpoint = process.env.MINIO_ENDPOINT
-  const accessKeyId = process.env.MINIO_ACCESS_KEY
-  const secretAccessKey = process.env.MINIO_SECRET_KEY
+// 로그인한 관리자 세션 유효성을 검사한다.
 
-  if (!endpoint || !accessKeyId || !secretAccessKey) {
-    throw new Error("MINIO 설정이 비어 있습니다.")
-  }
+// 주보 첨부파일 업로드를 위한 MinIO(S3 호환) 클라이언트를 생성한다.
 
-  return new S3Client({
-    endpoint,
-    region: process.env.MINIO_REGION || "us-east-1",
-    forcePathStyle: true,
-    credentials: { accessKeyId, secretAccessKey },
-  })
-}
+// 주보 slug를 생성한다.
 
-function toSlug(title: string) {
-  const base = title
-    .toLowerCase()
-    .trim()
-    .replace(/[^\p{L}\p{N}\s-]/gu, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-
-  return `${base || "bulletin"}-${Date.now()}`
-}
-
+// 본당주보 목록을 페이지네이션/검색/공개상태 필터와 함께 조회한다.
 export async function GET(request: Request) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
@@ -120,8 +89,9 @@ export async function GET(request: Request) {
   })
 }
 
+// 본당주보를 첨부파일과 함께 생성한다.
 export async function POST(request: Request) {
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
@@ -164,7 +134,7 @@ export async function POST(request: Request) {
 
   if (!ext || !allowedExt.has(ext)) {
     return NextResponse.json(
-      { ok: false, message: "허용되지 않는 파일 형식입니다." },
+      { ok: false, message: "허용되지 않은 파일 형식입니다." },
       { status: 400 },
     )
   }
@@ -178,7 +148,7 @@ export async function POST(request: Request) {
   }
 
   const key = `cathedral/bulletins/${Date.now()}-${randomUUID()}.${ext}`
-  const client = getS3Client()
+  const client = getMinioS3Client()
 
   await client.send(
     new PutObjectCommand({
@@ -196,7 +166,7 @@ export async function POST(request: Request) {
     data: {
       category: "BULLETIN",
       title,
-      slug: toSlug(title),
+      slug: createTimestampSlug(title, "bulletin"),
       content,
       isPublished,
       publishedAt: isPublished ? new Date() : null,

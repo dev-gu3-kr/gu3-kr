@@ -1,39 +1,18 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
-import { authService } from "@/features/auth/server"
 import type {
   ApiResponseDto,
   NoticeDetailDto,
 } from "@/features/notices/isomorphic"
 import { createNoticeSchema } from "@/features/notices/isomorphic"
 import { noticeService } from "@/features/notices/server"
-
-function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  // Cookie 헤더에서 관리자 세션 값을 추출한다.
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
-}
-
-async function assertAdmin(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-
-  if (!authorId) {
-    return null
-  }
-
-  return authService.getLoginCandidateById(authorId)
-}
+import { assertAdminSession } from "@/lib/admin/session"
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   // 관리자 인증을 확인한다.
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
@@ -74,7 +53,7 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> },
 ) {
   // 관리자 인증을 확인한다.
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
@@ -108,7 +87,7 @@ export async function DELETE(
   context: { params: Promise<{ id: string }> },
 ) {
   // 관리자 인증을 확인한다.
-  const author = await assertAdmin(request)
+  const author = await assertAdminSession(request)
 
   if (!author) {
     return NextResponse.json(
