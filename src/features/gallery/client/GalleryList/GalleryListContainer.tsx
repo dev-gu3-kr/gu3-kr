@@ -170,7 +170,24 @@ export function GalleryListContainer({
         ) : null}
       </section>
 
-      {items.length === 0 ? (
+      {isFilterFetching && items.length === 0 ? (
+        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3">
+          {["g-sk-1", "g-sk-2", "g-sk-3", "g-sk-4", "g-sk-5", "g-sk-6"].map(
+            (key) => (
+              <li
+                key={key}
+                className="animate-pulse overflow-hidden rounded-md border"
+              >
+                <div className="aspect-[16/9] bg-neutral-200" />
+                <div className="space-y-2 p-3">
+                  <div className="h-4 w-5/6 rounded bg-neutral-200" />
+                  <div className="h-3 w-1/2 rounded bg-neutral-200" />
+                </div>
+              </li>
+            ),
+          )}
+        </ul>
+      ) : items.length === 0 ? (
         <div className="rounded-md border p-6 text-sm text-neutral-500">
           검색 결과가 없습니다.
         </div>

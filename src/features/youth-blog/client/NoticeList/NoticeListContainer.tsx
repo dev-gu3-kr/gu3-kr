@@ -132,7 +132,15 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
       </section>
 
       {isLoading && items.length === 0 ? (
-        <p className="text-sm text-neutral-500">공지 목록을 불러오는 중...</p>
+        <div className="space-y-2">
+          {["sk-1", "sk-2", "sk-3", "sk-4"].map((key) => (
+            <div key={key} className="animate-pulse rounded-md border p-4">
+              <div className="h-5 w-3/5 rounded bg-neutral-200" />
+              <div className="mt-2 h-4 w-4/5 rounded bg-neutral-200" />
+              <div className="mt-2 h-3 w-32 rounded bg-neutral-200" />
+            </div>
+          ))}
+        </div>
       ) : null}
 
       {isError && items.length === 0 ? (

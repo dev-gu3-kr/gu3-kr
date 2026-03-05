@@ -1,6 +1,6 @@
 "use client"
 import { useQuery } from "@tanstack/react-query"
-import { BriefcaseBusiness, Calendar, Clock3, Loader2 } from "lucide-react"
+import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import type { PriestListItemDto } from "@/features/clergy-priests/isomorphic"
@@ -31,8 +31,21 @@ export function PriestListContainer() {
 
   if (isLoading)
     return (
-      <div className="rounded-md border p-4 text-sm text-neutral-500">
-        <Loader2 className="mr-2 inline h-4 w-4 animate-spin" /> 불러오는 중...
+      <div className="space-y-2">
+        {["s1", "s2", "s3"].map((key) => (
+          <div
+            key={key}
+            className="grid animate-pulse grid-cols-[104px_1fr] gap-4 rounded-md border p-3"
+          >
+            <div className="h-[128px] w-[104px] rounded-md bg-neutral-200" />
+            <div className="space-y-2">
+              <div className="h-5 w-40 rounded bg-neutral-200" />
+              <div className="h-4 w-56 rounded bg-neutral-200" />
+              <div className="h-4 w-48 rounded bg-neutral-200" />
+              <div className="h-4 w-64 rounded bg-neutral-200" />
+            </div>
+          </div>
+        ))}
       </div>
     )
   if (isError)
