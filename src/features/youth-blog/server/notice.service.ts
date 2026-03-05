@@ -25,7 +25,6 @@ export async function createYouthBlog(input: {
   isPublished?: boolean
   authorId: string
 }) {
-  // 공지 작성 입력을 정규화한다.
   const normalizedTitle = input.title.trim()
   const normalizedSummary = input.summary?.trim()
   const normalizedContent = input.content.trim()
@@ -46,7 +45,6 @@ export async function getYouthBlogPage(params: {
   query?: string
   isPublished?: boolean
 }) {
-  // 인피니티 스크롤용 공지 페이지를 반환한다.
   const take = params.take ?? 10
   const items = await findYouthBlogPage({
     take,
@@ -64,7 +62,6 @@ export async function getYouthBlogPage(params: {
 }
 
 export async function getYouthBlogById(id: string) {
-  // 공지 상세 페이지에서 사용할 단건 공지 데이터를 반환한다.
   return findYouthBlogById(id)
 }
 
@@ -75,16 +72,16 @@ export async function updateYouthBlog(input: {
   content: string
   isPublished?: boolean
 }) {
-  // 공지 수정 입력을 정규화해 반영한다.
+  const normalizedSummary = input.summary?.trim()
+
   return updateYouthBlogById(input.id, {
     title: input.title.trim(),
-    summary: input.summary?.trim() || undefined,
+    summary: normalizedSummary ? normalizedSummary : null,
     content: input.content.trim(),
     isPublished: Boolean(input.isPublished),
   })
 }
 
 export async function removeYouthBlogById(id: string) {
-  // 공지 삭제를 수행한다.
   return deleteYouthBlogById(id)
 }
