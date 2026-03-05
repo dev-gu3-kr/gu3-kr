@@ -44,7 +44,7 @@ export default async function AdminPastoralCouncilViewPage(props: {
               alt={`${item.name} 프로필`}
               width={260}
               height={320}
-              unoptimized
+              sizes="260px"
               className="h-[320px] w-[260px] rounded-xl object-cover shadow-sm"
             />
           ) : (
