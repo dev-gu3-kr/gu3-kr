@@ -3,7 +3,10 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { UpsertPastoralCouncilInputDto } from "@/features/pastoral-council/isomorphic"
+import {
+  type UpsertPastoralCouncilInputDto,
+  usePastoralCouncilDetailQuery,
+} from "@/features/pastoral-council/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { PastoralCouncilFormView } from "./PastoralCouncilFormView"
 
@@ -37,6 +40,24 @@ export function PastoralCouncilFormContainer({
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+
+  const detailQuery = usePastoralCouncilDetailQuery(memberId ?? "")
+
+  const resolvedInitialValues =
+    mode === "edit"
+      ? (initialValues ??
+        (detailQuery.data
+          ? {
+              name: detailQuery.data.name,
+              baptismalName: detailQuery.data.baptismalName ?? undefined,
+              duty: detailQuery.data.duty,
+              phone: detailQuery.data.phone,
+              imageUrl: detailQuery.data.imageUrl ?? undefined,
+              isActive: detailQuery.data.isActive,
+              sortOrder: detailQuery.data.sortOrder,
+            }
+          : undefined))
+      : initialValues
 
   const handleSubmit = async (values: UpsertPastoralCouncilInputDto) => {
     const normalizedValues = normalizeInput(values)
@@ -132,9 +153,23 @@ export function PastoralCouncilFormContainer({
       throw new Error(json?.message ?? "이미지 삭제에 실패했습니다.")
   }
 
+  if (mode === "edit" && !resolvedInitialValues) {
+    if (detailQuery.isLoading)
+      return (
+        <div className="h-[420px] animate-pulse rounded-md border bg-neutral-100" />
+      )
+
+    if (detailQuery.isError)
+      return (
+        <p className="text-sm text-red-600">
+          사목협의회 수정 데이터를 불러오지 못했습니다.
+        </p>
+      )
+  }
+
   return (
     <PastoralCouncilFormView
-      initialValues={initialValues}
+      initialValues={resolvedInitialValues}
       onSubmitAction={handleSubmit}
       onUploadImageAction={uploadClergyImage}
       onRemoveImageAction={removeClergyImage}

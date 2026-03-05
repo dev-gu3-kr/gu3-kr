@@ -4,7 +4,10 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { UpsertPriestInputDto } from "@/features/clergy-priests/isomorphic"
+import {
+  type UpsertPriestInputDto,
+  usePriestDetailQuery,
+} from "@/features/clergy-priests/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { PriestFormView } from "./PriestFormView"
 
@@ -73,6 +76,28 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+
+  const detailQuery = usePriestDetailQuery(priestId ?? "")
+
+  const resolvedInitialValues =
+    mode === "edit"
+      ? (initialValues ??
+        (detailQuery.data
+          ? {
+              name: detailQuery.data.name,
+              baptismalName: detailQuery.data.baptismalName ?? undefined,
+              duty: detailQuery.data.duty,
+              feastMonth: detailQuery.data.feastMonth ?? undefined,
+              feastDay: detailQuery.data.feastDay ?? undefined,
+              termStart: detailQuery.data.termStart ?? undefined,
+              termEnd: detailQuery.data.termEnd ?? undefined,
+              phone: detailQuery.data.phone ?? undefined,
+              imageUrl: detailQuery.data.imageUrl ?? undefined,
+              isCurrent: detailQuery.data.isCurrent,
+              sortOrder: detailQuery.data.sortOrder,
+            }
+          : undefined))
+      : initialValues
 
   const handleSubmit = async (values: UpsertPriestInputDto) => {
     const normalizedValues = normalizeInput(values)
@@ -179,9 +204,23 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
     }
   }
 
+  if (mode === "edit" && !resolvedInitialValues) {
+    if (detailQuery.isLoading)
+      return (
+        <div className="h-[420px] animate-pulse rounded-md border bg-neutral-100" />
+      )
+
+    if (detailQuery.isError)
+      return (
+        <p className="text-sm text-red-600">
+          신부님 수정 데이터를 불러오지 못했습니다.
+        </p>
+      )
+  }
+
   return (
     <PriestFormView
-      initialValues={initialValues}
+      initialValues={resolvedInitialValues}
       onSubmitAction={handleSubmit}
       onUploadImageAction={uploadClergyImage}
       onRemoveImageAction={removeClergyImage}
