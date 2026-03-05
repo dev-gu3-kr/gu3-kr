@@ -42,6 +42,7 @@ export default async function AdminPastoralCouncilViewPage(props: {
             <Image
               src={item.imageUrl}
               alt={`${item.name} 프로필`}
+              unoptimized
               width={260}
               height={320}
               sizes="260px"

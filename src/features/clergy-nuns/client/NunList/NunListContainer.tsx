@@ -55,6 +55,7 @@ export function NunListContainer() {
               <Image
                 src={item.imageUrl}
                 alt={`${item.name} 사진`}
+                unoptimized
                 width={104}
                 height={128}
                 sizes="104px"
