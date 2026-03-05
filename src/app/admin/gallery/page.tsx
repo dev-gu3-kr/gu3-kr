@@ -1,26 +1,7 @@
 import Link from "next/link"
 import { GalleryListContainer } from "@/features/gallery/client"
-import type { GalleryListItemDto } from "@/features/gallery/isomorphic"
-import { serverApiFetch } from "@/lib/api-server"
 
-type GalleryListResponseDto = {
-  ok?: boolean
-  items?: GalleryListItemDto[]
-  pageInfo?: { hasMore: boolean; nextCursor: string | null }
-}
-
-export default async function AdminGalleryPage() {
-  const response = await serverApiFetch
-    .get("/api/admin/gallery")
-    .query({ take: 20 })
-    .send()
-  const json = (await response
-    .json()
-    .catch(() => null)) as GalleryListResponseDto | null
-  const items = json?.ok && Array.isArray(json.items) ? json.items : []
-  const hasMore = Boolean(json?.pageInfo?.hasMore)
-  const nextCursor = json?.pageInfo?.nextCursor ?? null
-
+export default function AdminGalleryPage() {
   return (
     <main className="space-y-6">
       <section className="flex items-start justify-between gap-4">
@@ -38,11 +19,7 @@ export default async function AdminGalleryPage() {
         </Link>
       </section>
 
-      <GalleryListContainer
-        initialItems={items}
-        initialHasMore={hasMore}
-        initialNextCursor={nextCursor}
-      />
+      <GalleryListContainer />
     </main>
   )
 }

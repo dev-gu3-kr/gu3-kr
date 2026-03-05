@@ -16,9 +16,9 @@ import { apiFetch } from "@/lib/api"
 import { useEventManagerViewMode } from "../EventManagerViewModeContext"
 
 type EventManagerContainerProps = {
-  initialItems: EventListItemDto[]
-  initialHasMore: boolean
-  initialNextCursor: string | null
+  initialItems?: EventListItemDto[]
+  initialHasMore?: boolean
+  initialNextCursor?: string | null
 }
 
 type EventPublishFilter = "all" | "published" | "draft"
@@ -33,10 +33,10 @@ type EventListResponseDto = {
 }
 
 export function EventManagerContainer({
-  initialItems,
-  initialHasMore,
-  initialNextCursor,
-}: EventManagerContainerProps) {
+  initialItems = [],
+  initialHasMore = false,
+  initialNextCursor = null,
+}: EventManagerContainerProps = {}) {
   const router = useRouter()
   const { viewMode, setViewMode } = useEventManagerViewMode()
 
@@ -60,7 +60,6 @@ export function EventManagerContainer({
   const [isSchedulerFetching, setIsSchedulerFetching] = useState(false)
 
   const sentinelRef = useRef<HTMLDivElement | null>(null)
-  const didMountRef = useRef(false)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -72,11 +71,6 @@ export function EventManagerContainer({
 
   // 리스트: 필터 변경 시 첫 페이지 재조회
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true
-      return
-    }
-
     const run = async () => {
       setIsFilterFetching(true)
       try {

@@ -1,30 +1,6 @@
 import { EventManagerContainer } from "@/features/events/client"
-import type { EventListItemDto } from "@/features/events/isomorphic"
-import { serverApiFetch } from "@/lib/api-server"
 
-type EventListResponseDto = {
-  ok?: boolean
-  items?: EventListItemDto[]
-  pageInfo?: {
-    hasMore: boolean
-    nextCursor: string | null
-  }
-}
-
-export default async function AdminEventsPage() {
-  const response = await serverApiFetch
-    .get("/api/admin/events")
-    .query({ take: 20 })
-    .send()
-
-  const json = (await response
-    .json()
-    .catch(() => null)) as EventListResponseDto | null
-
-  const items = json?.ok && Array.isArray(json.items) ? json.items : []
-  const hasMore = Boolean(json?.pageInfo?.hasMore)
-  const nextCursor = json?.pageInfo?.nextCursor ?? null
-
+export default function AdminEventsPage() {
   return (
     <main className="space-y-6">
       <section className="space-y-2">
@@ -34,11 +10,7 @@ export default async function AdminEventsPage() {
         </p>
       </section>
 
-      <EventManagerContainer
-        initialItems={items}
-        initialHasMore={hasMore}
-        initialNextCursor={nextCursor}
-      />
+      <EventManagerContainer />
     </main>
   )
 }

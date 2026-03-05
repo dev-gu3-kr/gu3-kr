@@ -19,14 +19,14 @@ type GalleryListResponseDto = {
 }
 
 export function GalleryListContainer({
-  initialItems,
-  initialHasMore,
-  initialNextCursor,
+  initialItems = [],
+  initialHasMore = false,
+  initialNextCursor = null,
 }: {
-  initialItems: GalleryListItemDto[]
-  initialHasMore: boolean
-  initialNextCursor: string | null
-}) {
+  initialItems?: GalleryListItemDto[]
+  initialHasMore?: boolean
+  initialNextCursor?: string | null
+} = {}) {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<GalleryPublishFilter>("all")
@@ -37,7 +37,6 @@ export function GalleryListContainer({
   const [isFilterFetching, setIsFilterFetching] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
-  const didMountRef = useRef(false)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setQuery(queryInput.trim()), 300)
@@ -45,11 +44,6 @@ export function GalleryListContainer({
   }, [queryInput])
 
   useEffect(() => {
-    if (!didMountRef.current) {
-      didMountRef.current = true
-      return
-    }
-
     const run = async () => {
       setIsFilterFetching(true)
       try {
