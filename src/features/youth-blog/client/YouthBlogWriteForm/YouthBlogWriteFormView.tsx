@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import type { CreateYouthBlogInputDto } from "@/features/youth-blog/isomorphic"
 
-type NoticeWriteFormViewProps = {
+type YouthBlogWriteFormViewProps = {
   onSubmitAction: (values: CreateYouthBlogInputDto) => void
   isLoading: boolean
   message: string | null
@@ -44,7 +44,7 @@ type ToastEditorConstructor = new (options: {
 }) => ToastEditorLike
 
 // 공지 폼 렌더러: RHF 상태와 Toast UI 에디터 상태를 동기화한다.
-export function NoticeWriteFormView({
+export function YouthBlogWriteFormView({
   onSubmitAction,
   isLoading,
   message,
@@ -55,7 +55,7 @@ export function NoticeWriteFormView({
   initialIsPublished,
   submitLabel = "공지 저장",
   onUploadImageAction,
-}: NoticeWriteFormViewProps) {
+}: YouthBlogWriteFormViewProps) {
   const {
     register,
     handleSubmit,

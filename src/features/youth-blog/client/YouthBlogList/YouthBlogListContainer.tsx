@@ -15,11 +15,13 @@ import { useYouthBlogListInfinite } from "@/features/youth-blog/isomorphic"
 
 type YouthBlogPageResponse = ApiResponseDto<YouthBlogPageDto>
 
-type NoticeListContainerProps = {
+type YouthBlogListContainerProps = {
   initialPage?: YouthBlogPageResponse
 }
 
-export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
+export function YouthBlogListContainer({
+  initialPage,
+}: YouthBlogListContainerProps) {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<YouthBlogPublishFilterDto>("all")

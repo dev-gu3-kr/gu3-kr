@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { NoticeWriteFormContainer } from "@/features/youth-blog/client"
+import { YouthBlogWriteFormContainer } from "@/features/youth-blog/client"
 
 export default function AdminYouthBlogNewPage() {
   return (
@@ -21,7 +21,7 @@ export default function AdminYouthBlogNewPage() {
       </section>
 
       <section className="rounded-lg border p-4">
-        <NoticeWriteFormContainer />
+        <YouthBlogWriteFormContainer />
       </section>
     </main>
   )

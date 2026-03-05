@@ -6,9 +6,9 @@ import { useState } from "react"
 import { toast } from "sonner"
 import type { CreateYouthBlogInputDto } from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
-import { NoticeWriteFormView } from "./NoticeWriteFormView"
+import { YouthBlogWriteFormView } from "./YouthBlogWriteFormView"
 
-type NoticeEditFormContainerProps = {
+type YouthBlogEditFormContainerProps = {
   noticeId: string
   initialTitle: string
   initialSummary?: string | null
@@ -17,20 +17,20 @@ type NoticeEditFormContainerProps = {
 }
 
 // 공지 수정 컨테이너: PATCH 요청과 수정 완료 후 상세 복귀 흐름을 담당한다.
-export function NoticeEditFormContainer({
+export function YouthBlogEditFormContainer({
   noticeId,
   initialTitle,
   initialSummary,
   initialContent,
   initialIsPublished,
-}: NoticeEditFormContainerProps) {
+}: YouthBlogEditFormContainerProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
 
   // 본문 이미지 업로드: formData 전송 후 삽입 가능한 이미지 URL을 반환한다.
-  async function uploadNoticeImage(file: File) {
+  async function uploadYouthBlogImage(file: File) {
     const formData = new FormData()
     formData.append("file", file)
 
@@ -88,7 +88,7 @@ export function NoticeEditFormContainer({
   }
 
   return (
-    <NoticeWriteFormView
+    <YouthBlogWriteFormView
       onSubmitAction={handleSubmit}
       isLoading={isLoading}
       message={message}
@@ -98,7 +98,7 @@ export function NoticeEditFormContainer({
       initialContent={initialContent}
       initialIsPublished={initialIsPublished}
       submitLabel="수정 저장"
-      onUploadImageAction={uploadNoticeImage}
+      onUploadImageAction={uploadYouthBlogImage}
     />
   )
 }

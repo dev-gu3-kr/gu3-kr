@@ -3,11 +3,13 @@
 import { useRouter } from "next/navigation"
 import { apiFetch } from "@/lib/api"
 
-type NoticeDeleteButtonProps = {
+type YouthBlogDeleteButtonProps = {
   noticeId: string
 }
 
-export function NoticeDeleteButton({ noticeId }: NoticeDeleteButtonProps) {
+export function YouthBlogDeleteButton({
+  noticeId,
+}: YouthBlogDeleteButtonProps) {
   const router = useRouter()
 
   const handleDelete = async () => {

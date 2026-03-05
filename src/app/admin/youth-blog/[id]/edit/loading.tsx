@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton"
 
-export default function AdminNoticeEditLoading() {
+export default function AdminYouthBlogEditLoading() {
   return (
     <main className="space-y-6">
       <section className="space-y-4 rounded-xl bg-white p-5">

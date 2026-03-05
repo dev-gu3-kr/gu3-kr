@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
-import { NoticeEditFormContainer } from "@/features/youth-blog/client"
+import { YouthBlogEditFormContainer } from "@/features/youth-blog/client"
 import type { YouthBlogDetailDto } from "@/features/youth-blog/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
 
@@ -40,7 +40,7 @@ export default async function AdminYouthBlogEditPage(props: {
         제목, 요약, 본문, 공개 여부를 수정합니다.
       </p>
 
-      <NoticeEditFormContainer
+      <YouthBlogEditFormContainer
         noticeId={post.id}
         initialTitle={post.title}
         initialSummary={post.summary}

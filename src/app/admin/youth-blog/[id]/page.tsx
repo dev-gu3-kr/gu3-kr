@@ -5,8 +5,8 @@ import { ko } from "date-fns/locale"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import {
-  NoticeContentViewer,
-  NoticeDeleteButton,
+  YouthBlogContentViewer,
+  YouthBlogDeleteButton,
 } from "@/features/youth-blog/client"
 import { useYouthBlogDetailQuery } from "@/features/youth-blog/isomorphic"
 
@@ -18,13 +18,31 @@ export default function AdminYouthBlogViewPage() {
   if (isLoading) {
     return (
       <main className="space-y-6">
-        <section className="rounded-lg border bg-white p-4">
-          불러오는 중...
+        <section className="space-y-3 rounded-lg border bg-white p-4">
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              href="/admin/youth-blog"
+              className="text-sm text-neutral-500 hover:text-neutral-800"
+            >
+              ← 목록으로
+            </Link>
+            <div className="h-3 w-28 animate-pulse rounded bg-neutral-200" />
+          </div>
+          <div className="h-10 w-2/3 animate-pulse rounded bg-neutral-200" />
+          <div className="h-5 w-1/2 animate-pulse rounded bg-neutral-200" />
+          <div className="space-y-2 py-2">
+            <div className="h-4 w-full animate-pulse rounded bg-neutral-200" />
+            <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-200" />
+            <div className="h-4 w-4/6 animate-pulse rounded bg-neutral-200" />
+          </div>
+          <div className="flex items-center justify-end gap-2 border-t pt-4">
+            <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+            <div className="h-9 w-16 animate-pulse rounded-md bg-neutral-200" />
+          </div>
         </section>
       </main>
     )
   }
-
   if (isError || !post) {
     return (
       <main className="space-y-6">
@@ -61,7 +79,7 @@ export default function AdminYouthBlogViewPage() {
         ) : null}
 
         <article className="toastui-editor-contents text-[15px] leading-7 text-neutral-900">
-          <NoticeContentViewer content={post.content} />
+          <YouthBlogContentViewer content={post.content} />
         </article>
 
         <div className="flex items-center justify-end gap-2 border-t pt-4">
@@ -71,7 +89,7 @@ export default function AdminYouthBlogViewPage() {
           >
             수정
           </Link>
-          <NoticeDeleteButton noticeId={post.id} />
+          <YouthBlogDeleteButton noticeId={post.id} />
         </div>
       </section>
     </main>

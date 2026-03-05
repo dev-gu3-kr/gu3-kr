@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { NoticeListContainer } from "@/features/youth-blog/client"
+import { YouthBlogListContainer } from "@/features/youth-blog/client"
 
 export default function AdminYouthBlogPage() {
   return (
@@ -19,7 +19,7 @@ export default function AdminYouthBlogPage() {
         </Link>
       </section>
 
-      <NoticeListContainer />
+      <YouthBlogListContainer />
     </main>
   )
 }
