@@ -151,7 +151,7 @@ export function GalleryListContainer() {
               : "grid grid-cols-1 gap-3 lg:grid-cols-2 xl:grid-cols-3"
           }
         >
-          {items.map((item) => (
+          {items.map((item, index) => (
             <li key={item.id} className="overflow-hidden rounded-md border">
               <Link href={`/admin/gallery/${item.id}`} className="block">
                 <div className="relative aspect-[16/9] bg-neutral-100">
@@ -165,6 +165,8 @@ export function GalleryListContainer() {
                         alt=""
                         width={1600}
                         height={900}
+                        sizes="(max-width: 1024px) 100vw, (max-width: 1536px) 50vw, 33vw"
+                        priority={index < 2}
                         className={
                           loadedImageIds.has(item.id)
                             ? "h-full w-full object-cover opacity-100 transition-opacity duration-200"
