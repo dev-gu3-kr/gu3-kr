@@ -21,6 +21,13 @@ const minioRemotePattern = (() => {
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [...(minioRemotePattern ? [minioRemotePattern] : [])],
+    // 과도한 변형 폭 생성을 줄여 캐시 분산을 완화한다.
+    deviceSizes: [640, 768, 1024, 1280],
+    imageSizes: [320, 480],
+    // 목록 썸네일 중심 환경이라 webp 우선으로 CPU/용량 균형을 맞춘다.
+    formats: ["image/webp"],
+    // 최적화 결과를 하루 이상 유지해 재방문 미스 비용을 줄인다.
+    minimumCacheTTL: 60 * 60 * 24,
   },
 }
 
