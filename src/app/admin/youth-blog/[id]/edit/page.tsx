@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { YouthBlogEditFormContainer } from "@/features/youth-blog/client"
 
 export default async function AdminYouthBlogEditPage(props: {

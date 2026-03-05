@@ -2,8 +2,8 @@
 
 import { BriefcaseBusiness, Phone } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import { useState } from "react"
+import { AppLink as Link } from "@/components/AppLink"
 import { usePastoralCouncilListQuery } from "@/features/pastoral-council/isomorphic"
 
 export function PastoralCouncilListContainer() {

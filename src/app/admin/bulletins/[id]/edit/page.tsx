@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { BulletinEditFormContainer } from "@/features/bulletins/client"
 
 export default async function AdminBulletinEditPage(props: {

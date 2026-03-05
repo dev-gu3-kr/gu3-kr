@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { PriestFormContainer } from "@/features/clergy-priests/client"
 
 export default function AdminPriestNewPage() {

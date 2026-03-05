@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { PastoralCouncilFormContainer } from "@/features/pastoral-council/client"
 
 export default async function AdminPastoralCouncilEditPage(props: {

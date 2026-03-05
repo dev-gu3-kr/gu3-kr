@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { BulletinWriteFormContainer } from "@/features/bulletins/client"
 
 // 본당주보 등록 페이지: 제목/파일/내용 입력 폼을 제공한다.

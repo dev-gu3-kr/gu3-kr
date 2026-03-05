@@ -1,8 +1,8 @@
 "use client"
 import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import { useState } from "react"
+import { AppLink as Link } from "@/components/AppLink"
 import { useNunListQuery } from "@/features/clergy-nuns/isomorphic"
 
 export function NunListContainer() {

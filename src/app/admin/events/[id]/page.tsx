@@ -2,8 +2,8 @@
 
 import { format, formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
-import Link from "next/link"
 import { useParams } from "next/navigation"
+import { AppLink as Link } from "@/components/AppLink"
 import { EventDeleteButton } from "@/features/events/client"
 import { useEventDetailQuery } from "@/features/events/isomorphic"
 

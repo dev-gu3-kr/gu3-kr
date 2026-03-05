@@ -1,10 +1,10 @@
 "use client"
 
 import { Menu, X } from "lucide-react"
-import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import type { ReactNode } from "react"
 import { useState } from "react"
+import { AppLink as Link } from "@/components/AppLink"
 import { AdminSidebarContainer } from "@/features/admin/client"
 
 type AdminLayoutClientProps = {

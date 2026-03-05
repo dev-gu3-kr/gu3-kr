@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { EventWriteFormContainer } from "@/features/events/client"
 
 export default function AdminEventNewPage() {

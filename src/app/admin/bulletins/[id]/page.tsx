@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import { useParams } from "next/navigation"
+import { AppLink as Link } from "@/components/AppLink"
 import { BulletinDeleteButton } from "@/features/bulletins/client"
 import { useBulletinDetailQuery } from "@/features/bulletins/isomorphic"
 

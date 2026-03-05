@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { NunFormContainer } from "@/features/clergy-nuns/client"
 
 export default async function AdminNunEditPage(props: {

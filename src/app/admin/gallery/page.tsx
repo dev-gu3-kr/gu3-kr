@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { GalleryListContainer } from "@/features/gallery/client"
 
 export default function AdminGalleryPage() {

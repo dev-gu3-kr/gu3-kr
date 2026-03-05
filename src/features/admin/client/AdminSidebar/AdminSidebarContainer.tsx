@@ -1,8 +1,8 @@
 "use client"
 
-import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
+import { AppLink as Link } from "@/components/AppLink"
 import { ADMIN_MENU_ITEMS } from "@/features/admin/isomorphic"
 
 type AdminSidebarContainerProps = {

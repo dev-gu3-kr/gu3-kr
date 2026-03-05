@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { NoticeListContainer } from "@/features/notices/client"
 
 export default function AdminNoticesPage() {

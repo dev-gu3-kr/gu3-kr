@@ -8,8 +8,8 @@ import {
   Smartphone,
 } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link"
 import { useParams } from "next/navigation"
+import { AppLink as Link } from "@/components/AppLink"
 import { PriestDeleteButton } from "@/features/clergy-priests/client"
 import { usePriestDetailQuery } from "@/features/clergy-priests/isomorphic"
 

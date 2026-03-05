@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import { NunListContainer } from "@/features/clergy-nuns/client"
 
 export default function AdminNunsPage() {

@@ -3,8 +3,8 @@
 import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import Image from "next/image"
-import Link from "next/link"
 import { useParams } from "next/navigation"
+import { AppLink as Link } from "@/components/AppLink"
 import {
   GalleryContentViewer,
   GalleryDeleteButton,

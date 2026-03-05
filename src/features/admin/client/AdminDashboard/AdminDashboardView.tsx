@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { AppLink as Link } from "@/components/AppLink"
 import type { AdminMenuItem } from "@/features/admin/isomorphic"
 
 type AdminDashboardViewProps = {

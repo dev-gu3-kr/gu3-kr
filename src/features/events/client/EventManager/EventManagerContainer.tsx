@@ -7,9 +7,9 @@ import timeGridPlugin from "@fullcalendar/timegrid"
 import { format, formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { AppLink as Link } from "@/components/AppLink"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   type EventPublishFilterDto,
