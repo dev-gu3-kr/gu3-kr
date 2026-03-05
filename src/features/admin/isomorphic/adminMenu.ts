@@ -6,9 +6,11 @@ export type AdminMenuItem = {
   href: string
   // 메뉴 설명(작업 목적 안내)
   description: string
+  // 최고관리자 전용 메뉴 여부
+  superAdminOnly?: boolean
 }
 
-// 관리자 페이지 1차 스캐폴딩용 메뉴 목록이다.
+// 관리자 페이지 메뉴 목록이다.
 export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
   {
     label: "공지사항 관리",
@@ -54,10 +56,12 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     label: "1:1 문의 확인",
     href: "/admin/inquiries",
     description: "문의 접수 내역과 처리 상태를 확인한다.",
+    superAdminOnly: true,
   },
   {
     label: "사용자 등록",
     href: "/admin/users",
     description: "관리자 계정을 생성/비활성/권한 변경한다.",
+    superAdminOnly: true,
   },
 ]

@@ -6,8 +6,8 @@ import type {
 import {
   createAdminUser,
   deleteAdminUser,
+  findAdminUserByEmail,
   findAdminUserById,
-  findAdminUserByUsername,
   findAdminUsers,
   updateAdminUser,
 } from "./user.query"
@@ -25,13 +25,14 @@ export async function getAdminUserById(id: string) {
 }
 
 export async function createAdminUserAccount(input: CreateAdminUserInputDto) {
-  const existed = await findAdminUserByUsername(input.username.trim())
-  if (existed) throw new Error("이미 사용 중인 로그인 ID입니다.")
+  const normalizedEmail = input.email.trim()
+  const existed = await findAdminUserByEmail(normalizedEmail)
+  if (existed) throw new Error("이미 사용 중인 이메일입니다.")
 
   return createAdminUser({
-    username: input.username.trim(),
+    username: normalizedEmail,
     displayName: input.displayName.trim(),
-    email: input.email?.trim() || undefined,
+    email: normalizedEmail,
     role: input.role,
     passwordHash: hashPassword(input.password),
     isActive: input.isActive ?? true,

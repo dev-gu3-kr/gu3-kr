@@ -5,7 +5,6 @@ export async function findAdminUsers() {
     orderBy: [{ createdAt: "desc" }],
     select: {
       id: true,
-      username: true,
       displayName: true,
       email: true,
       role: true,
@@ -19,14 +18,14 @@ export async function findAdminUserById(id: string) {
   return prisma.user.findUnique({ where: { id } })
 }
 
-export async function findAdminUserByUsername(username: string) {
-  return prisma.user.findUnique({ where: { username } })
+export async function findAdminUserByEmail(email: string) {
+  return prisma.user.findUnique({ where: { email } })
 }
 
 export async function createAdminUser(data: {
   username: string
   displayName: string
-  email?: string
+  email: string
   role: "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "VIEWER"
   passwordHash: string
   isActive: boolean

@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import type { ReactNode } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AdminSidebarContainer } from "@/features/admin/client"
 
 type AdminLayoutProps = {
@@ -20,6 +20,26 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   // 모바일 메뉴 드로어 열림 상태다.
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [displayName, setDisplayName] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (isLoginPage) return
+
+    const run = async () => {
+      const response = await fetch("/api/admin/session", { cache: "no-store" })
+      const json = (await response.json().catch(() => null)) as {
+        ok?: boolean
+        displayName?: string
+      } | null
+      if (!response.ok || !json?.ok || !json.displayName) {
+        setDisplayName(null)
+        return
+      }
+      setDisplayName(json.displayName)
+    }
+
+    void run()
+  }, [isLoginPage])
 
   const handleLogout = async () => {
     // 서버 로그아웃 API를 호출해 세션 쿠키를 만료시킨다.
@@ -60,13 +80,18 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
           {/* 로그인 페이지가 아닐 때만 로그아웃 버튼을 노출한다. */}
           {!isLoginPage ? (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-md border px-3 py-2 text-sm hover:bg-neutral-50"
-            >
-              로그아웃
-            </button>
+            <div className="flex items-center gap-2">
+              {displayName ? (
+                <p className="text-sm text-neutral-600">{displayName}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="rounded-md border px-3 py-2 text-sm hover:bg-neutral-50"
+              >
+                로그아웃
+              </button>
+            </div>
           ) : null}
         </div>
       </header>
