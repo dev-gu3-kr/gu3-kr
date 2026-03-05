@@ -43,6 +43,7 @@ export function UserManagerContainer() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
   const [resettingUserId, setResettingUserId] = useState<string | null>(null)
 
+  // 모달 닫힘/등록 성공 시 입력 상태를 초기화해 이전 값이 재노출되지 않게 한다.
   const resetCreateForm = () => {
     setDisplayName("")
     setEmail("")
@@ -50,6 +51,7 @@ export function UserManagerContainer() {
     setRole("ADMIN")
   }
 
+  // 목록은 모든 액션(등록/삭제/초기화) 후 재조회해 단일 진실원천을 유지한다.
   const loadUsers = useCallback(async () => {
     setIsLoading(true)
     setMessage(null)
@@ -75,6 +77,7 @@ export function UserManagerContainer() {
     void loadUsers()
   }, [loadUsers])
 
+  // 등록 모달 제출: 이메일을 로그인 ID로 사용한다.
   async function handleCreate() {
     setMessage(null)
 
@@ -110,6 +113,7 @@ export function UserManagerContainer() {
     await loadUsers()
   }
 
+  // 삭제 처리 중에는 동일 행 액션을 잠가 중복 요청을 막는다.
   async function handleDelete(id: string) {
     if (!window.confirm("정말 삭제하시겠습니까?")) return
 
@@ -132,6 +136,7 @@ export function UserManagerContainer() {
     }
   }
 
+  // 비밀번호 초기화도 행 단위 로딩 상태를 노출해 무반응 오해를 줄인다.
   async function handleResetPassword(id: string) {
     const next = window.prompt("새 비밀번호를 입력하세요(8자 이상).")
     if (!next) return
@@ -158,6 +163,7 @@ export function UserManagerContainer() {
     }
   }
 
+  // 상단 목록 + 등록 모달 구조로 단일 페이지에서 사용자 관리 플로우를 완결한다.
   return (
     <div className="space-y-6">
       <section className="flex items-center justify-between">

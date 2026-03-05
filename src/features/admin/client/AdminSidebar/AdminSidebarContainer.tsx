@@ -17,6 +17,7 @@ export function AdminSidebarContainer({
   const pathname = usePathname()
   const [role, setRole] = useState<string | null>(null)
 
+  // 사이드바 렌더링 시 현재 세션 권한을 조회해 메뉴 노출을 동적으로 결정한다.
   useEffect(() => {
     const run = async () => {
       const response = await fetch("/api/admin/session", { cache: "no-store" })
@@ -34,8 +35,10 @@ export function AdminSidebarContainer({
     void run()
   }, [])
 
+  // SUPER_ADMIN 전용 메뉴는 일반 관리자에게 숨긴다.
   const menuItems = useMemo(() => {
     const isSuperAdmin = role === "SUPER_ADMIN"
+    // 메뉴 정의(superAdminOnly)를 권한과 결합해 최종 노출 목록을 계산한다.
     return ADMIN_MENU_ITEMS.filter((item) =>
       item.superAdminOnly ? isSuperAdmin : true,
     )

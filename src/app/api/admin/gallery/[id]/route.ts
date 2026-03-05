@@ -1,3 +1,4 @@
+// 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { randomUUID } from "node:crypto"
 import {
   DeleteObjectCommand,
@@ -9,6 +10,7 @@ import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
 import { prisma } from "@/lib/prisma"
 
+// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 function getAuthorIdFromCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
@@ -17,6 +19,7 @@ function getAuthorIdFromCookieHeader(cookieHeader: string) {
     ?.split("=")[1]
 }
 
+// 관리자 세션 유효성을 검사한다.
 async function assertAdmin(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -24,6 +27,7 @@ async function assertAdmin(request: Request) {
   return authService.getLoginCandidateById(authorId)
 }
 
+// 업로드/삭제에 사용할 S3(MinIO) 클라이언트를 생성한다.
 function getS3Client() {
   const endpoint = process.env.MINIO_ENDPOINT
   const accessKeyId = process.env.MINIO_ACCESS_KEY
@@ -101,6 +105,7 @@ async function uploadThumbnailFile(thumbnail: File) {
   }
 }
 
+// 목록/상세 조회 요청을 처리한다.
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -142,6 +147,7 @@ export async function GET(
   return NextResponse.json({ ok: true, item })
 }
 
+// 수정 요청을 처리한다.
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -249,6 +255,7 @@ export async function PATCH(
   return NextResponse.json({ ok: true })
 }
 
+// 삭제 요청을 처리한다.
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },

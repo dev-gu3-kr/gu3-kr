@@ -4,6 +4,7 @@ import { authService } from "@/features/auth/server"
 import { updateAdminUserSchema } from "@/features/users/isomorphic"
 import { userService } from "@/features/users/server"
 
+// 관리자 세션 쿠키에서 로그인 식별자를 추출한다.
 function getAuthorIdFromCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
@@ -12,6 +13,7 @@ function getAuthorIdFromCookieHeader(cookieHeader: string) {
     ?.split("=")[1]
 }
 
+// 개별 사용자 수정/삭제도 최고관리자 권한으로만 허용한다.
 async function assertSuperAdmin(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -21,6 +23,7 @@ async function assertSuperAdmin(request: Request) {
   return author
 }
 
+// PATCH는 일반 정보 변경과 비밀번호 초기화를 함께 처리한다.
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -58,6 +61,7 @@ export async function PATCH(
   }
 }
 
+// 삭제는 서비스 계층의 SUPER_ADMIN 보호 규칙을 거쳐 수행한다.
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },

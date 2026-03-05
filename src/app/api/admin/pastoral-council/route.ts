@@ -1,3 +1,4 @@
+// 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { NextResponse } from "next/server"
 import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
@@ -6,6 +7,7 @@ import type { PastoralCouncilPageDto } from "@/features/pastoral-council/isomorp
 import { upsertPastoralCouncilSchema } from "@/features/pastoral-council/isomorphic"
 import { pastoralCouncilService } from "@/features/pastoral-council/server"
 
+// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 function getAuthorIdFromCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
@@ -32,6 +34,7 @@ function mapItem(
   }
 }
 
+// 목록/상세 조회 요청을 처리한다.
 export async function GET(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -68,6 +71,8 @@ export async function GET(request: Request) {
   return NextResponse.json(response)
 }
 
+// 생성 요청을 처리한다.
+// 이미지 업로드를 받아 공용 버킷에 저장하고 URL을 반환한다.
 export async function POST(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)

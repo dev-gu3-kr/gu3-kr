@@ -1,9 +1,11 @@
+// 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { NextResponse } from "next/server"
 import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
 import { upsertPastoralCouncilSchema } from "@/features/pastoral-council/isomorphic"
 import { pastoralCouncilService } from "@/features/pastoral-council/server"
 
+// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 function getAuthorIdFromCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
@@ -37,6 +39,7 @@ function mapItem(
   }
 }
 
+// 목록/상세 조회 요청을 처리한다.
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -59,6 +62,7 @@ export async function GET(
   return NextResponse.json({ ok: true, item: mapItem(item) })
 }
 
+// 수정 요청을 처리한다.
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -110,6 +114,7 @@ export async function PATCH(
   return NextResponse.json({ ok: true })
 }
 
+// 삭제 요청을 처리한다.
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },

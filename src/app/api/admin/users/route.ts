@@ -6,6 +6,7 @@ import type { AdminUserListItemDto } from "@/features/users/isomorphic"
 import { createAdminUserSchema } from "@/features/users/isomorphic"
 import { userService } from "@/features/users/server"
 
+// 관리자 세션 쿠키에서 로그인 식별자를 추출한다.
 function getAuthorIdFromCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
@@ -14,6 +15,7 @@ function getAuthorIdFromCookieHeader(cookieHeader: string) {
     ?.split("=")[1]
 }
 
+// 사용자 등록 관리 API는 최고관리자만 접근 가능하도록 서버에서 최종 검증한다.
 async function assertSuperAdmin(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -23,6 +25,7 @@ async function assertSuperAdmin(request: Request) {
   return author
 }
 
+// 관리자 사용자 목록을 반환한다.
 export async function GET(request: Request) {
   const author = await assertSuperAdmin(request)
   if (!author)
@@ -47,6 +50,7 @@ export async function GET(request: Request) {
   return NextResponse.json(response)
 }
 
+// 관리자 사용자 계정을 생성한다.
 export async function POST(request: Request) {
   const author = await assertSuperAdmin(request)
   if (!author)
