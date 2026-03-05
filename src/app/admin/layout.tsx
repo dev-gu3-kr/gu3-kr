@@ -2,8 +2,8 @@
 
 import { Menu, X } from "lucide-react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
-import type { ReactNode } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import type { MouseEvent, ReactNode } from "react"
 import { useEffect, useState } from "react"
 import { AdminSidebarContainer } from "@/features/admin/client"
 
@@ -18,9 +18,32 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   const isLoginPage = pathname === "/admin/login"
   // 로그아웃 후 이동에 사용할 라우터다.
   const router = useRouter()
+  const searchParams = useSearchParams()
   // 모바일 메뉴 드로어 열림 상태다.
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [displayName, setDisplayName] = useState<string | null>(null)
+  const [isNavigating, setIsNavigating] = useState(false)
+
+
+  useEffect(() => {
+    setIsNavigating(false)
+  }, [pathname, searchParams])
+
+  const handleRouteIntentCapture = (event: MouseEvent<HTMLDivElement>) => {
+    if (isLoginPage) return
+
+    const target = event.target as HTMLElement | null
+    const anchor = target?.closest("a[href]") as HTMLAnchorElement | null
+    if (!anchor) return
+
+    const href = anchor.getAttribute("href")
+    if (!href) return
+    if (!href.startsWith("/")) return
+    if (anchor.target === "_blank") return
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+
+    setIsNavigating(true)
+  }
 
   useEffect(() => {
     if (isLoginPage) return
@@ -43,6 +66,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleLogout = async () => {
     // 서버 로그아웃 API를 호출해 세션 쿠키를 만료시킨다.
+    setIsNavigating(true)
     await fetch("/api/admin/logout", {
       method: "POST",
     })
@@ -53,9 +77,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-neutral-50" onClickCapture={handleRouteIntentCapture}>
       {/* 관리자 공통 상단 헤더 */}
-      <header className="border-b bg-white">
+      <header className="relative border-b bg-white">
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-primary transition-[width,opacity] duration-200 ${
+            isNavigating ? "w-full opacity-100" : "w-0 opacity-0"
+          }`}
+          aria-hidden="true"
+        />
         <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
           <div className="flex items-center gap-3">
             {!isLoginPage ? (
