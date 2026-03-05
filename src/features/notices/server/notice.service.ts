@@ -76,9 +76,11 @@ export async function updateNotice(input: {
   isPublished?: boolean
 }) {
   // 공지 수정 입력을 정규화해 반영한다.
+  const normalizedSummary = input.summary?.trim()
+
   return updateNoticeById(input.id, {
     title: input.title.trim(),
-    summary: input.summary?.trim() || undefined,
+    summary: normalizedSummary ? normalizedSummary : null,
     content: input.content.trim(),
     isPublished: Boolean(input.isPublished),
   })

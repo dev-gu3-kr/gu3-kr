@@ -89,7 +89,7 @@ export async function updateNoticeById(
   id: string,
   params: {
     title: string
-    summary?: string
+    summary?: string | null
     content: string
     isPublished: boolean
   },
