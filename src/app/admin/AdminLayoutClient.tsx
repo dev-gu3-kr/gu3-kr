@@ -67,7 +67,7 @@ export function AdminLayoutClient({
       {/* 관리자 공통 상단 헤더 */}
       <header className="relative border-b bg-white">
         <div
-          className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-primary transition-[width,opacity] duration-200 ${
+          className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-sky-500 transition-[width,opacity] duration-200 ${
             isNavigating ? "w-full opacity-100" : "w-0 opacity-0"
           }`}
           aria-hidden="true"
