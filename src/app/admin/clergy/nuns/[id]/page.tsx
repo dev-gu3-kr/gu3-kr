@@ -1,4 +1,6 @@
-// 수녀 상세 페이지: 사진 + 정보 아이콘 레이아웃
+"use client"
+
+import { useQuery } from "@tanstack/react-query"
 import {
   BadgeCheck,
   BriefcaseBusiness,
@@ -8,57 +10,76 @@ import {
 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import { notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import { NunDeleteButton } from "@/features/clergy-nuns/client"
 import type { NunDetailDto } from "@/features/clergy-nuns/isomorphic"
-import { serverApiFetch } from "@/lib/api-server"
+import { apiFetch } from "@/lib/api"
 
 type NunDetailResponseDto = {
   ok?: boolean
   item?: NunDetailDto
 }
 
-// 수녀님 상세를 조회하고, 없으면 404로 처리한다.
-export default async function AdminNunViewPage(props: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await props.params
+export default function AdminNunViewPage() {
+  const params = useParams<{ id: string }>()
+  const id = String(params?.id ?? "")
 
-  const response = await serverApiFetch
-    .get(`/api/admin/clergy/nuns/${id}`)
-    .send()
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["admin", "clergy", "nuns", "detail", id],
+    enabled: id.length > 0,
+    queryFn: async () => {
+      const response = await apiFetch.get(`/api/admin/clergy/nuns/${id}`).send()
+      if (!response.ok) throw new Error("수녀님 상세를 불러오지 못했습니다.")
+      const json = (await response
+        .json()
+        .catch(() => null)) as NunDetailResponseDto | null
+      if (!json?.ok || !json.item)
+        throw new Error("수녀님 상세를 불러오지 못했습니다.")
+      return json.item
+    },
+  })
 
-  if (response.status === 404) notFound()
+  if (isLoading) {
+    return (
+      <main className="space-y-6">
+        <section className="rounded-xl bg-white p-5">불러오는 중...</section>
+      </main>
+    )
+  }
 
-  const json = (await response
-    .json()
-    .catch(() => null)) as NunDetailResponseDto | null
+  if (isError || !data) {
+    return (
+      <main className="space-y-6">
+        <section className="rounded-xl bg-white p-5 text-sm text-red-600">
+          수녀님 상세를 불러오지 못했습니다.
+        </section>
+      </main>
+    )
+  }
 
-  if (!response.ok || !json?.ok || !json.item) notFound()
-
-  const item = json.item
+  const item = data
   const displayName = item.baptismalName
     ? `${item.name} · ${item.baptismalName}`
     : item.name
 
   const fields = [
-    { label: "담당영역", value: item.duty || "-", Icon: BriefcaseBusiness },
+    { label: "담당영역", value: item.duty || "-", Icon: BriefcaseBusiness },
     {
-      label: "축일",
-      value: `${item.feastMonth ?? "-"}월 ${item.feastDay ?? "-"}일`,
+      label: "축일",
+      value: `${item.feastMonth ?? "-"}월 ${item.feastDay ?? "-"}일`,
       Icon: Calendar,
     },
     {
-      label: "재임기간",
-      value: `${item.termStart ? item.termStart.slice(0, 10) : "-"} ~ ${item.termEnd ? item.termEnd.slice(0, 10) : "현재"}`,
+      label: "재임기간",
+      value: `${item.termStart ? item.termStart.slice(0, 10) : "-"} ~ ${item.termEnd ? item.termEnd.slice(0, 10) : "현재"}`,
       Icon: HeartPulse,
     },
     {
-      label: "현직 여부",
-      value: item.isCurrent ? "현직" : "전직",
+      label: "현직 여부",
+      value: item.isCurrent ? "현직" : "전직",
       Icon: BadgeCheck,
     },
-    { label: "연락처", value: item.phone ?? "-", Icon: Smartphone },
+    { label: "연락처", value: item.phone ?? "-", Icon: Smartphone },
   ]
 
   return (
@@ -68,14 +89,14 @@ export default async function AdminNunViewPage(props: {
           href="/admin/clergy/nuns"
           className="text-sm text-neutral-500 hover:text-neutral-800"
         >
-          ← 목록으로
+          ← 목록으로
         </Link>
 
         <div className="mx-auto mt-2 flex w-full max-w-3xl flex-col items-center gap-5 sm:mt-0">
           {item.imageUrl ? (
             <Image
               src={item.imageUrl}
-              alt={`${item.name} 프로필`}
+              alt={`${item.name} 프로필`}
               unoptimized
               width={260}
               height={320}
@@ -84,7 +105,7 @@ export default async function AdminNunViewPage(props: {
             />
           ) : (
             <div className="flex h-[320px] w-[260px] items-center justify-center rounded-xl bg-neutral-100 text-sm text-neutral-400">
-              이미지 없음
+              이미지 없음
             </div>
           )}
 
@@ -112,7 +133,7 @@ export default async function AdminNunViewPage(props: {
               href={`/admin/clergy/nuns/${item.id}/edit`}
               className="rounded-md border px-3 py-2 text-sm hover:bg-neutral-50"
             >
-              수정
+              수정
             </Link>
             <NunDeleteButton nunId={item.id} />
           </div>
