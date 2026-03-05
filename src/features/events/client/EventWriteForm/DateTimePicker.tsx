@@ -35,10 +35,22 @@ export function DateTimePicker({
   errorMessage?: string
 }) {
   const [open, setOpen] = useState(false)
+  const [openUpward, setOpenUpward] = useState(false)
   const wrapperRef = useRef<HTMLDivElement | null>(null)
 
   const selected = useMemo(() => toDate(value), [value])
   const minDate = useMemo(() => toDate(min || ""), [min])
+
+  useEffect(() => {
+    if (!open || !wrapperRef.current) return
+
+    const rect = wrapperRef.current.getBoundingClientRect()
+    const estimatedHeight = 360
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+
+    setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow)
+  }, [open])
 
   // 외부 클릭/Escape 입력 시 팝업을 닫아 모달 없이도 자연스럽게 조작되게 한다.
   useEffect(() => {
@@ -104,7 +116,13 @@ export function DateTimePicker({
         </button>
 
         {open ? (
-          <div className="absolute z-20 mt-2 w-[320px] rounded-md border bg-white p-3 shadow-lg">
+          <div
+            className={
+              openUpward
+                ? "absolute bottom-full z-[80] mb-2 w-[320px] rounded-md border bg-white p-3 shadow-lg"
+                : "absolute z-[80] mt-2 w-[320px] rounded-md border bg-white p-3 shadow-lg"
+            }
+          >
             <DayPicker
               mode="single"
               locale={ko}
