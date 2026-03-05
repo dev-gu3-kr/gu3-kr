@@ -37,6 +37,19 @@ export function GalleryListContainer() {
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data?.pages],
   )
+  const [loadedImageIds, setLoadedImageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
+
+  useEffect(() => {
+    setLoadedImageIds((prev) => {
+      const next = new Set<string>()
+      for (const item of items) {
+        if (prev.has(item.id)) next.add(item.id)
+      }
+      return next
+    })
+  }, [items])
 
   const isFilterFetching = isFetching && !isFetchingNextPage
 
@@ -141,15 +154,29 @@ export function GalleryListContainer() {
           {items.map((item) => (
             <li key={item.id} className="overflow-hidden rounded-md border">
               <Link href={`/admin/gallery/${item.id}`} className="block">
-                <div className="aspect-[16/9] bg-neutral-100">
+                <div className="relative aspect-[16/9] bg-neutral-100">
                   {item.thumbnailUrl ? (
-                    <Image
-                      src={item.thumbnailUrl}
-                      alt=""
-                      width={1600}
-                      height={900}
-                      className="h-full w-full object-cover"
-                    />
+                    <>
+                      {!loadedImageIds.has(item.id) ? (
+                        <div className="absolute inset-0 animate-pulse bg-neutral-200" />
+                      ) : null}
+                      <Image
+                        src={item.thumbnailUrl}
+                        alt=""
+                        width={1600}
+                        height={900}
+                        className={
+                          loadedImageIds.has(item.id)
+                            ? "h-full w-full object-cover opacity-100 transition-opacity duration-200"
+                            : "h-full w-full object-cover opacity-0 transition-opacity duration-200"
+                        }
+                        onLoad={() => {
+                          setLoadedImageIds((prev) =>
+                            new Set(prev).add(item.id),
+                          )
+                        }}
+                      />
+                    </>
                   ) : (
                     <div className="flex h-full items-center justify-center text-xs text-neutral-400">
                       썸네일 없음
