@@ -21,7 +21,15 @@ function toDateTimeLocal(text: string) {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
-export function EventEditFormContainer({ eventId }: { eventId: string }) {
+export function EventEditFormContainer({
+  eventId,
+  navigateOnSuccess = true,
+  onSuccessAction,
+}: {
+  eventId: string
+  navigateOnSuccess?: boolean
+  onSuccessAction?: () => void
+}) {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
@@ -56,8 +64,12 @@ export function EventEditFormContainer({ eventId }: { eventId: string }) {
         throw new Error(json?.message ?? "일정 수정에 실패했습니다.")
 
       toast.success("일정이 수정되었습니다.")
-      router.push(`/admin/events/${eventId}`)
-      router.refresh()
+      if (navigateOnSuccess) {
+        router.push(`/admin/events/${eventId}`)
+        router.refresh()
+      } else {
+        onSuccessAction?.()
+      }
     } catch (error) {
       setIsError(true)
       setMessage(

@@ -7,19 +7,92 @@ import timeGridPlugin from "@fullcalendar/timegrid"
 import { format, formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { AppLink as Link } from "@/components/AppLink"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
+  EventDeleteButton,
+  EventEditFormContainer,
+} from "@/features/events/client"
+import {
   type EventPublishFilterDto,
+  useEventDetailQuery,
   useEventListInfinite,
   useEventSchedulerQuery,
 } from "@/features/events/isomorphic"
 import { useEventManagerViewMode } from "../EventManagerViewModeContext"
 
+function SchedulerDetailModal({
+  eventId,
+  onEdit,
+}: {
+  eventId: string
+  onEdit: () => void
+}) {
+  const { data: item, isLoading, isError } = useEventDetailQuery(eventId)
+
+  if (isLoading)
+    return (
+      <div className="h-[320px] animate-pulse rounded-md border bg-neutral-100" />
+    )
+
+  if (isError || !item)
+    return (
+      <p className="text-sm text-red-600">일정 상세를 불러오지 못했습니다.</p>
+    )
+
+  const startsAtText = format(new Date(item.startsAt), "yyyy.MM.dd HH:mm", {
+    locale: ko,
+  })
+  const endsAtText = format(new Date(item.endsAt), "yyyy.MM.dd HH:mm", {
+    locale: ko,
+  })
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-xl font-semibold">{item.title}</h3>
+        <p className="mt-1 text-sm text-neutral-600">
+          {item.isPublished ? "공개" : "비공개"} ·{" "}
+          {formatDistanceToNow(new Date(item.createdAt), {
+            addSuffix: true,
+            locale: ko,
+          })}
+        </p>
+      </div>
+
+      <section className="space-y-1">
+        <h4 className="text-sm font-semibold text-neutral-700">기간</h4>
+        <p className="text-sm text-neutral-600">
+          {item.startsAt === item.endsAt
+            ? startsAtText
+            : `${startsAtText} ~ ${endsAtText}`}
+        </p>
+      </section>
+
+      <section className="space-y-1">
+        <h4 className="text-sm font-semibold text-neutral-700">내용</h4>
+        <p className="whitespace-pre-wrap text-sm leading-6 text-neutral-800">
+          {item.description || "내용 없음"}
+        </p>
+      </section>
+
+      <section className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={onEdit}
+          className="rounded-md border px-3 py-2 text-sm hover:bg-neutral-50"
+        >
+          수정
+        </button>
+        <EventDeleteButton eventId={item.id} />
+      </section>
+    </div>
+  )
+}
+
 export function EventManagerContainer() {
-  const router = useRouter()
   const { viewMode, setViewMode } = useEventManagerViewMode()
 
   const [queryInput, setQueryInput] = useState("")
@@ -29,20 +102,19 @@ export function EventManagerContainer() {
     from: string
     to: string
   } | null>(null)
+  const [schedulerModal, setSchedulerModal] = useState<{
+    eventId: string
+    mode: "detail" | "edit"
+  } | null>(null)
   const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setQuery(queryInput.trim())
-    }, 300)
-
+    const timer = window.setTimeout(() => setQuery(queryInput.trim()), 300)
     return () => window.clearTimeout(timer)
   }, [queryInput])
 
   const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
-    useEventListInfinite({
-      filters: { query, status },
-    })
+    useEventListInfinite({ filters: { query, status } })
 
   const { data: schedulerItems = [], isFetching: isSchedulerFetching } =
     useEventSchedulerQuery({
@@ -56,7 +128,6 @@ export function EventManagerContainer() {
     () => data?.pages.flatMap((page) => page.items) ?? [],
     [data?.pages],
   )
-
   const isFilterFetching = isFetching && !isFetchingNextPage
 
   useEffect(() => {
@@ -64,9 +135,8 @@ export function EventManagerContainer() {
 
     const observer = new IntersectionObserver(
       async (entries) => {
-        if (!entries[0]?.isIntersecting || !hasNextPage || isFetchingNextPage) {
+        if (!entries[0]?.isIntersecting || !hasNextPage || isFetchingNextPage)
           return
-        }
         await fetchNextPage()
       },
       { rootMargin: "240px 0px" },
@@ -140,13 +210,8 @@ export function EventManagerContainer() {
             type="single"
             value={status}
             onValueChange={(value) => {
-              if (
-                value === "all" ||
-                value === "published" ||
-                value === "draft"
-              ) {
+              if (value === "all" || value === "published" || value === "draft")
                 setStatus(value)
-              }
             }}
             className="justify-start"
           >
@@ -163,8 +228,7 @@ export function EventManagerContainer() {
 
           {isFilterFetching || isFetchingNextPage || isSchedulerFetching ? (
             <p className="inline-flex items-center gap-1 text-xs text-neutral-500 sm:hidden">
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              불러오는 중
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> 불러오는 중
             </p>
           ) : null}
         </div>
@@ -178,13 +242,6 @@ export function EventManagerContainer() {
           />
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
         </div>
-
-        {isFilterFetching || isFetchingNextPage || isSchedulerFetching ? (
-          <p className="hidden items-center gap-1 text-xs text-neutral-500 sm:inline-flex">
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            불러오는 중
-          </p>
-        ) : null}
       </section>
 
       {viewMode === "scheduler" ? (
@@ -194,12 +251,12 @@ export function EventManagerContainer() {
             initialView="dayGridMonth"
             timeZone="local"
             locale={ko}
-            datesSet={(arg) => {
+            datesSet={(arg) =>
               setCalendarRange({
                 from: arg.start.toISOString(),
                 to: arg.end.toISOString(),
               })
-            }}
+            }
             headerToolbar={{
               left: "prev,next today",
               center: "title",
@@ -217,9 +274,12 @@ export function EventManagerContainer() {
             eventDidMount={(info) => {
               info.el.style.cursor = "pointer"
             }}
-            eventClick={(info) => {
-              router.push(`/admin/events/${info.event.id}`)
-            }}
+            eventClick={(info) =>
+              setSchedulerModal({
+                eventId: String(info.event.id),
+                mode: "detail",
+              })
+            }
           />
         </div>
       ) : (
@@ -263,6 +323,32 @@ export function EventManagerContainer() {
       )}
 
       <div ref={sentinelRef} className="h-1" />
+
+      <Dialog
+        open={Boolean(schedulerModal)}
+        onOpenChange={(open) => {
+          if (!open) setSchedulerModal(null)
+        }}
+      >
+        <DialogContent className="max-h-[85vh] overflow-y-auto">
+          <DialogTitle>일정</DialogTitle>
+          {schedulerModal ? (
+            schedulerModal.mode === "detail" ? (
+              <SchedulerDetailModal
+                eventId={schedulerModal.eventId}
+                onEdit={() =>
+                  setSchedulerModal({
+                    eventId: schedulerModal.eventId,
+                    mode: "edit",
+                  })
+                }
+              />
+            ) : (
+              <EventEditFormContainer eventId={schedulerModal.eventId} />
+            )
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   )
 }
