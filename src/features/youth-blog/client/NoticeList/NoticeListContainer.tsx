@@ -8,21 +8,21 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type {
   ApiResponseDto,
-  NoticePageDto,
-  NoticePublishFilterDto,
+  YouthBlogPageDto,
+  YouthBlogPublishFilterDto,
 } from "@/features/youth-blog/isomorphic"
-import { useNoticeListInfinite } from "@/features/youth-blog/isomorphic"
+import { useYouthBlogListInfinite } from "@/features/youth-blog/isomorphic"
 
-type NoticePageResponse = ApiResponseDto<NoticePageDto>
+type YouthBlogPageResponse = ApiResponseDto<YouthBlogPageDto>
 
 type NoticeListContainerProps = {
-  initialPage?: NoticePageResponse
+  initialPage?: YouthBlogPageResponse
 }
 
 export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
-  const [status, setStatus] = useState<NoticePublishFilterDto>("all")
+  const [status, setStatus] = useState<YouthBlogPublishFilterDto>("all")
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
     isFetching,
     isLoading,
     isError,
-  } = useNoticeListInfinite({
+  } = useYouthBlogListInfinite({
     initialPage,
     filters: { query, status },
   })

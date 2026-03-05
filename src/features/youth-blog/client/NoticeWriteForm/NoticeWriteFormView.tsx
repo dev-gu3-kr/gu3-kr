@@ -6,10 +6,10 @@ import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
-import type { CreateNoticeInputDto } from "@/features/youth-blog/isomorphic"
+import type { CreateYouthBlogInputDto } from "@/features/youth-blog/isomorphic"
 
 type NoticeWriteFormViewProps = {
-  onSubmitAction: (values: CreateNoticeInputDto) => void
+  onSubmitAction: (values: CreateYouthBlogInputDto) => void
   isLoading: boolean
   message: string | null
   isError: boolean
@@ -62,7 +62,7 @@ export function NoticeWriteFormView({
     setValue,
     watch,
     formState: { errors },
-  } = useForm<CreateNoticeInputDto>({
+  } = useForm<CreateYouthBlogInputDto>({
     defaultValues: {
       title: initialTitle ?? "",
       summary: initialSummary ?? "",

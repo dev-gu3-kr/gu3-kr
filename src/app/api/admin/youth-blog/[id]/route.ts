@@ -2,9 +2,9 @@
 import { NextResponse } from "next/server"
 import type {
   ApiResponseDto,
-  NoticeDetailDto,
+  YouthBlogDetailDto,
 } from "@/features/youth-blog/isomorphic"
-import { createNoticeSchema } from "@/features/youth-blog/isomorphic"
+import { createYouthBlogSchema } from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
 import { assertAdminSession } from "@/lib/admin/session"
 
@@ -36,7 +36,7 @@ export async function GET(
     )
   }
 
-  const item: NoticeDetailDto = {
+  const item: YouthBlogDetailDto = {
     id: youthBlog.id,
     title: youthBlog.title,
     summary: youthBlog.summary,
@@ -45,7 +45,10 @@ export async function GET(
     createdAt: youthBlog.createdAt.toISOString(),
   }
 
-  const response: ApiResponseDto<{ item: NoticeDetailDto }> = { ok: true, item }
+  const response: ApiResponseDto<{ item: YouthBlogDetailDto }> = {
+    ok: true,
+    item,
+  }
   return NextResponse.json(response)
 }
 
@@ -64,7 +67,7 @@ export async function PATCH(
   }
 
   const json = await request.json().catch(() => null)
-  const parsed = createNoticeSchema.safeParse(json)
+  const parsed = createYouthBlogSchema.safeParse(json)
 
   if (!parsed.success) {
     return NextResponse.json(

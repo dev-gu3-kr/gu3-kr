@@ -9,6 +9,7 @@ import type {
   NoticePublishFilterDto,
 } from "./notice.types"
 
+// 공지 목록 캐시 key를 한 곳에서 정의해 invalidate/prefetch 기준을 고정한다.
 export const noticeQueryKeys = {
   all: ["admin", "notices"] as const,
   list: (filters: { query: string; status: NoticePublishFilterDto }) =>
@@ -44,10 +45,14 @@ const CHOSEONG = [
   "ㅎ",
 ] as const
 
+// 검색어가 초성만으로 구성됐는지 판단한다.
+// 초성 검색은 서버가 아닌 클라이언트 후처리 분기로 보낸다.
 function isChoseongQuery(query: string) {
   return /^[ㄱ-ㅎ\s]+$/.test(query.trim())
 }
 
+// 한글 음절을 초성 문자열로 변환한다.
+// 초성 포함 검색 시 제목/본문을 같은 기준으로 비교하기 위한 전처리다.
 function toChoseongText(input: string) {
   let result = ""
   for (const character of input) {
@@ -62,12 +67,17 @@ function toChoseongText(input: string) {
   return result
 }
 
+// 공지 한 건이 초성 검색어에 매치되는지 판별한다.
+// 공백을 제거한 제목+본문 기준으로 부분 일치를 허용한다.
 function matchByChoseong(item: NoticeListItemDto, rawQuery: string) {
   const query = rawQuery.replace(/\s+/g, "")
   const haystack = `${item.title} ${item.content}`.replace(/\s+/g, "")
   return toChoseongText(haystack).includes(query)
 }
 
+// 공지 목록 페이지를 요청한다.
+// 서버 쿼리는 일반 텍스트 검색에만 사용하고, 초성 검색은 응답 후 클라이언트에서 필터링한다.
+// HTTP 실패는 throw 처리해 상위 훅/컨테이너의 에러 경로로 위임한다.
 async function fetchNoticePage(params: {
   cursor?: string | null
   filters: NoticeListFilters
@@ -105,6 +115,8 @@ async function fetchNoticePage(params: {
   }
 }
 
+// 공지 목록 무한 스크롤 쿼리 훅이다.
+// 최초 진입 SSR 초기 페이지를 조건부 주입하고, 이후 재조회는 기존 데이터를 유지해 깜빡임을 줄인다.
 export function useNoticeListInfinite(params: {
   initialPage?: NoticePageResponse
   filters: NoticeListFilters

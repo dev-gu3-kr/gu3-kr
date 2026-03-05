@@ -1,6 +1,6 @@
-export { createAdminUserSchema, updateAdminUserSchema } from "./schema"
+export { createAdminUserSchema, updateAdminUserSchema } from "./user.schema"
 export type {
   AdminUserListItemDto,
   CreateAdminUserInputDto,
   UpdateAdminUserInputDto,
-} from "./types"
+} from "./user.types"

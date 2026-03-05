@@ -4,7 +4,7 @@
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { CreateNoticeInputDto } from "@/features/youth-blog/isomorphic"
+import type { CreateYouthBlogInputDto } from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { NoticeWriteFormView } from "./NoticeWriteFormView"
 
@@ -53,7 +53,7 @@ export function NoticeEditFormContainer({
   }
 
   // 수정 저장: 성공 시 상세로 이동, 실패 시 메시지 상태로 피드백한다.
-  const handleSubmit = async (values: CreateNoticeInputDto) => {
+  const handleSubmit = async (values: CreateYouthBlogInputDto) => {
     setIsLoading(true)
     setMessage(null)
     setIsError(false)

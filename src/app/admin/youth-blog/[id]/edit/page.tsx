@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { NoticeEditFormContainer } from "@/features/youth-blog/client"
-import type { NoticeDetailDto } from "@/features/youth-blog/isomorphic"
+import type { YouthBlogDetailDto } from "@/features/youth-blog/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
 
 export default async function AdminYouthBlogEditPage(props: {
@@ -16,7 +16,7 @@ export default async function AdminYouthBlogEditPage(props: {
 
   const json = (await response.json().catch(() => null)) as {
     ok?: boolean
-    item?: NoticeDetailDto
+    item?: YouthBlogDetailDto
   } | null
 
   if (!response.ok || !json?.ok || !json.item) notFound()

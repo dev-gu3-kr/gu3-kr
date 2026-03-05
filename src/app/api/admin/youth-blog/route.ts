@@ -3,10 +3,10 @@ import { NextResponse } from "next/server"
 import { authService } from "@/features/auth/server"
 import type {
   ApiResponseDto,
-  NoticePageDto,
-  NoticePublishFilterDto,
+  YouthBlogPageDto,
+  YouthBlogPublishFilterDto,
 } from "@/features/youth-blog/isomorphic"
-import { createNoticeSchema } from "@/features/youth-blog/isomorphic"
+import { createYouthBlogSchema } from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
 import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
@@ -36,7 +36,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
   const cursor = searchParams.get("cursor") || undefined
   const q = searchParams.get("q")?.trim() || undefined
-  const status = (searchParams.get("status") || "all") as NoticePublishFilterDto
+  const status = (searchParams.get("status") ||
+    "all") as YouthBlogPublishFilterDto
   const takeParam = Number(searchParams.get("take") || 10)
   const take = Number.isFinite(takeParam)
     ? Math.min(Math.max(takeParam, 1), 30)
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
     isPublished,
   })
 
-  const response: ApiResponseDto<NoticePageDto> = { ok: true, ...page }
+  const response: ApiResponseDto<YouthBlogPageDto> = { ok: true, ...page }
   return NextResponse.json(response)
 }
 
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
   }
 
   const json = await request.json().catch(() => null)
-  const parsed = createNoticeSchema.safeParse(json)
+  const parsed = createYouthBlogSchema.safeParse(json)
 
   if (!parsed.success) {
     return NextResponse.json(

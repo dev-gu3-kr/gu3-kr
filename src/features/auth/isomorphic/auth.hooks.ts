@@ -1,9 +1,6 @@
 import { useMutation } from "@tanstack/react-query"
 
-type LoginInput = {
-  email: string
-  password: string
-}
+import type { LoginInput } from "./auth.types"
 
 export function useLoginForm() {
   return useMutation({
