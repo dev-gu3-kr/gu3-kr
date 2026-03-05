@@ -4,7 +4,7 @@ import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import type { MouseEvent, ReactNode } from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { AdminSidebarContainer } from "@/features/admin/client"
 
 type AdminLayoutClientProps = {
@@ -25,11 +25,46 @@ export function AdminLayoutClient({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const displayName = initialDisplayName
   const [isNavigating, setIsNavigating] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
     if (!pathname) return
-    setIsNavigating(false)
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+
+    setProgress(100)
+    const doneTimer = setTimeout(() => {
+      setIsNavigating(false)
+      setProgress(0)
+    }, 180)
+
+    return () => clearTimeout(doneTimer)
   }, [pathname])
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [])
+
+  const startNavigationProgress = () => {
+    if (isNavigating) return
+
+    setIsNavigating(true)
+    setProgress(25)
+
+    if (timerRef.current) clearInterval(timerRef.current)
+    timerRef.current = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 85) return prev
+        const next = prev + Math.max(2, (90 - prev) * 0.12)
+        return Math.min(next, 85)
+      })
+    }, 120)
+  }
 
   const handleRouteIntentCapture = (event: MouseEvent<HTMLDivElement>) => {
     if (isLoginPage) return
@@ -44,12 +79,12 @@ export function AdminLayoutClient({
     if (anchor.target === "_blank") return
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
 
-    setIsNavigating(true)
+    startNavigationProgress()
   }
 
   const handleLogout = async () => {
     // 서버 로그아웃 API를 호출해 세션 쿠키를 만료시킨다.
-    setIsNavigating(true)
+    startNavigationProgress()
     await fetch("/api/admin/logout", {
       method: "POST",
     })
@@ -67,9 +102,8 @@ export function AdminLayoutClient({
       {/* 관리자 공통 상단 헤더 */}
       <header className="relative border-b bg-white">
         <div
-          className={`pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-sky-500 transition-[width,opacity] duration-200 ${
-            isNavigating ? "w-full opacity-100" : "w-0 opacity-0"
-          }`}
+          className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-sky-500 transition-[opacity] duration-200"
+          style={{ width: `${progress}%`, opacity: isNavigating ? 1 : 0 }}
           aria-hidden="true"
         />
         <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
