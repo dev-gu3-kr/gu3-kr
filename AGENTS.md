@@ -154,3 +154,13 @@ src/features/auth/
 - `client` 레이어에서는 `useQuery`/`useInfiniteQuery`를 직접 선언하지 않고, `isomorphic/hooks`의 훅만 사용한다.
 - 훅/키는 `isomorphic/index.ts` 배럴을 통해서만 외부에 노출한다(딥 임포트 금지).
 - 신규/리팩터링 시 기존에 `client`에 흩어진 React Query 코드는 위 구조로 함께 정리한다.
+
+
+## isomorphic 파일 단일화 규칙 (강제)
+- isomorphic 내부는 디렉토리 분할(`hooks/`, `queryKeys/`, `schema/`, `types/`)을 기본으로 사용하지 않는다.
+- feature별로 아래 단일 파일 규칙을 사용한다.
+  - `isomorphic/<feature>.hooks.ts`: React Query hooks + query keys를 같은 파일에 함께 둔다.
+  - `isomorphic/<feature>.schema.ts`: zod 등 스키마 정의를 둔다.
+  - `isomorphic/<feature>.types.ts`: DTO/타입 정의를 둔다.
+- `isomorphic/index.ts`는 위 3개 파일만 배럴 export 한다.
+- 신규 구현 및 리팩터링 시 기존 분산 구조는 위 단일 파일 구조로 통합한다.
