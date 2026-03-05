@@ -39,7 +39,7 @@ export function AdminLayoutClient({
     const doneTimer = setTimeout(() => {
       setIsNavigating(false)
       setProgress(0)
-    }, 180)
+    }, 260)
 
     return () => clearTimeout(doneTimer)
   }, [pathname])
@@ -63,7 +63,7 @@ export function AdminLayoutClient({
         const next = prev + Math.max(2, (90 - prev) * 0.12)
         return Math.min(next, 85)
       })
-    }, 120)
+    }, 90)
   }
 
   const handleRouteIntentCapture = (event: MouseEvent<HTMLDivElement>) => {
@@ -102,7 +102,7 @@ export function AdminLayoutClient({
       {/* 관리자 공통 상단 헤더 */}
       <header className="relative border-b bg-white">
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-sky-500 transition-[opacity] duration-200"
+          className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-sky-500 transition-[width,opacity] duration-250 ease-out"
           style={{ width: `${progress}%`, opacity: isNavigating ? 1 : 0 }}
           aria-hidden="true"
         />
