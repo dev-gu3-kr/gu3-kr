@@ -5,9 +5,9 @@ export default function AdminNoticesLoading() {
     <main className="space-y-6">
       <section className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">공지사항 관리</h1>
+          <h1 className="text-2xl font-semibold">청소년 블로그 관리</h1>
           <p className="text-sm text-neutral-600">
-            공지사항 관리을 확인하고 등록/수정합니다.
+            청소년 블로그 목록을 확인하고 등록/수정합니다.
           </p>
         </div>
         <div className="inline-flex min-w-[92px] items-center justify-center rounded-md bg-black px-3 py-2 text-sm font-medium text-white">
