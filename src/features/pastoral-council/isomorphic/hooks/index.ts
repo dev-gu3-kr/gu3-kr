@@ -1,0 +1,1 @@
+export { usePastoralCouncilListQuery } from "./usePastoralCouncilListQuery"

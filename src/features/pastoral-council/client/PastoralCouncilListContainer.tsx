@@ -1,33 +1,12 @@
 "use client"
 
-import { useQuery } from "@tanstack/react-query"
 import { BriefcaseBusiness, Phone } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import type { PastoralCouncilListItemDto } from "@/features/pastoral-council/isomorphic"
-import { apiFetch } from "@/lib/api"
-
-type ListResponse = { ok?: boolean; items?: PastoralCouncilListItemDto[] }
-
-async function fetchPastoralCouncil() {
-  const response = await apiFetch
-    .get("/api/admin/pastoral-council")
-    .query({ take: 30 })
-    .send()
-
-  if (!response.ok) throw new Error("사목협의회 목록을 불러오지 못했습니다.")
-
-  const json = (await response.json().catch(() => null)) as ListResponse | null
-  return json?.ok && Array.isArray(json.items) ? json.items : []
-}
+import { usePastoralCouncilListQuery } from "@/features/pastoral-council/isomorphic"
 
 export function PastoralCouncilListContainer() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin", "pastoral-council", "list"],
-    queryFn: fetchPastoralCouncil,
-    placeholderData: (prev) => prev,
-    staleTime: 30_000,
-  })
+  const { data, isLoading, isError } = usePastoralCouncilListQuery()
 
   const items = data ?? []
 

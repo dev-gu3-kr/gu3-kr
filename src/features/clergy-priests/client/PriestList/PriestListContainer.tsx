@@ -1,32 +1,11 @@
 "use client"
-import { useQuery } from "@tanstack/react-query"
 import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import type { PriestListItemDto } from "@/features/clergy-priests/isomorphic"
-import { apiFetch } from "@/lib/api"
-
-type PriestListResponseDto = { ok?: boolean; items?: PriestListItemDto[] }
-
-async function fetchPriests() {
-  const response = await apiFetch
-    .get("/api/admin/clergy/priests")
-    .query({ take: 30 })
-    .send()
-  if (!response.ok) throw new Error("신부님 목록을 불러오지 못했습니다.")
-  const json = (await response
-    .json()
-    .catch(() => null)) as PriestListResponseDto | null
-  return json?.ok && Array.isArray(json.items) ? json.items : []
-}
+import { usePriestListQuery } from "@/features/clergy-priests/isomorphic"
 
 export function PriestListContainer() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin", "clergy", "priests", "list"],
-    queryFn: fetchPriests,
-    placeholderData: (prev) => prev,
-    staleTime: 30_000,
-  })
+  const { data, isLoading, isError } = usePriestListQuery()
   const items = data ?? []
 
   if (isLoading)

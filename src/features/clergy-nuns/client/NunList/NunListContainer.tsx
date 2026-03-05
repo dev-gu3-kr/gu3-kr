@@ -1,32 +1,11 @@
 "use client"
-import { useQuery } from "@tanstack/react-query"
 import { BriefcaseBusiness, Calendar, Clock3 } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
-import type { NunListItemDto } from "@/features/clergy-nuns/isomorphic"
-import { apiFetch } from "@/lib/api"
-
-type NunListResponseDto = { ok?: boolean; items?: NunListItemDto[] }
-
-async function fetchNuns() {
-  const response = await apiFetch
-    .get("/api/admin/clergy/nuns")
-    .query({ take: 30 })
-    .send()
-  if (!response.ok) throw new Error("수녀님 목록을 불러오지 못했습니다.")
-  const json = (await response
-    .json()
-    .catch(() => null)) as NunListResponseDto | null
-  return json?.ok && Array.isArray(json.items) ? json.items : []
-}
+import { useNunListQuery } from "@/features/clergy-nuns/isomorphic"
 
 export function NunListContainer() {
-  const { data, isLoading, isError } = useQuery({
-    queryKey: ["admin", "clergy", "nuns", "list"],
-    queryFn: fetchNuns,
-    placeholderData: (prev) => prev,
-    staleTime: 30_000,
-  })
+  const { data, isLoading, isError } = useNunListQuery()
   const items = data ?? []
 
   if (isLoading)

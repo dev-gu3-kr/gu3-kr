@@ -147,3 +147,10 @@ src/features/auth/
 
 ## Codex Skills - Form
 - 폼 작업(작성/수정/설정/필터)은 `docs/codex-skills/cat-notices-form-rules/SKILL.md` 규칙을 우선 적용한다.
+
+## React Query 배치/키 관리 규칙 (강화)
+- React Query 훅은 반드시 `src/features/<feature>/isomorphic/hooks/**` 아래에 작성한다.
+- Query Key는 반드시 `src/features/<feature>/isomorphic/queryKeys/**`에서 중앙 관리한다.
+- `client` 레이어에서는 `useQuery`/`useInfiniteQuery`를 직접 선언하지 않고, `isomorphic/hooks`의 훅만 사용한다.
+- 훅/키는 `isomorphic/index.ts` 배럴을 통해서만 외부에 노출한다(딥 임포트 금지).
+- 신규/리팩터링 시 기존에 `client`에 흩어진 React Query 코드는 위 구조로 함께 정리한다.
