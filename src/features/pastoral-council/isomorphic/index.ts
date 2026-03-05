@@ -1,9 +1,3 @@
-export * from "./hooks"
-export * from "./queryKeys"
-export { upsertPastoralCouncilSchema } from "./schema"
-export type {
-  PastoralCouncilDetailDto,
-  PastoralCouncilListItemDto,
-  PastoralCouncilPageDto,
-  UpsertPastoralCouncilInputDto,
-} from "./types"
+export * from "./pastoral-council.hooks"
+export * from "./pastoral-council.schema"
+export * from "./pastoral-council.types"

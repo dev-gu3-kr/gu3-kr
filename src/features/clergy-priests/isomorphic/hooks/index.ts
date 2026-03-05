@@ -1,1 +1,0 @@
-export { usePriestListQuery } from "./usePriestListQuery"

@@ -1,6 +1,5 @@
 import { z } from "zod"
 
-// 신부님 프로필 입력값 검증 스키마다.
 export const upsertPriestSchema = z.object({
   name: z.string().trim().min(1).max(80),
   baptismalName: z.string().trim().min(1).max(80),

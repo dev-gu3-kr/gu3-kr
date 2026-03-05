@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
-import { nunQueryKeys } from "../queryKeys"
-import type { NunListItemDto } from "../types"
+import type { NunListItemDto } from "./nun.types"
+
+export const nunQueryKeys = {
+  all: ["admin", "clergy", "nuns"] as const,
+  lists: () => [...nunQueryKeys.all, "list"] as const,
+}
 
 type NunListResponseDto = { ok?: boolean; items?: NunListItemDto[] }
 
@@ -11,7 +15,6 @@ async function fetchNuns() {
     .query({ take: 30 })
     .send()
   if (!response.ok) throw new Error("수녀님 목록을 불러오지 못했습니다.")
-
   const json = (await response
     .json()
     .catch(() => null)) as NunListResponseDto | null

@@ -1,4 +1,3 @@
-export * from "./hooks"
-export * from "./queryKeys"
-export * from "./schema"
-export * from "./types"
+export * from "./priest.hooks"
+export * from "./priest.schema"
+export * from "./priest.types"

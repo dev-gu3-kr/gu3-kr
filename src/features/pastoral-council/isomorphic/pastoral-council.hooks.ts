@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
-import { pastoralCouncilQueryKeys } from "../queryKeys"
-import type { PastoralCouncilListItemDto } from "../types"
+import type { PastoralCouncilListItemDto } from "./pastoral-council.types"
+
+export const pastoralCouncilQueryKeys = {
+  all: ["admin", "pastoral-council"] as const,
+  lists: () => [...pastoralCouncilQueryKeys.all, "list"] as const,
+}
 
 type ListResponse = { ok?: boolean; items?: PastoralCouncilListItemDto[] }
 
@@ -11,7 +15,6 @@ async function fetchPastoralCouncil() {
     .query({ take: 30 })
     .send()
   if (!response.ok) throw new Error("사목협의회 목록을 불러오지 못했습니다.")
-
   const json = (await response.json().catch(() => null)) as ListResponse | null
   return json?.ok && Array.isArray(json.items) ? json.items : []
 }

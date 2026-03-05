@@ -1,1 +1,0 @@
-export { useNunListQuery } from "./useNunListQuery"

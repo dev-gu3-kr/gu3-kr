@@ -1,7 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
-import { priestQueryKeys } from "../queryKeys"
-import type { PriestListItemDto } from "../types"
+import type { PriestListItemDto } from "./priest.types"
+
+export const priestQueryKeys = {
+  all: ["admin", "clergy", "priests"] as const,
+  lists: () => [...priestQueryKeys.all, "list"] as const,
+}
 
 type PriestListResponseDto = { ok?: boolean; items?: PriestListItemDto[] }
 
@@ -11,7 +15,6 @@ async function fetchPriests() {
     .query({ take: 30 })
     .send()
   if (!response.ok) throw new Error("신부님 목록을 불러오지 못했습니다.")
-
   const json = (await response
     .json()
     .catch(() => null)) as PriestListResponseDto | null
