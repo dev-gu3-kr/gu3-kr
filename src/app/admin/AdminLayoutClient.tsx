@@ -3,109 +3,33 @@
 import { Menu, X } from "lucide-react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import type { MouseEvent, ReactNode } from "react"
-import { useEffect, useRef, useState } from "react"
+import type { ReactNode } from "react"
+import { useState } from "react"
 import { AdminSidebarContainer } from "@/features/admin/client"
 
 type AdminLayoutClientProps = {
-  // 관리자 라우트 하위 페이지 콘텐츠
   children: ReactNode
+  initialDisplayName: string | null
 }
 
 export function AdminLayoutClient({
   children,
   initialDisplayName,
-}: AdminLayoutClientProps & { initialDisplayName: string | null }) {
-  // 로그인 페이지 여부를 경로로 판단한다.
+}: AdminLayoutClientProps) {
   const pathname = usePathname()
   const isLoginPage = pathname === "/admin/login"
-  // 로그아웃 후 이동에 사용할 라우터다.
   const router = useRouter()
-  // 모바일 메뉴 드로어 열림 상태다.
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const displayName = initialDisplayName
-  const [isNavigating, setIsNavigating] = useState(false)
-  const [progress, setProgress] = useState(0)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  useEffect(() => {
-    if (!pathname) return
-    if (timerRef.current) {
-      clearInterval(timerRef.current)
-      timerRef.current = null
-    }
-
-    setProgress(100)
-    const doneTimer = setTimeout(() => {
-      setIsNavigating(false)
-      setProgress(0)
-    }, 260)
-
-    return () => clearTimeout(doneTimer)
-  }, [pathname])
-
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [])
-
-  const startNavigationProgress = () => {
-    if (isNavigating) return
-
-    setIsNavigating(true)
-    setProgress(25)
-
-    if (timerRef.current) clearInterval(timerRef.current)
-    timerRef.current = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 85) return prev
-        const next = prev + Math.max(2, (90 - prev) * 0.12)
-        return Math.min(next, 85)
-      })
-    }, 90)
-  }
-
-  const handleRouteIntentCapture = (event: MouseEvent<HTMLDivElement>) => {
-    if (isLoginPage) return
-
-    const target = event.target as HTMLElement | null
-    const anchor = target?.closest("a[href]") as HTMLAnchorElement | null
-    if (!anchor) return
-
-    const href = anchor.getAttribute("href")
-    if (!href) return
-    if (!href.startsWith("/")) return
-    if (anchor.target === "_blank") return
-    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
-
-    startNavigationProgress()
-  }
 
   const handleLogout = async () => {
-    // 서버 로그아웃 API를 호출해 세션 쿠키를 만료시킨다.
-    startNavigationProgress()
-    await fetch("/api/admin/logout", {
-      method: "POST",
-    })
-
-    // 로그인 페이지로 이동한 뒤 라우트를 새로고침한다.
+    await fetch("/api/admin/logout", { method: "POST" })
     router.push("/admin/login")
     router.refresh()
   }
 
   return (
-    <div
-      className="min-h-screen bg-neutral-50"
-      onClickCapture={handleRouteIntentCapture}
-    >
-      {/* 관리자 공통 상단 헤더 */}
-      <header className="relative border-b bg-white">
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-sky-500 transition-[width,opacity] duration-250 ease-out"
-          style={{ width: `${progress}%`, opacity: isNavigating ? 1 : 0 }}
-          aria-hidden="true"
-        />
+    <div className="min-h-screen bg-neutral-50">
+      <header className="border-b bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between p-4">
           <div className="flex items-center gap-3">
             {!isLoginPage ? (
@@ -128,11 +52,10 @@ export function AdminLayoutClient({
             </Link>
           </div>
 
-          {/* 로그인 페이지가 아닐 때만 로그아웃 버튼을 노출한다. */}
           {!isLoginPage ? (
             <div className="flex items-center gap-2">
-              {displayName ? (
-                <p className="text-sm text-neutral-600">{displayName}</p>
+              {initialDisplayName ? (
+                <p className="text-sm text-neutral-600">{initialDisplayName}</p>
               ) : null}
               <button
                 type="button"
@@ -184,10 +107,8 @@ export function AdminLayoutClient({
       ) : null}
 
       {isLoginPage ? (
-        // 로그인 페이지는 단일 컬럼으로 표시한다.
         <div className="mx-auto max-w-5xl p-4">{children}</div>
       ) : (
-        // 보호 페이지는 좌측 메뉴 + 우측 본문 2열로 구성한다.
         <div className="mx-auto grid max-w-6xl gap-4 p-4 lg:grid-cols-[256px_1fr]">
           <div className="hidden lg:block">
             <AdminSidebarContainer />

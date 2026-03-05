@@ -1,6 +1,7 @@
 @import "shadcn/tailwind.css";
 @import "../styles/vendor/react-day-picker.css";
 @import "@fontsource/pretendard";
+@import "@toast-ui/editor/dist/toastui-editor.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -293,4 +294,14 @@
   .event-scheduler .fc .fc-button {
     padding: 0.45rem 0.65rem !important;
   }
+}
+
+/* Route progress bar */
+#nprogress .bar {
+  background: #0ea5e9 !important;
+  height: 2px !important;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #0ea5e9, 0 0 5px #0ea5e9 !important;
 }
