@@ -1,7 +1,5 @@
 "use client"
 
-import { format } from "date-fns"
-import { ko } from "date-fns/locale"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import * as React from "react"
 
@@ -21,19 +19,14 @@ function getInitialPageStart(
   items: readonly HomeSchedulerItem[],
   pageResetMode: HomeSchedulerSectionProps["pageResetMode"],
 ) {
-  if (pageResetMode === "start") {
-    return 0
-  }
+  if (pageResetMode === "start") return 0
 
   if (pageResetMode === "end") {
     return Math.max(0, items.length - SCHEDULER_PAGE_SIZE)
   }
 
   const activeIndex = items.findIndex((item) => item.isActive)
-
-  if (activeIndex < 0) {
-    return 0
-  }
+  if (activeIndex < 0) return 0
 
   return Math.floor(activeIndex / SCHEDULER_PAGE_SIZE) * SCHEDULER_PAGE_SIZE
 }
@@ -57,18 +50,6 @@ export function HomeSchedulerSection({
     () => items.slice(pageStart, pageStart + SCHEDULER_PAGE_SIZE),
     [items, pageStart],
   )
-
-  const currentMonthLabel = React.useMemo(() => {
-    const firstVisibleItem = visibleItems[0]
-
-    if (!firstVisibleItem) {
-      return monthLabel
-    }
-
-    return format(new Date(firstVisibleItem.dateIso), "yyyy년 M월", {
-      locale: ko,
-    })
-  }, [monthLabel, visibleItems])
 
   const handlePreviousPage = React.useCallback(() => {
     if (pageStart === 0) {
@@ -107,7 +88,7 @@ export function HomeSchedulerSection({
             <ChevronLeft className="size-5" />
           </button>
           <h2 className="min-w-42 text-center text-2xl font-semibold text-[#252629] md:text-[26px]">
-            {currentMonthLabel}
+            {monthLabel}
           </h2>
           <button
             type="button"
@@ -155,7 +136,7 @@ export function HomeSchedulerSection({
                     ))}
                   </div>
                 ) : (
-                  <div className="pt-2 text-xs text-[#a1a4aa]">예정 없음</div>
+                  <div className="pt-2 text-xs text-[#a1a4aa]">예정 없음</div>
                 )}
               </div>
             </article>

@@ -27,5 +27,6 @@ export function useHomePageQuery(monthKey: string) {
   return useQuery({
     queryKey: homeQueryKeys.page(monthKey),
     queryFn: () => fetchHomePageData(monthKey),
+    placeholderData: (previousData) => previousData,
   })
 }
