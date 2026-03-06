@@ -1,3 +1,4 @@
+import { AppLink as Link } from "@/components/AppLink"
 import type { HomeNavItem } from "@/features/home/isomorphic"
 
 type HomeHeaderProps = {
@@ -8,7 +9,11 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
   return (
     <header className="absolute inset-x-0 top-0 z-20">
       <div className="mx-auto flex h-22 w-full max-w-[1380px] items-center justify-between px-5 text-white md:px-8">
-        <div className="flex items-center gap-4">
+        <Link
+          href="/"
+          className="flex items-center gap-4 rounded-md transition-opacity hover:opacity-90"
+          aria-label="홈으로 이동"
+        >
           <div className="grid size-12 place-items-center rounded-full border border-white/40 bg-white/90 text-[10px] font-bold tracking-[0.24em] text-[#7a1418]">
             G3
           </div>
@@ -17,10 +22,11 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
               Catholic Cathedral
             </p>
             <p className="text-sm font-semibold md:text-base">
-              천주교 서울대교구 구로3동성당
+              천주교 서울대교구 구로3동성당
             </p>
           </div>
-        </div>
+        </Link>
+
         <nav className="hidden w-[960px] items-center justify-between pl-6 text-sm font-semibold lg:flex">
           {navItems.map((item) => (
             <button

@@ -1,4 +1,5 @@
 import Image from "next/image"
+import { AppLink as Link } from "@/components/AppLink"
 import type { HomeQuickLinkItem } from "@/features/home/isomorphic"
 
 type HomeHeroSectionProps = {
@@ -32,16 +33,12 @@ export function HomeHeroSection({ quickLinks }: HomeHeroSectionProps) {
               const Icon = item.icon
               const isEmphasized = index === 0
 
-              return (
-                <button
-                  key={item.label}
-                  type="button"
-                  className={`group flex min-h-[84px] flex-col items-center justify-center rounded-xl text-center transition-transform hover:-translate-y-0.5 md:min-h-[92px] xl:min-h-[120px] ${
-                    isEmphasized
-                      ? "bg-white/14 xl:min-w-[112px]"
-                      : "bg-transparent"
-                  }`}
-                >
+              const className = `group flex min-h-[84px] flex-col items-center justify-center rounded-xl text-center transition-transform hover:-translate-y-0.5 md:min-h-[92px] xl:min-h-[120px] ${
+                isEmphasized ? "bg-white/14 xl:min-w-[112px]" : "bg-transparent"
+              }`
+
+              const content = (
+                <>
                   <div
                     className={`mb-2 flex size-11 items-center justify-center overflow-hidden rounded-xl md:size-12 xl:size-[60px] ${
                       isEmphasized ? "bg-white/6" : "bg-transparent"
@@ -55,6 +52,20 @@ export function HomeHeroSection({ quickLinks }: HomeHeroSectionProps) {
                   <span className="text-[13px] font-medium tracking-[-0.02em] text-white md:text-sm">
                     {item.label}
                   </span>
+                </>
+              )
+
+              if (item.href) {
+                return (
+                  <Link key={item.label} href={item.href} className={className}>
+                    {content}
+                  </Link>
+                )
+              }
+
+              return (
+                <button key={item.label} type="button" className={className}>
+                  {content}
                 </button>
               )
             })}

@@ -43,10 +43,12 @@ export function HomeBoardsSection({
                   >
                     <button
                       type="button"
-                      className="flex items-center justify-between gap-3 text-sm text-[#4a4d53] transition-colors hover:text-[#252629]"
+                      className="flex w-full items-center justify-between gap-3 text-sm text-[#4a4d53] transition-colors hover:text-[#252629]"
                     >
-                      <span className="line-clamp-1">{item.title}</span>
-                      <span className="shrink-0 text-xs text-[#9ea1a8]">
+                      <span className="min-w-0 flex-1 truncate text-left">
+                        {item.title}
+                      </span>
+                      <span className="ml-3 shrink-0 text-right text-xs tabular-nums text-[#9ea1a8]">
                         {item.date}
                       </span>
                     </button>
