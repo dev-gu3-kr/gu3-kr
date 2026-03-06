@@ -21,12 +21,12 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
             </p>
           </div>
         </div>
-        <nav className="hidden items-center gap-8 text-sm font-semibold lg:flex">
+        <nav className="hidden w-[960px] items-center justify-between pl-6 text-sm font-semibold lg:flex">
           {navItems.map((item) => (
             <button
               key={item.label}
               type="button"
-              className="cursor-default transition-opacity hover:opacity-70"
+              className="w-[100px] cursor-default text-center transition-opacity hover:opacity-70"
             >
               {item.label}
             </button>

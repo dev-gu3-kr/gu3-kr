@@ -1,4 +1,5 @@
 import { Plus } from "lucide-react"
+import Image from "next/image"
 
 import type {
   HomeBoardColumn,
@@ -63,6 +64,15 @@ export function HomeBoardsSection({
               type="button"
               className={`group relative min-h-[120px] overflow-hidden rounded-xl bg-gradient-to-br ${card.accentClassName} p-5 text-left text-white`}
             >
+              {card.thumbnailUrl ? (
+                <Image
+                  src={card.thumbnailUrl}
+                  alt={card.title}
+                  fill
+                  sizes="(min-width: 1280px) 180px, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover"
+                />
+              ) : null}
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(12,13,15,0.22))]" />
               <div className="relative">
                 <p className="text-lg font-semibold">{card.title}</p>

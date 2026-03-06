@@ -18,6 +18,31 @@ const EVENT_CARD_ACCENTS = [
   "from-[#c0c7d8] via-[#6b7ca0] to-[#27324d]",
 ] as const
 
+function resolveBaseDate(monthParam: string | null, now: Date) {
+  if (!monthParam) {
+    return now
+  }
+
+  const matched = /^(\d{4})-(\d{2})$/.exec(monthParam)
+
+  if (!matched) {
+    return now
+  }
+
+  const year = Number(matched[1])
+  const monthIndex = Number(matched[2]) - 1
+
+  if (!Number.isInteger(year) || !Number.isInteger(monthIndex)) {
+    return now
+  }
+
+  if (monthIndex < 0 || monthIndex > 11) {
+    return now
+  }
+
+  return new Date(year, monthIndex, 1)
+}
+
 function getMonthRange(baseDate: Date) {
   const start = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)
   const end = new Date(
@@ -33,27 +58,54 @@ function getMonthRange(baseDate: Date) {
 }
 
 function buildSchedulerItems(
-  events: Array<{ title: string; startsAt: Date }>,
-  baseDate: Date,
+  events: Array<{ title: string; startsAt: Date; endsAt: Date }>,
+  monthDate: Date,
+  today: Date,
 ) {
   const items: HomeSchedulerItem[] = []
-  const limit = 9
+  const lastDate = new Date(
+    monthDate.getFullYear(),
+    monthDate.getMonth() + 1,
+    0,
+  ).getDate()
+  const isCurrentMonth =
+    monthDate.getFullYear() === today.getFullYear() &&
+    monthDate.getMonth() === today.getMonth()
 
-  for (let offset = 0; offset < limit; offset += 1) {
+  for (let offset = 0; offset < lastDate; offset += 1) {
     const date = new Date(
-      baseDate.getFullYear(),
-      baseDate.getMonth(),
+      monthDate.getFullYear(),
+      monthDate.getMonth(),
       offset + 1,
     )
+    const dayStart = new Date(
+      monthDate.getFullYear(),
+      monthDate.getMonth(),
+      offset + 1,
+      0,
+      0,
+      0,
+      0,
+    )
+    const dayEnd = new Date(
+      monthDate.getFullYear(),
+      monthDate.getMonth(),
+      offset + 1,
+      23,
+      59,
+      59,
+      999,
+    )
     const eventTitles = events
-      .filter((event) => event.startsAt.getDate() === date.getDate())
+      .filter((event) => event.startsAt <= dayEnd && event.endsAt >= dayStart)
       .slice(0, 2)
       .map((event) => event.title)
 
     items.push({
+      dateIso: date.toISOString(),
       dayLabel: format(date, "EEE", { locale: ko }).slice(0, 1),
       dayNumber: date.getDate(),
-      isActive: date.getDate() === baseDate.getDate(),
+      isActive: isCurrentMonth && date.getDate() === today.getDate(),
       events: eventTitles,
     })
   }
@@ -92,9 +144,11 @@ function mapEventCards(
   }))
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   const now = new Date()
-  const { start, end } = getMonthRange(now)
+  const requestUrl = new URL(request.url)
+  const baseDate = resolveBaseDate(requestUrl.searchParams.get("month"), now)
+  const { start, end } = getMonthRange(baseDate)
 
   const [noticesPage, youthBlogPage, bulletinRows, galleryRows, monthEvents] =
     await Promise.all([
@@ -109,7 +163,7 @@ export async function GET() {
       prisma.post.findMany({
         where: { category: "GALLERY", isPublished: true },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-        take: 4,
+        take: 8,
         select: {
           id: true,
           title: true,
@@ -129,17 +183,18 @@ export async function GET() {
       prisma.event.findMany({
         where: {
           isPublished: true,
-          startsAt: { gte: start, lte: end },
+          startsAt: { lte: end },
+          endsAt: { gte: start },
         },
         orderBy: [{ startsAt: "asc" }, { id: "desc" }],
-        select: { title: true, startsAt: true },
+        select: { title: true, startsAt: true, endsAt: true },
       }),
     ])
 
   const response: HomePageResponseDto = {
     ok: true,
-    schedulerMonthLabel: format(now, "yyyy년 M월", { locale: ko }),
-    schedulerItems: buildSchedulerItems(monthEvents, now),
+    schedulerMonthLabel: format(baseDate, "yyyy년 M월", { locale: ko }),
+    schedulerItems: buildSchedulerItems(monthEvents, baseDate, now),
     eventCards: mapEventCards(
       galleryRows.map((row) => ({
         ...row,

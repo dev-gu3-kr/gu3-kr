@@ -1,16 +1,100 @@
+"use client"
+
+import { format } from "date-fns"
+import { ko } from "date-fns/locale"
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import * as React from "react"
 
 import type { HomeSchedulerItem } from "@/features/home/isomorphic"
 
 type HomeSchedulerSectionProps = {
   readonly monthLabel: string
   readonly items: readonly HomeSchedulerItem[]
+  readonly pageResetMode: "active" | "start" | "end"
+  readonly onRequestPreviousMonth: () => void
+  readonly onRequestNextMonth: () => void
+}
+
+const SCHEDULER_PAGE_SIZE = 9
+
+function getInitialPageStart(
+  items: readonly HomeSchedulerItem[],
+  pageResetMode: HomeSchedulerSectionProps["pageResetMode"],
+) {
+  if (pageResetMode === "start") {
+    return 0
+  }
+
+  if (pageResetMode === "end") {
+    return Math.max(0, items.length - SCHEDULER_PAGE_SIZE)
+  }
+
+  const activeIndex = items.findIndex((item) => item.isActive)
+
+  if (activeIndex < 0) {
+    return 0
+  }
+
+  return Math.floor(activeIndex / SCHEDULER_PAGE_SIZE) * SCHEDULER_PAGE_SIZE
 }
 
 export function HomeSchedulerSection({
   monthLabel,
   items,
+  pageResetMode,
+  onRequestPreviousMonth,
+  onRequestNextMonth,
 }: HomeSchedulerSectionProps) {
+  const [pageStart, setPageStart] = React.useState(() =>
+    getInitialPageStart(items, pageResetMode),
+  )
+
+  React.useEffect(() => {
+    setPageStart(getInitialPageStart(items, pageResetMode))
+  }, [items, pageResetMode])
+
+  const visibleItems = React.useMemo(
+    () => items.slice(pageStart, pageStart + SCHEDULER_PAGE_SIZE),
+    [items, pageStart],
+  )
+
+  const currentMonthLabel = React.useMemo(() => {
+    const firstVisibleItem = visibleItems[0]
+
+    if (!firstVisibleItem) {
+      return monthLabel
+    }
+
+    return format(new Date(firstVisibleItem.dateIso), "yyyy년 M월", {
+      locale: ko,
+    })
+  }, [monthLabel, visibleItems])
+
+  const handlePreviousPage = React.useCallback(() => {
+    if (pageStart === 0) {
+      onRequestPreviousMonth()
+      return
+    }
+
+    setPageStart((currentPageStart) =>
+      Math.max(0, currentPageStart - SCHEDULER_PAGE_SIZE),
+    )
+  }, [onRequestPreviousMonth, pageStart])
+
+  const handleNextPage = React.useCallback(() => {
+    if (pageStart + SCHEDULER_PAGE_SIZE >= items.length) {
+      onRequestNextMonth()
+      return
+    }
+
+    setPageStart((currentPageStart) =>
+      Math.min(
+        Math.max(0, items.length - SCHEDULER_PAGE_SIZE),
+        currentPageStart + SCHEDULER_PAGE_SIZE,
+      ),
+    )
+  }, [items.length, onRequestNextMonth, pageStart])
+
   return (
     <section className="bg-[#f5f6f8] px-5 py-16 md:px-8 md:py-20">
       <div className="mx-auto max-w-[1220px]">
@@ -18,26 +102,25 @@ export function HomeSchedulerSection({
           <button
             type="button"
             className="grid size-11 place-items-center rounded-xl bg-white text-[#252629] shadow-sm ring-1 ring-black/5"
+            onClick={handlePreviousPage}
           >
             <ChevronLeft className="size-5" />
           </button>
           <h2 className="min-w-42 text-center text-2xl font-semibold text-[#252629] md:text-[26px]">
-            {monthLabel}
+            {currentMonthLabel}
           </h2>
           <button
             type="button"
             className="grid size-11 place-items-center rounded-xl bg-white text-[#252629] shadow-sm ring-1 ring-black/5"
+            onClick={handleNextPage}
           >
             <ChevronRight className="size-5" />
           </button>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9">
-          {items.map((item) => (
-            <article
-              key={`${item.dayLabel}-${item.dayNumber}`}
-              className="text-center"
-            >
+          {visibleItems.map((item) => (
+            <article key={item.dateIso} className="text-center">
               <div
                 className={`mx-auto grid size-[86px] place-items-center rounded-full ${
                   item.isActive
@@ -64,7 +147,7 @@ export function HomeSchedulerSection({
                     <div className="mx-auto size-2 rounded-full bg-[#bd2125]" />
                     {item.events.map((event) => (
                       <p
-                        key={event}
+                        key={`${item.dateIso}-${event}`}
                         className="text-xs leading-4 text-[#252629] md:text-[13px]"
                       >
                         {event}

@@ -5,8 +5,10 @@ import { apiFetch } from "@/lib/api"
 import { homeQueryKeys } from "./home.query"
 import type { HomePageResponseDto } from "./types"
 
-async function fetchHomePageData() {
-  const response = await apiFetch.get("/api/home").send()
+async function fetchHomePageData(monthKey: string) {
+  const response = await apiFetch
+    .get(`/api/home?month=${encodeURIComponent(monthKey)}`)
+    .send()
   if (!response.ok) {
     throw new Error("홈 화면 데이터를 불러오지 못했습니다.")
   }
@@ -21,9 +23,9 @@ async function fetchHomePageData() {
   return json
 }
 
-export function useHomePageQuery() {
+export function useHomePageQuery(monthKey: string) {
   return useQuery({
-    queryKey: homeQueryKeys.page(),
-    queryFn: fetchHomePageData,
+    queryKey: homeQueryKeys.page(monthKey),
+    queryFn: () => fetchHomePageData(monthKey),
   })
 }

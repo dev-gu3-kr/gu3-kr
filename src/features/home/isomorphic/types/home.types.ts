@@ -12,6 +12,7 @@ export type HomeQuickLinkItem = {
 }
 
 export type HomeSchedulerItem = {
+  readonly dateIso: string
   readonly dayLabel: string
   readonly dayNumber: number
   readonly isActive?: boolean
@@ -40,6 +41,7 @@ export type HomeShortcutCard = {
   readonly title: string
   readonly subtitle: string
   readonly accentClassName: string
+  readonly thumbnailUrl?: string | null
 }
 
 export type HomeFooterMassTime = {

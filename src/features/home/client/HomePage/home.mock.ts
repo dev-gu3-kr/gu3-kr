@@ -2,6 +2,41 @@ import { BookOpen, Cross, MapPin, Play, ScrollText, Users } from "lucide-react"
 
 import type { HomePageViewModel } from "@/features/home/isomorphic"
 
+function createSchedulerItems(year: number, month: number) {
+  const lastDate = new Date(year, month, 0).getDate()
+
+  return Array.from({ length: lastDate }, (_, index) => {
+    const date = new Date(year, month - 1, index + 1)
+    const dateIso = date.toISOString()
+
+    if (index === 2) {
+      return {
+        dateIso,
+        dayLabel: "화",
+        dayNumber: 3,
+        isActive: true,
+        events: ["등록된 스케줄 한 줄"],
+      }
+    }
+
+    if (index === 3) {
+      return {
+        dateIso,
+        dayLabel: "수",
+        dayNumber: 4,
+        events: ["등록된 스케줄의 내용", "최대 두줄까지 표시"],
+      }
+    }
+
+    return {
+      dateIso,
+      dayLabel: ["일", "월", "화", "수", "목", "금", "토"][date.getDay()],
+      dayNumber: index + 1,
+      events: [],
+    }
+  })
+}
+
 // Figma의 정보 구조를 먼저 고정해 두고 이후 API 연결 시 같은 모양을 재사용한다.
 export const homePageMock: HomePageViewModel = {
   navItems: [
@@ -21,26 +56,7 @@ export const homePageMock: HomePageViewModel = {
     { label: "유튜브 채널", icon: Play },
   ],
   schedulerMonthLabel: "2026년 3월",
-  schedulerItems: [
-    { dayLabel: "일", dayNumber: 1, events: [] },
-    { dayLabel: "월", dayNumber: 2, events: [] },
-    {
-      dayLabel: "화",
-      dayNumber: 3,
-      isActive: true,
-      events: ["등록된 스케줄 한 줄"],
-    },
-    {
-      dayLabel: "수",
-      dayNumber: 4,
-      events: ["등록된 스케줄의 내용", "최대 두줄까지 표시"],
-    },
-    { dayLabel: "목", dayNumber: 5, events: [] },
-    { dayLabel: "금", dayNumber: 6, events: [] },
-    { dayLabel: "토", dayNumber: 7, events: [] },
-    { dayLabel: "일", dayNumber: 8, events: [] },
-    { dayLabel: "월", dayNumber: 9, events: [] },
-  ],
+  schedulerItems: createSchedulerItems(2026, 3),
   eventCards: [
     {
       title: "성당 공동체 미사",
@@ -149,21 +165,26 @@ export const homePageMock: HomePageViewModel = {
       title: "예비신자 교리",
       subtitle: "처음 신앙을 시작하는 분들을 위한 안내",
       accentClassName: "from-[#60443a] via-[#a47b61] to-[#2e1a15]",
+      thumbnailUrl:
+        "/images/maccapaint_a_beautiful_painting_of_the_mary._she_is_praying_wit_759a944a-3461-437b-a91c-6976a8f07f01 1.jpg",
     },
     {
       title: "유아세례",
       subtitle: "가정을 위한 축복의 순간",
       accentClassName: "from-[#8b7f74] via-[#d3bfb2] to-[#53433b]",
+      thumbnailUrl: "/images/image 11.jpg",
     },
     {
       title: "혼인성사",
       subtitle: "두 사람의 약속을 위한 준비",
       accentClassName: "from-[#a38a67] via-[#d6be9a] to-[#57442e]",
+      thumbnailUrl: "/images/image 12.jpg",
     },
     {
       title: "병자성사",
       subtitle: "위로와 회복을 위한 기도",
       accentClassName: "from-[#525a65] via-[#94a1b2] to-[#242831]",
+      thumbnailUrl: "/images/image 10.jpg",
     },
     {
       title: "선종안내",
