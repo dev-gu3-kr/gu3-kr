@@ -3,8 +3,9 @@
 import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppLink as Link } from "@/components/AppLink"
+import { InfiniteSentinel } from "@/components/InfiniteSentinel"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type {
   ApiResponseDto,
@@ -25,7 +26,6 @@ export function YouthBlogListContainer({
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<YouthBlogPublishFilterDto>("all")
-  const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -55,28 +55,9 @@ export function YouthBlogListContainer({
     [data?.pages],
   )
 
-  useEffect(() => {
-    if (!loadMoreRef.current || !hasNextPage || isFetchingNextPage) {
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      async (entries) => {
-        const firstEntry = entries[0]
-
-        if (!firstEntry?.isIntersecting || !hasNextPage || isFetchingNextPage) {
-          return
-        }
-
-        await fetchNextPage()
-      },
-      { rootMargin: "240px 0px" },
-    )
-
-    observer.observe(loadMoreRef.current)
-
-    return () => observer.disconnect()
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+  const handleLoadMore = useCallback(async () => {
+    await fetchNextPage()
+  }, [fetchNextPage])
 
   return (
     <div className="space-y-3">
@@ -184,7 +165,11 @@ export function YouthBlogListContainer({
           ))
         )}
 
-        <div ref={loadMoreRef} className="h-1" />
+        <InfiniteSentinel
+          hasMore={Boolean(hasNextPage)}
+          onLoadMore={handleLoadMore}
+          disabled={isFetchingNextPage}
+        />
       </div>
     </div>
   )

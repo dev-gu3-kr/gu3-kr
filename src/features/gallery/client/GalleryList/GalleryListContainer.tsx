@@ -4,8 +4,9 @@ import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { AppLink as Link } from "@/components/AppLink"
+import { InfiniteSentinel } from "@/components/InfiniteSentinel"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type { GalleryPublishFilterDto } from "@/features/gallery/isomorphic"
 import { useGalleryListInfinite } from "@/features/gallery/isomorphic"
@@ -14,7 +15,6 @@ export function GalleryListContainer() {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<GalleryPublishFilterDto>("all")
-  const sentinelRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setQuery(queryInput.trim()), 300)
@@ -64,22 +64,9 @@ export function GalleryListContainer() {
 
   const isFilterFetching = isFetching && !isFetchingNextPage
 
-  useEffect(() => {
-    if (!sentinelRef.current || !hasNextPage || isFetchingNextPage) return
-
-    const observer = new IntersectionObserver(
-      async (entries) => {
-        const firstEntry = entries[0]
-        if (!firstEntry?.isIntersecting || !hasNextPage || isFetchingNextPage)
-          return
-        await fetchNextPage()
-      },
-      { rootMargin: "240px 0px" },
-    )
-
-    observer.observe(sentinelRef.current)
-    return () => observer.disconnect()
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
+  const handleLoadMore = useCallback(async () => {
+    await fetchNextPage()
+  }, [fetchNextPage])
 
   return (
     <div className="space-y-3">
@@ -219,7 +206,11 @@ export function GalleryListContainer() {
         </ul>
       )}
 
-      <div ref={sentinelRef} className="h-1" />
+      <InfiniteSentinel
+        hasMore={Boolean(hasNextPage)}
+        onLoadMore={handleLoadMore}
+        disabled={isFetchingNextPage}
+      />
     </div>
   )
 }

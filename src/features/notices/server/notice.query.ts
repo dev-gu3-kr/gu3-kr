@@ -45,9 +45,7 @@ export async function findNoticePage(params: {
           }
         : {}),
     },
-    orderBy: {
-      createdAt: "desc",
-    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: params.take,
     ...(params.cursor
       ? {
