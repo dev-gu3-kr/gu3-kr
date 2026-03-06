@@ -1,1 +1,3 @@
-{}
+{
+  "@tanstack/react-query": "/tanstack/query/v5_84_1"
+}

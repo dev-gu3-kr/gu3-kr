@@ -1,8 +1,8 @@
 "use client"
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { useState } from "react"
+import { QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "sonner"
+import { getQueryClient } from "@/lib/react-query"
 import { RouteProgress } from "./RouteProgress"
 
 type Props = {
@@ -10,16 +10,7 @@ type Props = {
 }
 
 export function Providers({ children }: Props) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            refetchOnWindowFocus: false,
-          },
-        },
-      }),
-  )
+  const queryClient = getQueryClient()
 
   return (
     <QueryClientProvider client={queryClient}>
