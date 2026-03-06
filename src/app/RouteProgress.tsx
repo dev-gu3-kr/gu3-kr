@@ -19,6 +19,21 @@ function shouldHandleAnchorClick(event: MouseEvent) {
   if (!href) return false
   if (!href.startsWith("/")) return false
 
+  try {
+    const nextUrl = new URL(href, window.location.href)
+    const currentUrl = new URL(window.location.href)
+
+    if (
+      nextUrl.pathname === currentUrl.pathname &&
+      nextUrl.search === currentUrl.search &&
+      nextUrl.hash === currentUrl.hash
+    ) {
+      return false
+    }
+  } catch {
+    return false
+  }
+
   return true
 }
 
