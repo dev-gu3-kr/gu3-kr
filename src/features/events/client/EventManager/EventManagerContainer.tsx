@@ -245,7 +245,7 @@ export function EventManagerContainer() {
       </section>
 
       {viewMode === "scheduler" ? (
-        <div className="event-scheduler overflow-hidden rounded-md border bg-white p-2">
+        <div className="event-scheduler">
           <FullCalendar
             plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
             initialView="dayGridMonth"
