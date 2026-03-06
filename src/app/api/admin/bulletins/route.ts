@@ -106,9 +106,9 @@ export async function POST(request: Request) {
   const isPublished = String(formData.get("isPublished") || "true") === "true"
   const file = formData.get("file")
 
-  if (!title || !content) {
+  if (!title) {
     return NextResponse.json(
-      { ok: false, message: "제목과 내용은 필수입니다." },
+      { ok: false, message: "제목은 필수입니다." },
       { status: 400 },
     )
   }

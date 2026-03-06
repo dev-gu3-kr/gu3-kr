@@ -86,6 +86,7 @@ export function useBulletinListInfinite(params: {
     getNextPageParam: (lastPage) =>
       lastPage.hasMore ? (lastPage.nextCursor ?? undefined) : undefined,
     placeholderData: (prev) => prev,
+    refetchOnMount: "always",
   })
 }
 

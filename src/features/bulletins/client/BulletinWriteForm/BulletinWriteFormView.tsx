@@ -103,15 +103,12 @@ export function BulletinWriteFormView({
 
       <div className="space-y-1">
         <label htmlFor="content" className="text-sm">
-          내용 <span className="text-red-500">*</span>
+          내용
         </label>
         <textarea
           id="content"
           rows={8}
-          {...register("content", {
-            validate: (value) =>
-              value.trim().length > 0 || "내용은 필수입니다.",
-          })}
+          {...register("content")}
           className={
             errors.content
               ? "w-full rounded-md border border-red-500 px-3 py-2 ring-1 ring-red-500"
