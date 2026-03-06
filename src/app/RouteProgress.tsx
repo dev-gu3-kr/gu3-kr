@@ -14,6 +14,7 @@ function shouldHandleAnchorClick(event: MouseEvent) {
   const anchor = target?.closest("a[href]") as HTMLAnchorElement | null
   if (!anchor) return false
   if (anchor.target === "_blank") return false
+  if (anchor.hasAttribute("download")) return false
 
   const href = anchor.getAttribute("href")
   if (!href) return false
@@ -22,6 +23,17 @@ function shouldHandleAnchorClick(event: MouseEvent) {
   try {
     const nextUrl = new URL(href, window.location.href)
     const currentUrl = new URL(window.location.href)
+
+    const looksLikeDownloadRoute =
+      /\/(download|exports?|attachments?|files?)($|\/)/.test(
+        nextUrl.pathname,
+      ) ||
+      nextUrl.searchParams.get("download") === "1" ||
+      nextUrl.searchParams.get("disposition") === "attachment"
+
+    if (looksLikeDownloadRoute) {
+      return false
+    }
 
     if (
       nextUrl.pathname === currentUrl.pathname &&
