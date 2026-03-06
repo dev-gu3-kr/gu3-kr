@@ -118,11 +118,11 @@ export function HomeSchedulerSection({
           </button>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9">
+        <div className="grid grid-cols-3 gap-4 sm:gap-5 lg:grid-cols-5 xl:grid-cols-9">
           {visibleItems.map((item) => (
             <article key={item.dateIso} className="text-center">
               <div
-                className={`mx-auto grid size-[86px] place-items-center rounded-full ${
+                className={`mx-auto grid h-[78px] w-[78px] place-items-center rounded-full sm:h-[86px] sm:w-[86px] ${
                   item.isActive
                     ? "bg-white shadow-sm ring-1 ring-black/5"
                     : "bg-[#ebecf0]"
