@@ -330,7 +330,7 @@ export function EventManagerContainer() {
           if (!open) setSchedulerModal(null)
         }}
       >
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[85vh] overflow-visible">
           <DialogTitle>일정</DialogTitle>
           {schedulerModal ? (
             schedulerModal.mode === "detail" ? (
@@ -344,7 +344,9 @@ export function EventManagerContainer() {
                 }
               />
             ) : (
-              <EventEditFormContainer eventId={schedulerModal.eventId} />
+              <div className="max-h-[75vh] overflow-y-auto pr-1">
+                <EventEditFormContainer eventId={schedulerModal.eventId} />
+              </div>
             )
           ) : null}
         </DialogContent>

@@ -52,21 +52,16 @@ export function DateTimePicker({
     setOpenUpward(spaceBelow < estimatedHeight && spaceAbove > spaceBelow)
   }, [open])
 
-  // 외부 클릭/Escape 입력 시 팝업을 닫아 모달 없이도 자연스럽게 조작되게 한다.
   useEffect(() => {
     const onPointerDown = (event: MouseEvent) => {
       if (!open) return
       const target = event.target as Node | null
       if (!wrapperRef.current || !target) return
-      if (!wrapperRef.current.contains(target)) {
-        setOpen(false)
-      }
+      if (!wrapperRef.current.contains(target)) setOpen(false)
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setOpen(false)
-      }
+      if (event.key === "Escape") setOpen(false)
     }
 
     document.addEventListener("mousedown", onPointerDown)
@@ -119,8 +114,8 @@ export function DateTimePicker({
           <div
             className={
               openUpward
-                ? "absolute bottom-full z-[80] mb-2 w-[320px] rounded-md border bg-white p-3 shadow-lg"
-                : "absolute z-[80] mt-2 w-[320px] rounded-md border bg-white p-3 shadow-lg"
+                ? "absolute bottom-full z-[120] mb-2 w-[320px] rounded-md border bg-white p-3 shadow-lg"
+                : "absolute z-[120] mt-2 w-[320px] rounded-md border bg-white p-3 shadow-lg"
             }
           >
             <DayPicker
@@ -137,7 +132,6 @@ export function DateTimePicker({
                   return
                 }
                 onChange(toLocalDateTime(next))
-                // day 선택 즉시 닫아 추가 클릭 없이 입력 흐름을 끝낸다.
                 setOpen(false)
               }}
               disabled={minDate ? { before: minDate } : undefined}
