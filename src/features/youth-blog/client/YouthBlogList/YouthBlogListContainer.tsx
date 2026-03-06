@@ -168,9 +168,11 @@ export function YouthBlogListContainer({
               className="block rounded-md border p-4 transition-colors hover:bg-neutral-50"
             >
               <p className="font-medium">{notice.title}</p>
-              <p className="mt-1 text-sm text-neutral-600">
-                {notice.summary?.trim() || "요약 없음"}
-              </p>
+              {notice.summary?.trim() ? (
+                <p className="mt-1 text-sm text-neutral-600">
+                  {notice.summary.trim()}
+                </p>
+              ) : null}
               <p className="mt-2 text-xs text-neutral-500">
                 {notice.isPublished ? "공개" : "비공개"} ·{" "}
                 {formatDistanceToNow(new Date(notice.createdAt), {
