@@ -114,10 +114,12 @@ export function GalleryWriteFormView({
       if (disposed || !mountRef.current || editorRef.current) return
 
       const Editor = module.default as ToastEditorConstructor
+      const editorViewportHeight = window.innerWidth < 640 ? "320px" : "520px"
+
       const editor = new Editor({
         el: mountRef.current,
-        height: "auto",
-        minHeight: window.innerWidth < 640 ? "320px" : "520px",
+        height: editorViewportHeight,
+        minHeight: editorViewportHeight,
         initialValue: initialContent ?? "",
         initialEditType: "wysiwyg",
         previewStyle: "vertical",
