@@ -28,7 +28,7 @@ export function HomePageClient() {
   const [schedulerResetMode, setSchedulerResetMode] = React.useState<
     "active" | "start" | "end"
   >("active")
-  const { data } = useHomePageQuery(schedulerMonthKey)
+  const { data, isFetching } = useHomePageQuery(schedulerMonthKey)
 
   const viewModel = data
     ? {
@@ -60,6 +60,7 @@ export function HomePageClient() {
         monthLabel={viewModel.schedulerMonthLabel}
         items={viewModel.schedulerItems}
         pageResetMode={schedulerResetMode}
+        isNavigatingMonth={isFetching}
         onRequestPreviousMonth={handleRequestPreviousMonth}
         onRequestNextMonth={handleRequestNextMonth}
       />
