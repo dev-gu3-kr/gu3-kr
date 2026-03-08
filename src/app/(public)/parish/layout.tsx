@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { SubLanding } from "@/components/SubLanding"
+
 import { HomeFooter, HomeHeader, homePageMock } from "@/features/home/client"
 
 type SubLayout = {
@@ -13,11 +13,6 @@ export default async function SubLayout({ children }: SubLayout) {
     <main className="flex min-h-screen flex-col bg-white text-[#252629]">
       <div className="relative">
         <HomeHeader navItems={navItems} />
-        <SubLanding
-          title="본당 소개"
-          sectionLabel="구로3동 성당"
-          currentLabel="본당 소개"
-        />
       </div>
 
       <section className="flex-1">{children}</section>

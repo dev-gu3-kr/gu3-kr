@@ -19,6 +19,23 @@ const minioRemotePattern = (() => {
 })()
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
+      },
+    },
+  },
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: ["@svgr/webpack"],
+    })
+
+    return config
+  },
   images: {
     remotePatterns: [...(minioRemotePattern ? [minioRemotePattern] : [])],
     // 과도한 변형 폭 생성을 줄여 캐시 분산을 완화한다.

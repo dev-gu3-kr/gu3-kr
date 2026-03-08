@@ -1,3 +1,4 @@
+import * as nunPrefetch from "./nun.prefetch"
 import * as nunService from "./nun.service"
 
-export { nunService }
+export { nunPrefetch, nunService }
