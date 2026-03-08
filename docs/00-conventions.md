@@ -41,8 +41,14 @@ pnpm lint
 ## 네이밍
 - query: `*.query.ts`
 - service: `*.service.ts`
+- prefetch: `*.prefetch.ts` (SSR prefetch 전용)
 - container: `*Container.tsx`
 - view: `*View.tsx`
+
+### server 네임스페이스 export 네이밍
+- `*.service.ts` → `<domain>Service` (예: `noticeService`)
+- `*.prefetch.ts` → `<domain>Prefetch` (예: `homePrefetch`)
+- 중복 접미사 금지 (`homePrefetchService` 지양)
 
 
 ## Feature 배럴(export) 규칙
@@ -69,7 +75,7 @@ pnpm lint
 
 ## HTTP 레이어 위치
 - router/http 레이어는 `app/` 디렉토리에서만 처리
-- feature의 `server`에는 `query/service`만 둔다
+- feature의 `server`에는 `*.query.ts`, `*.service.ts`, `*.prefetch.ts` 파일만 둔다
 
 
 ## client 구조
@@ -81,16 +87,17 @@ pnpm lint
 
 ## server 구조
 - `server/query`, `server/service` 폴더를 만들지 않는다
-- server 하위에 `*.query.ts`, `*.service.ts` 파일을 직접 배치한다
-- 예: `src/features/auth/server/auth.query.ts`, `src/features/auth/server/auth.service.ts`
+- server 하위에 `*.query.ts`, `*.service.ts`, `*.prefetch.ts` 파일을 직접 배치한다
+- 예: `src/features/auth/server/auth.query.ts`, `src/features/auth/server/auth.service.ts`, `src/features/home/server/home.prefetch.ts`
 
 
 ## server 배럴 규칙
-- `server/index.ts`는 `*.service.ts`만 외부에 노출
-- `*.query.ts`는 내부 구현으로 취급하며 배럴 export 금지
-- 서비스는 네임스페이스 export 사용
-  - `import * as authService from "./auth.service"`
-  - `export { authService }`
+- `server/index.ts`은 `*.service.ts`, `*.prefetch.ts`만 외부에 노출
+- `*.query.ts`는 내부 구현으로 취급하며 배럴 export 금지
+- namespace export 사용
+  - `import * as authService from './auth.service'`
+  - `import * as homePrefetch from './home.prefetch'`
+  - `export { authService, homePrefetch }`
 
 ## 주석 작성 컨벤션
 - 원칙: 앞으로 작성/수정하는 모든 코드에는 의도를 설명하는 주석을 포함한다.
@@ -123,10 +130,16 @@ pnpm lint
 - `useRouter`, `usePathname`, `useSearchParams`는 **client container** 또는 `app/**` client 경계에서만 사용한다.
 - `*View.tsx`(순수 view)에서는 라우팅 훅을 사용하지 않는다.
 
-### 금지
-- `src/app/**/page.tsx`에서 `@/features/*/server` 직접 import 금지
-- view 레이어에서 API 호출/라우팅 훅 직접 사용 금지
+### 금지
+- `src/app/**/page.tsx`에서 `@/features/*/server`의 `*Service` 직접 호출 금지
+- view 레이어에서 API 호출/라우팅 훅 직접 사용 금지
 
+
+## SSR page.tsx prefetch 규칙
+- SSR 페이지(`src/app/**/page.tsx`)는 hydration 목적의 `@/features/<feature>/server`의 `*Prefetch` namespace import를 허용한다.
+- page.tsx 에서는 `prefetch*` 함수만 호출하고, 도메인 비즈니스 로직(`*Service`) 호출은 금지한다.
+- prefetch 로직은 `src/features/<feature>/server/*.prefetch.ts`에 두고, query key / prefetchQuery / prefetchInfiniteQuery 구성만 책임진다.
+- `*.prefetch.ts`는 side effect(입력 수정, DB write)를 가지지 않는다.
 
 ## API 경계 DTO 규칙
 - API 경계(`app/api/**`)에서는 Prisma 모델 타입을 직접 응답 계약으로 노출하지 않는다.

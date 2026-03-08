@@ -54,11 +54,11 @@
 
 
 ## server 파일 배치
-- feature server는 디렉토리 분리(query/service) 대신 파일 접미사로 역할을 구분
-- 예: `auth.query.ts`, `auth.service.ts`
+- feature server는 디렉토리 분리(query/service/prefetch) 대신 파일 접미사로 역할을 구분
+- 예: `auth.query.ts`, `auth.service.ts`, `home.prefetch.ts`
 
 
-## service-only barrel
-- feature server의 공개 API는 service 계층만 노출한다
-- query 계층은 service 내부에서만 사용한다
-- server index는 네임스페이스(`* as ...Service`) export를 사용한다
+## server barrel (00-conventions aligned)
+- feature server의 공개 API는 `*.service.ts`, `*.prefetch.ts`만 노출한다
+- `*.query.ts`는 내부 구현으로 취급하며 배럴 export를 금지한다
+- server index는 네임스페이스 export를 사용한다 (`* as ...Service`, `* as ...Prefetch`)
