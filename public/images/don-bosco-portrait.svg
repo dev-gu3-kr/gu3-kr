@@ -1,0 +1,22 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="320" height="320" rx="28" fill="#F4F4F4"/>
+  <rect x="38" y="28" width="244" height="264" rx="18" fill="url(#paint0_linear_169_2)"/>
+  <ellipse cx="160" cy="108" rx="56" ry="60" fill="#D9B08A"/>
+  <path d="M112 110C112 75 133 54 160 54C187 54 208 75 208 110V132H112V110Z" fill="#6B4C3C"/>
+  <path d="M120 108C129 80 144 68 160 68C176 68 191 80 200 108" stroke="#7C5A47" stroke-width="12" stroke-linecap="round"/>
+  <ellipse cx="139" cy="114" rx="5" ry="6" fill="#3C2B24"/>
+  <ellipse cx="181" cy="114" rx="5" ry="6" fill="#3C2B24"/>
+  <path d="M148 145C154 150 166 150 172 145" stroke="#A46559" stroke-width="4" stroke-linecap="round"/>
+  <path d="M104 171C117 145 135 132 160 132C185 132 203 145 216 171L232 220H88L104 171Z" fill="#15181E"/>
+  <path d="M132 173C139 166 148 162 160 162C172 162 181 166 188 173L175 220H145L132 173Z" fill="#F7F7F7"/>
+  <path d="M150 174H170L166 220H154L150 174Z" fill="#14181F"/>
+  <text x="160" y="257" text-anchor="middle" fill="#FFF7ED" font-family="Arial, sans-serif" font-size="24" font-weight="700">DON BOSCO</text>
+  <text x="160" y="279" text-anchor="middle" fill="#F2DDC7" font-family="Arial, sans-serif" font-size="13">청소년들의 아버지와 스승</text>
+  <defs>
+    <linearGradient id="paint0_linear_169_2" x1="160" y1="28" x2="160" y2="292" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C79B64"/>
+      <stop offset="0.55" stop-color="#E2C8A1"/>
+      <stop offset="1" stop-color="#9A7146"/>
+    </linearGradient>
+  </defs>
+</svg>

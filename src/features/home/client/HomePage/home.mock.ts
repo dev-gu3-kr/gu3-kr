@@ -50,7 +50,7 @@ export const homePageMock: HomePageViewModel = {
   quickLinks: [
     { label: "본당 소개", href: "/parish/about", icon: Cross },
     { label: "주보", icon: ScrollText },
-    { label: "살레시오회", icon: Users },
+    { label: "살레시오회", href: "/parish/salesians", icon: Users },
     { label: "미사와 성사", icon: BookOpen },
     { label: "오시는 길", icon: MapPin },
     { label: "유튜브 채널", icon: Play },

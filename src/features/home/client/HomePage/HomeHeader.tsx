@@ -66,10 +66,10 @@ const MENU_KEY_BY_LABEL: Record<string, TopMenuKey> = {
 const SUB_MENU_BY_KEY: Record<TopMenuKey, readonly SubMenuItem[]> = {
   parish: [
     { key: "parishAbout", label: "본당 소개", url: "/parish/about" },
-    { key: "pastoralGoal", label: "사목 목표", url: "/" },
+    { key: "pastoralGoal", label: "사목 목표", url: "/parish/pastoral-goal" },
     { key: "priestIntro", label: "신부님 소개", url: "/parish/priests" },
     { key: "nunIntro", label: "수녀님 소개", url: "/parish/nuns" },
-    { key: "salesians", label: "살레시오회", url: "/" },
+    { key: "salesians", label: "살레시오회", url: "/parish/salesians" },
     { key: "directions", label: "오시는 길", url: "/" },
     { key: "facilities", label: "부속 시설", url: "/" },
   ],

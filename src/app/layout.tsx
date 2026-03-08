@@ -1,6 +1,14 @@
 import type { Metadata } from "next"
+import localFont from "next/font/local"
 import "./globals.css"
 import { Providers } from "./providers"
+
+const pretendard = localFont({
+  src: "../../public/fonts/PretendardVariable.woff2",
+  variable: "--font-pretendard",
+  weight: "45 920",
+  display: "swap",
+})
 
 export const metadata: Metadata = {
   title: "구로3동성당",
@@ -14,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className="antialiased">
+      <body className={pretendard.variable + " font-sans antialiased"}>
         <Providers>{children}</Providers>
       </body>
     </html>

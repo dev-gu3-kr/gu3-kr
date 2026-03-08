@@ -1,0 +1,21 @@
+<svg width="320" height="320" viewBox="0 0 320 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="320" height="320" rx="28" fill="#F4F4F4"/>
+  <path d="M160 38L202 58L226 102V164C226 222 194 258 160 282C126 258 94 222 94 164V102L118 58L160 38Z" fill="#E7B93E" stroke="#8B6A16" stroke-width="10"/>
+  <path d="M160 66L191 81L209 114V162C209 208 184 236 160 256C136 236 111 208 111 162V114L129 81L160 66Z" fill="#9BD4F2" stroke="#6B5311" stroke-width="6"/>
+  <path d="M160 89C143 89 129 103 129 120V164C129 198 145 221 160 236C175 221 191 198 191 164V120C191 103 177 89 160 89Z" fill="#BDE9FF"/>
+  <circle cx="132" cy="104" r="16" fill="#F6F0E8" stroke="#8B6A16" stroke-width="4"/>
+  <circle cx="188" cy="104" r="16" fill="#F6F0E8" stroke="#8B6A16" stroke-width="4"/>
+  <path d="M122 120H198" stroke="#8B6A16" stroke-width="4"/>
+  <path d="M160 82V146" stroke="#8B6A16" stroke-width="6"/>
+  <path d="M143 125C148 117 154 114 160 114C166 114 172 117 177 125" stroke="#8B6A16" stroke-width="4" stroke-linecap="round"/>
+  <path d="M140 174C140 158 151 148 160 148C169 148 180 158 180 174C180 195 160 209 160 209C160 209 140 195 140 174Z" fill="#E8505B" stroke="#8B2230" stroke-width="4"/>
+  <path d="M160 142V110" stroke="#8B2230" stroke-width="4"/>
+  <path d="M133 214C148 222 172 222 187 214" stroke="#6C9857" stroke-width="8" stroke-linecap="round"/>
+  <path d="M160 26V64" stroke="#8B6A16" stroke-width="6" stroke-linecap="round"/>
+  <path d="M144 42H176" stroke="#8B6A16" stroke-width="6" stroke-linecap="round"/>
+  <path d="M96 116C82 131 74 148 74 169C74 198 87 225 109 246" stroke="#D6B24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M224 116C238 131 246 148 246 169C246 198 233 225 211 246" stroke="#D6B24A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M100 247C120 264 139 274 160 282C181 274 200 264 220 247" stroke="#A17C1D" stroke-width="8" stroke-linecap="round"/>
+  <path d="M92 246L228 246L214 276H106L92 246Z" fill="#F6E3A6" stroke="#8B6A16" stroke-width="6"/>
+  <text x="160" y="267" text-anchor="middle" fill="#4A3A1D" font-family="Arial, sans-serif" font-size="17" font-weight="700">DA MIHI ANIMAS</text>
+</svg>
