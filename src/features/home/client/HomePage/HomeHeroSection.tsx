@@ -29,21 +29,15 @@ export function HomeHeroSection({ quickLinks }: HomeHeroSectionProps) {
       <div className="absolute inset-x-0 bottom-0 bg-[rgba(37,38,41,0.86)]">
         <div className="mx-auto px-5 py-4 md:max-w-[1380px] md:px-8 md:py-[14px]">
           <div className="mx-auto grid max-w-[792px] grid-cols-3 gap-x-4 gap-y-3 md:grid-cols-3 xl:grid-cols-6 xl:gap-x-7 xl:gap-y-0">
-            {quickLinks.map((item, index) => {
+            {quickLinks.map((item) => {
               const Icon = item.icon
-              const isEmphasized = index === 0
 
-              const className = `group flex min-h-[84px] flex-col items-center justify-center rounded-xl text-center transition-transform hover:-translate-y-0.5 md:min-h-[92px] xl:min-h-[120px] ${
-                isEmphasized ? "bg-white/14 xl:min-w-[112px]" : "bg-transparent"
-              }`
+              const className =
+                "group flex min-h-[84px] flex-col items-center justify-center rounded-xl bg-transparent text-center transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/14 md:min-h-[92px] xl:min-h-[120px] xl:min-w-[112px]"
 
               const content = (
                 <>
-                  <div
-                    className={`mb-2 flex size-11 items-center justify-center overflow-hidden rounded-xl md:size-12 xl:size-[60px] ${
-                      isEmphasized ? "bg-white/6" : "bg-transparent"
-                    }`}
-                  >
+                  <div className="mb-2 flex size-11 items-center justify-center overflow-hidden rounded-xl bg-transparent transition-colors group-hover:bg-white/6 md:size-12 xl:size-[60px]">
                     <Icon
                       className="size-6 text-white transition-opacity group-hover:opacity-90 md:size-7"
                       strokeWidth={1.6}
