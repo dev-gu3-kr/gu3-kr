@@ -10,7 +10,7 @@ export function HomeHeroSection({ quickLinks }: HomeHeroSectionProps) {
   return (
     <section className="relative min-h-[760px] overflow-hidden bg-[#130f0e] text-white md:min-h-[860px]">
       <Image
-        src="/images/visual01 1.jpg"
+        src="/images/home-hero-visual.webp"
         alt="구로3동성당 메인 비주얼"
         fill
         priority

@@ -51,7 +51,7 @@ function NunPhoto({ nun }: { nun: NunListItemDto }) {
   return (
     <div className="flex h-[128px] w-[104px] shrink-0 items-center justify-center rounded-[12px] bg-[#ececef]">
       <Image
-        src="/images/placeholders/nun-placeholder.png"
+        src="/images/placeholders/nun-profile-placeholder.webp"
         alt="수녀님 기본 이미지"
         width={104}
         height={128}

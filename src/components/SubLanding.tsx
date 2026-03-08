@@ -12,7 +12,7 @@ export function SubLanding({
   title,
   sectionLabel,
   currentLabel,
-  imageUrl = "/images/image 15.jpg",
+  imageUrl = "/images/sub-landing-default.webp",
 }: SubLandingProps) {
   return (
     <section className="relative h-[280px] overflow-hidden md:h-[320px]">

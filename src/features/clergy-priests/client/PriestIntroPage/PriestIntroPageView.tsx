@@ -51,7 +51,7 @@ function PriestPhoto({ priest }: { priest: PriestListItemDto }) {
   return (
     <div className="flex h-[128px] w-[104px] shrink-0 items-center justify-center rounded-[12px] bg-[#ececef]">
       <Image
-        src="/images/placeholders/priest-placeholder.png"
+        src="/images/placeholders/priest-profile-placeholder.webp"
         alt="신부님 기본 이미지"
         width={104}
         height={128}
