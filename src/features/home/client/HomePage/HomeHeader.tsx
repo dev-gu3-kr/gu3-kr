@@ -1,5 +1,6 @@
 "use client"
 
+import { usePathname } from "next/navigation"
 import { useEffect, useState } from "react"
 
 import { AppLink as Link } from "@/components/AppLink"
@@ -9,38 +10,125 @@ type HomeHeaderProps = {
   readonly navItems: readonly HomeNavItem[]
 }
 
+type TopMenuKey =
+  | "parish"
+  | "notice"
+  | "office"
+  | "community"
+  | "youth"
+  | "faith"
+
+type SubMenuKey =
+  | "parishAbout"
+  | "pastoralGoal"
+  | "priestIntro"
+  | "nunIntro"
+  | "salesians"
+  | "directions"
+  | "facilities"
+  | "notices"
+  | "massTimes"
+  | "weeklyBulletin"
+  | "parishCalendar"
+  | "gallery"
+  | "catechumenClass"
+  | "infantBaptism"
+  | "marriage"
+  | "anointing"
+  | "funeralGuide"
+  | "officeGuide"
+  | "pastoralCouncil"
+  | "districtMap"
+  | "inquiry"
+  | "communityIntro"
+  | "youthBlog"
+  | "youthIntro"
+  | "catholicDoctrine"
+  | "prayers"
+
+type SubMenuItem = {
+  readonly key: SubMenuKey
+  readonly label: string
+  readonly url: string
+}
+
 const MENU_CELL_INNER_CLASS = "mx-auto w-full max-w-[160px]"
 
-const SUB_MENU_BY_LABEL: Record<string, readonly string[]> = {
-  "구로3동 성당": [
-    "본당 소개",
-    "사목 목표",
-    "신부님 소개",
-    "수녀님 소개",
-    "살레시오회",
-    "오시는 길",
-    "부속 시설",
+const MENU_KEY_BY_LABEL: Record<string, TopMenuKey> = {
+  "구로3동 성당": "parish",
+  본당알림: "notice",
+  본당업무: "office",
+  "공동체 마당": "community",
+  "청소년 마당": "youth",
+  신앙생활: "faith",
+}
+
+const SUB_MENU_BY_KEY: Record<TopMenuKey, readonly SubMenuItem[]> = {
+  parish: [
+    { key: "parishAbout", label: "본당 소개", url: "/parish/about" },
+    { key: "pastoralGoal", label: "사목 목표", url: "/" },
+    { key: "priestIntro", label: "신부님 소개", url: "/" },
+    { key: "nunIntro", label: "수녀님 소개", url: "/" },
+    { key: "salesians", label: "살레시오회", url: "/" },
+    { key: "directions", label: "오시는 길", url: "/" },
+    { key: "facilities", label: "부속 시설", url: "/" },
   ],
-  본당알림: ["공지사항", "미사 시간", "본당 주보", "본당 달력", "갤러리"],
-  본당업무: [
-    "예비신자 교리",
-    "유아세례",
-    "혼인성사",
-    "병자성사",
-    "선종 안내",
-    "사무실 안내",
+  notice: [
+    { key: "notices", label: "공지사항", url: "/" },
+    { key: "massTimes", label: "미사 시간", url: "/" },
+    { key: "weeklyBulletin", label: "본당 주보", url: "/" },
+    { key: "parishCalendar", label: "본당 달력", url: "/" },
+    { key: "gallery", label: "갤러리", url: "/" },
   ],
-  "공동체 마당": ["사목협의회", "관할 구역도", "1:1 문의", "공동체 마당 소개"],
-  "청소년 마당": ["청소년 블로그", "청소년 마당 소개"],
-  신앙생활: ["가톨릭 교리", "기도문"],
+  office: [
+    { key: "catechumenClass", label: "예비신자 교리", url: "/" },
+    { key: "infantBaptism", label: "유아세례", url: "/" },
+    { key: "marriage", label: "혼인성사", url: "/" },
+    { key: "anointing", label: "병자성사", url: "/" },
+    { key: "funeralGuide", label: "선종 안내", url: "/" },
+    { key: "officeGuide", label: "사무실 안내", url: "/" },
+  ],
+  community: [
+    { key: "pastoralCouncil", label: "사목협의회", url: "/" },
+    { key: "districtMap", label: "관할 구역도", url: "/" },
+    { key: "inquiry", label: "1:1 문의", url: "/" },
+    { key: "communityIntro", label: "공동체 마당 소개", url: "/" },
+  ],
+  youth: [
+    { key: "youthBlog", label: "청소년 블로그", url: "/" },
+    { key: "youthIntro", label: "청소년 마당 소개", url: "/" },
+  ],
+  faith: [
+    { key: "catholicDoctrine", label: "가톨릭 교리", url: "/" },
+    { key: "prayers", label: "기도문", url: "/" },
+  ],
+}
+
+function isMenuActive(menuKey: TopMenuKey, pathname: string) {
+  const candidatePaths = SUB_MENU_BY_KEY[menuKey]
+    .map((subMenu) => subMenu.url)
+    .filter((url) => url !== "/")
+
+  return candidatePaths.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  )
+}
+
+function isPathActive(pathname: string, targetUrl: string) {
+  if (targetUrl === "/") {
+    return false
+  }
+
+  return pathname === targetUrl || pathname.startsWith(`${targetUrl}/`)
 }
 
 export function HomeHeader({ navItems }: HomeHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY >= window.innerHeight * 0.5)
+      setIsScrolled(window.scrollY > 0)
     }
 
     handleScroll()
@@ -89,19 +177,27 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
           className={`hidden h-full items-center transition-colors duration-150 lg:grid ${isLight ? "text-neutral-900" : "text-white"} lg:group-hover:text-neutral-900`}
           style={{ gridTemplateColumns: menuColumnTemplate }}
         >
-          {navItems.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              className="flex h-22 w-full items-center justify-center text-sm font-semibold leading-none text-inherit transition-colors duration-150 hover:text-[#8b1c21]"
-            >
-              <span
-                className={`${MENU_CELL_INNER_CLASS} block text-center leading-none`}
+          {navItems.map((item) => {
+            const menuKey = MENU_KEY_BY_LABEL[item.label]
+            const active = menuKey ? isMenuActive(menuKey, pathname) : false
+
+            return (
+              <button
+                key={item.label}
+                type="button"
+                className="relative flex h-22 w-full items-center justify-center text-sm font-semibold leading-none text-inherit transition-colors duration-150"
               >
-                {item.label}
-              </span>
-            </button>
-          ))}
+                <span
+                  className={`${MENU_CELL_INNER_CLASS} block text-center leading-none ${active ? "lg:group-hover:text-[#8b1c21]" : ""}`}
+                >
+                  {item.label}
+                </span>
+                <span
+                  className={`pointer-events-none absolute bottom-0 left-1/2 h-[2px] w-[160px] -translate-x-1/2 bg-[#8b1c21] opacity-0 transition-opacity duration-150 ${active ? "lg:group-hover:opacity-100" : ""}`}
+                />
+              </button>
+            )
+          })}
         </nav>
       </div>
 
@@ -114,21 +210,26 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
             style={{ gridTemplateColumns: menuColumnTemplate }}
           >
             {navItems.map((item) => {
-              const subMenus = SUB_MENU_BY_LABEL[item.label] ?? []
+              const menuKey = MENU_KEY_BY_LABEL[item.label]
+              const subMenus = menuKey ? SUB_MENU_BY_KEY[menuKey] : []
 
               return (
                 <div key={`submenu-${item.label}`}>
                   <ul className={`${MENU_CELL_INNER_CLASS} space-y-1.5`}>
-                    {subMenus.map((subItem) => (
-                      <li key={`${item.label}-${subItem}`}>
-                        <Link
-                          href="/"
-                          className="block text-center text-sm text-neutral-600 transition-colors duration-150 hover:text-[#8b1c21]"
-                        >
-                          {subItem}
-                        </Link>
-                      </li>
-                    ))}
+                    {subMenus.map((subMenu) => {
+                      const active = isPathActive(pathname, subMenu.url)
+
+                      return (
+                        <li key={`${item.label}-${subMenu.key}`}>
+                          <Link
+                            href={subMenu.url}
+                            className={`block text-center text-sm transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#8b1c21]" : "text-neutral-600"}`}
+                          >
+                            {subMenu.label}
+                          </Link>
+                        </li>
+                      )
+                    })}
                   </ul>
                 </div>
               )
