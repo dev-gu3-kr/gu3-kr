@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { SubLanding } from "@/components/SubLanding"
 
 const PRACTICE_AREAS = [
@@ -73,11 +74,16 @@ export default async function PastoralGoalPage() {
           사목 목표
         </h2>
 
-        <article className="relative mt-6 overflow-hidden rounded-2xl border border-[#d8e8f8] bg-[linear-gradient(96deg,#91bde0_0%,#c3e0f5_48%,#d9edf7_100%)] px-8 py-10 md:px-12">
-          <div className="absolute -top-8 left-8 text-6xl opacity-90 md:text-7xl">
-            🕊️
-          </div>
-          <p className="relative text-center text-xl font-bold tracking-[-0.02em] text-[#284a94] md:text-3xl">
+        <article className="relative mt-6 h-[160px] overflow-hidden rounded-2xl border border-[#d8e8f8] md:h-[180px]">
+          <Image
+            src="/images/parish/pastoral-goal-banner.webp"
+            alt="사목 목표 소개 이미지"
+            fill
+            sizes="(max-width: 1280px) 100vw, 1220px"
+            className="object-cover"
+            priority
+          />
+          <p className="relative z-10 flex h-full items-center justify-center px-6 text-center text-xl font-extrabold tracking-[-0.02em] bg-[linear-gradient(90deg,#1D7FFF_0%,#1D7FFF_35%,#FF4C58_65%,#FF4C58_100%)] bg-clip-text text-transparent drop-shadow-[0_1px_2px_rgba(255,255,255,0.25)] md:text-3xl">
             "시노드 교회 안에 함께 걸어가는 공동체"
           </p>
         </article>
