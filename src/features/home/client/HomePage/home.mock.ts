@@ -1,4 +1,11 @@
-import { BookOpen, Cross, MapPin, Play, ScrollText, Users } from "lucide-react"
+import {
+  HomeQuickAboutSvg,
+  HomeQuickDirectionsSvg,
+  HomeQuickMassSacramentsSvg,
+  HomeQuickSalesiansSvg,
+  HomeQuickWeeklyBulletinSvg,
+  HomeQuickYoutubeSvg,
+} from "@/components/svgs"
 
 import type { HomePageViewModel } from "@/features/home/isomorphic"
 
@@ -48,12 +55,32 @@ export const homePageMock: HomePageViewModel = {
     { label: "신앙생활" },
   ],
   quickLinks: [
-    { label: "본당 소개", href: "/parish/about", icon: Cross },
-    { label: "주보", icon: ScrollText },
-    { label: "살레시오회", href: "/parish/salesians", icon: Users },
-    { label: "미사와 성사", icon: BookOpen },
-    { label: "오시는 길", icon: MapPin },
-    { label: "유튜브 채널", icon: Play },
+    {
+      label: "본당 소개",
+      href: "/parish/about",
+      icon: HomeQuickAboutSvg,
+    },
+    {
+      label: "주보",
+      icon: HomeQuickWeeklyBulletinSvg,
+    },
+    {
+      label: "살레시오회",
+      href: "/parish/salesians",
+      icon: HomeQuickSalesiansSvg,
+    },
+    {
+      label: "미사와 성사",
+      icon: HomeQuickMassSacramentsSvg,
+    },
+    {
+      label: "오시는 길",
+      icon: HomeQuickDirectionsSvg,
+    },
+    {
+      label: "유튜브 채널",
+      icon: HomeQuickYoutubeSvg,
+    },
   ],
   schedulerMonthLabel: "2026년 3월",
   schedulerItems: createSchedulerItems(2026, 3),

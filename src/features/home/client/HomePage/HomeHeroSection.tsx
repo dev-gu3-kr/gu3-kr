@@ -37,11 +37,8 @@ export function HomeHeroSection({ quickLinks }: HomeHeroSectionProps) {
 
               const content = (
                 <>
-                  <div className="mb-2 flex size-11 items-center justify-center overflow-hidden rounded-xl bg-transparent transition-colors group-hover:bg-white/6 md:size-12 xl:size-[60px]">
-                    <Icon
-                      className="size-6 text-white transition-opacity group-hover:opacity-90 md:size-7"
-                      strokeWidth={1.6}
-                    />
+                  <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-transparent transition-colors group-hover:bg-white/6 md:size-12 xl:size-[60px]">
+                    <Icon className="size-9 shrink-0 transition-opacity group-hover:opacity-90 md:size-10" />
                   </div>
                   <span className="text-[13px] font-medium tracking-[-0.02em] text-white md:text-sm">
                     {item.label}

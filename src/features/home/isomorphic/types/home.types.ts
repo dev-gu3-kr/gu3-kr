@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react"
+import type { ComponentType, SVGProps } from "react"
 
 export type HomeNavItem = {
   readonly label: string
@@ -8,7 +8,7 @@ export type HomeNavItem = {
 export type HomeQuickLinkItem = {
   readonly label: string
   readonly href?: string
-  readonly icon: LucideIcon
+  readonly icon: ComponentType<SVGProps<SVGSVGElement>>
 }
 
 export type HomeSchedulerItem = {
