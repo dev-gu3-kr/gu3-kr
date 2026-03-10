@@ -62,6 +62,7 @@ export const homePageMock: HomePageViewModel = {
     },
     {
       label: "주보",
+      href: "/notice/weekly-bulletin",
       icon: HomeQuickWeeklyBulletinSvg,
     },
     {
@@ -71,10 +72,12 @@ export const homePageMock: HomePageViewModel = {
     },
     {
       label: "미사와 성사",
+      href: "/notice/mass-times",
       icon: HomeQuickMassSacramentsSvg,
     },
     {
       label: "오시는 길",
+      href: "/parish/directions",
       icon: HomeQuickDirectionsSvg,
     },
     {
@@ -190,36 +193,42 @@ export const homePageMock: HomePageViewModel = {
   shortcutCards: [
     {
       title: "예비신자 교리",
+      href: "/office/catechumen-class",
       subtitle: "처음 신앙을 시작하는 분들을 위한 안내",
       accentClassName: "from-[#60443a] via-[#a47b61] to-[#2e1a15]",
       thumbnailUrl: "/images/shortcut-catechumen-class.webp",
     },
     {
       title: "유아세례",
+      href: "/office/infant-baptism",
       subtitle: "가정을 위한 축복의 순간",
       accentClassName: "from-[#8b7f74] via-[#d3bfb2] to-[#53433b]",
       thumbnailUrl: "/images/shortcut-infant-baptism.webp",
     },
     {
       title: "혼인성사",
+      href: "/office/marriage",
       subtitle: "두 사람의 약속을 위한 준비",
       accentClassName: "from-[#a38a67] via-[#d6be9a] to-[#57442e]",
       thumbnailUrl: "/images/shortcut-marriage.webp",
     },
     {
       title: "병자성사",
+      href: "/office/anointing",
       subtitle: "위로와 회복을 위한 기도",
       accentClassName: "from-[#525a65] via-[#94a1b2] to-[#242831]",
       thumbnailUrl: "/images/shortcut-anointing.webp",
     },
     {
       title: "선종안내",
+      href: "/office/funeral-guide",
       subtitle: "장례 절차와 본당 지원 안내",
       accentClassName: "from-[#6c5f55] via-[#a8927e] to-[#31261f]",
       thumbnailUrl: "/images/funeral-guide-bg.webp",
     },
     {
       title: "사무실안내",
+      href: "/office/office-guide",
       subtitle: "운영 시간과 연락처를 확인하세요",
       accentClassName: "from-[#5977c6] via-[#8da3dd] to-[#233968]",
       thumbnailUrl: "/images/office-guide-bg.webp",

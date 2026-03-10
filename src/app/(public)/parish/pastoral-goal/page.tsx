@@ -64,7 +64,7 @@ export default async function PastoralGoalPage() {
   return (
     <>
       <SubLanding
-        title="사목 목표"
+        title=""
         sectionLabel="구로3동 성당"
         currentLabel="사목 목표"
       />

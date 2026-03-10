@@ -1,6 +1,7 @@
 import { Plus } from "lucide-react"
 import Image from "next/image"
 
+import { AppLink as Link } from "@/components/AppLink"
 import type {
   HomeBoardColumn,
   HomeShortcutCard,
@@ -32,9 +33,22 @@ export function HomeBoardsSection({
                 <h3 className="text-base font-semibold text-[#252629]">
                   {column.title}
                 </h3>
-                <button type="button" className="text-[#252629]">
-                  <Plus className="size-4" />
-                </button>
+                {column.href ? (
+                  <Link
+                    href={column.href}
+                    className="-mr-2 inline-flex h-4 w-10 items-center justify-center rounded-md text-[#252629] transition-colors hover:bg-[#f3f4f6]"
+                    aria-label={`${column.title} 더보기`}
+                  >
+                    <Plus className="size-4" />
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    className="-mr-2 inline-flex h-4 w-10 items-center justify-center rounded-md text-[#252629] transition-colors hover:bg-[#f3f4f6]"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                )}
               </div>
               <ul className="space-y-3">
                 {column.items.map((item, index) => (
@@ -61,30 +75,44 @@ export function HomeBoardsSection({
         </div>
 
         <div className="mt-14 grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-          {shortcutCards.map((card) => (
-            <button
-              key={card.title}
-              type="button"
-              className={`group relative min-h-[120px] overflow-hidden rounded-xl bg-gradient-to-br ${card.accentClassName} p-5 text-left text-white`}
-            >
-              {card.thumbnailUrl ? (
-                <Image
-                  src={card.thumbnailUrl}
-                  alt={card.title}
-                  fill
-                  sizes="(min-width: 1280px) 180px, (min-width: 640px) 50vw, 100vw"
-                  className="object-cover"
-                />
-              ) : null}
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(12,13,15,0.22))]" />
-              <div className="relative">
-                <p className="text-lg font-semibold">{card.title}</p>
-                <p className="mt-2 text-xs leading-5 text-white/82">
-                  {card.subtitle}
-                </p>
-              </div>
-            </button>
-          ))}
+          {shortcutCards.map((card) => {
+            const className = `group relative min-h-[120px] overflow-hidden rounded-xl bg-gradient-to-br ${card.accentClassName} p-5 text-left text-white`
+
+            const content = (
+              <>
+                {card.thumbnailUrl ? (
+                  <Image
+                    src={card.thumbnailUrl}
+                    alt={card.title}
+                    fill
+                    sizes="(min-width: 1280px) 180px, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover"
+                  />
+                ) : null}
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(12,13,15,0.22))]" />
+                <div className="relative">
+                  <p className="text-lg font-semibold">{card.title}</p>
+                  <p className="mt-2 text-xs leading-5 text-white/82">
+                    {card.subtitle}
+                  </p>
+                </div>
+              </>
+            )
+
+            if (card.href) {
+              return (
+                <Link key={card.title} href={card.href} className={className}>
+                  {content}
+                </Link>
+              )
+            }
+
+            return (
+              <button key={card.title} type="button" className={className}>
+                {content}
+              </button>
+            )
+          })}
         </div>
       </div>
     </section>

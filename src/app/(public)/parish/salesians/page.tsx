@@ -41,7 +41,7 @@ export default async function SalesiansPage() {
   return (
     <>
       <SubLanding
-        title="살레시오회"
+        title=""
         sectionLabel="구로3동 성당"
         currentLabel="살레시오회"
       />

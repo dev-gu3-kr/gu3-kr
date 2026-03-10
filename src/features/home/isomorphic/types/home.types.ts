@@ -45,6 +45,7 @@ export type HomeBoardColumn = {
 export type HomeShortcutCard = {
   readonly title: string
   readonly subtitle: string
+  readonly href?: string
   readonly accentClassName: string
   readonly thumbnailUrl?: string | null
 }

@@ -12,7 +12,7 @@ export default async function NunsPage() {
   return (
     <>
       <SubLanding
-        title="수녀님 소개"
+        title=""
         sectionLabel="구로3동 성당"
         currentLabel="수녀님 소개"
       />

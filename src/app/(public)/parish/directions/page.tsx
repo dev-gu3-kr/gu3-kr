@@ -6,7 +6,7 @@ export default async function DirectionsPage() {
   return (
     <>
       <SubLanding
-        title="오시는 길"
+        title=""
         sectionLabel="구로3동 성당"
         currentLabel="오시는 길"
       />

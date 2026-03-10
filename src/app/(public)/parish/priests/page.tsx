@@ -12,7 +12,7 @@ export default async function PriestsPage() {
   return (
     <>
       <SubLanding
-        title="신부님 소개"
+        title=""
         sectionLabel="구로3동 성당"
         currentLabel="신부님 소개"
       />

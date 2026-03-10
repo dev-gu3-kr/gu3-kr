@@ -1,6 +1,7 @@
 "use client"
 
 import { Menu, X } from "lucide-react"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
@@ -86,36 +87,64 @@ const SUB_MENU_BY_KEY: Record<TopMenuKey, readonly SubMenuItem[]> = {
     { key: "nunIntro", label: "수녀님 소개", url: "/parish/nuns" },
     { key: "salesians", label: "살레시오회", url: "/parish/salesians" },
     { key: "directions", label: "오시는 길", url: "/parish/directions" },
-    { key: "facilities", label: "부속 시설", url: "/" },
+    { key: "facilities", label: "부속 시설", url: "/parish/facilities" },
   ],
   notice: [
-    { key: "notices", label: "공지사항", url: "/" },
-    { key: "massTimes", label: "미사 시간", url: "/" },
-    { key: "weeklyBulletin", label: "본당 주보", url: "/" },
-    { key: "parishCalendar", label: "본당 달력", url: "/" },
-    { key: "gallery", label: "갤러리", url: "/" },
+    { key: "notices", label: "공지사항", url: "/notice/notices" },
+    { key: "massTimes", label: "미사 시간", url: "/notice/mass-times" },
+    {
+      key: "weeklyBulletin",
+      label: "본당 주보",
+      url: "/notice/weekly-bulletin",
+    },
+    {
+      key: "parishCalendar",
+      label: "본당 달력",
+      url: "/notice/parish-calendar",
+    },
+    { key: "gallery", label: "갤러리", url: "/notice/gallery" },
   ],
   office: [
-    { key: "catechumenClass", label: "예비신자 교리", url: "/" },
-    { key: "infantBaptism", label: "유아세례", url: "/" },
-    { key: "marriage", label: "혼인성사", url: "/" },
-    { key: "anointing", label: "병자성사", url: "/" },
-    { key: "funeralGuide", label: "선종 안내", url: "/" },
-    { key: "officeGuide", label: "사무실 안내", url: "/" },
+    {
+      key: "catechumenClass",
+      label: "예비신자 교리",
+      url: "/office/catechumen-class",
+    },
+    { key: "infantBaptism", label: "유아세례", url: "/office/infant-baptism" },
+    { key: "marriage", label: "혼인성사", url: "/office/marriage" },
+    { key: "anointing", label: "병자성사", url: "/office/anointing" },
+    { key: "funeralGuide", label: "선종 안내", url: "/office/funeral-guide" },
+    { key: "officeGuide", label: "사무실 안내", url: "/office/office-guide" },
   ],
   community: [
-    { key: "pastoralCouncil", label: "사목협의회", url: "/" },
-    { key: "districtMap", label: "관할 구역도", url: "/" },
-    { key: "inquiry", label: "1:1 문의", url: "/" },
-    { key: "communityIntro", label: "공동체 마당 소개", url: "/" },
+    {
+      key: "pastoralCouncil",
+      label: "사목협의회",
+      url: "/community/pastoral-council",
+    },
+    {
+      key: "districtMap",
+      label: "관할 구역도",
+      url: "/community/district-map",
+    },
+    { key: "inquiry", label: "1:1 문의", url: "/community/inquiry" },
+    {
+      key: "communityIntro",
+      label: "공동체 마당 소개",
+      url: "/community/about",
+    },
   ],
   youth: [
-    { key: "youthBlog", label: "청소년 블로그", url: "/" },
-    { key: "youthIntro", label: "청소년 마당 소개", url: "/" },
+    { key: "youthBlog", label: "청소년 블로그", url: "/youth/blog" },
+    { key: "youthIntro", label: "청소년 마당 소개", url: "/youth/about" },
   ],
   faith: [
-    { key: "catholicDoctrine", label: "가톨릭 교리", url: "/" },
-    { key: "prayers", label: "기도문", url: "/" },
+    {
+      key: "catholicDoctrine",
+      label: "가톨릭 교리",
+      url: "/faith/catholic-doctrine",
+    },
+    { key: "prayers", label: "기도문", url: "/faith/prayers" },
   ],
 }
 
@@ -357,7 +386,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
               <button
                 key={item.label}
                 type="button"
-                className="relative flex h-22 w-full items-center justify-center text-sm font-semibold leading-none text-inherit transition-colors duration-150"
+                className="relative flex h-22 w-full items-center justify-center text-base font-semibold leading-none text-inherit transition-colors duration-150"
               >
                 <span
                   className={`${MENU_CELL_INNER_CLASS} block text-center leading-none ${active ? "lg:group-hover:text-[#8b1c21]" : ""}`}
@@ -375,7 +404,22 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
 
       <div className={subMenuPanelClassName}>
         <div className="mx-auto grid w-full max-w-[1380px] grid-cols-[300px_1fr] px-5 py-6 md:px-8">
-          <div className="mr-8 h-[180px] rounded-xl border border-dashed border-neutral-300 bg-neutral-50" />
+          <div className="mr-8">
+            <div className="flex h-[170px] items-center justify-center rounded-[22px] bg-[#efefef]">
+              <Image
+                src="/images/salesians-emblem.png"
+                alt="살레시오회 엠블럼"
+                width={118}
+                height={118}
+                className="h-[118px] w-[118px] object-contain"
+              />
+            </div>
+            <p className="mt-4 text-center text-[14px] font-medium leading-[1.35] tracking-[-0.01em] text-[#3f4043]">
+              Catholic Church of the Seoul Archdiocese
+              <br />
+              Salesians of Don Bosco
+            </p>
+          </div>
 
           <div
             className="grid"
@@ -396,7 +440,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                           <Link
                             href={subMenu.url}
                             onClick={handleSubMenuClick}
-                            className={`block text-center text-sm transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#8b1c21]" : "text-neutral-600"}`}
+                            className={`block text-center text-sm font-semibold transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#8b1c21]" : "text-neutral-600"}`}
                           >
                             {subMenu.label}
                           </Link>

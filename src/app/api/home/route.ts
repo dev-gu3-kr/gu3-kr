@@ -124,8 +124,15 @@ function mapBoardColumn(
   title: string,
   items: Array<{ id: string; title: string; createdAt: Date | string }>,
 ): HomeBoardColumn {
+  const hrefByTitle: Record<string, string> = {
+    공지사항: "/notice/notices",
+    "청소년 블로그": "/youth/blog",
+    "본당 주보": "/notice/weekly-bulletin",
+  }
+
   return {
     title,
+    href: hrefByTitle[title],
     items: items.map((item) => ({
       title: item.title,
       date: format(new Date(item.createdAt), "yyyy/MM/dd"),
