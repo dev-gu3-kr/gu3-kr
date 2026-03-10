@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko">
-      <body className={pretendard.variable + " font-sans antialiased"}>
+      <body className={`${pretendard.variable} font-sans antialiased`}>
         <Providers>{children}</Providers>
       </body>
     </html>
