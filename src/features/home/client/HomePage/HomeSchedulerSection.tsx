@@ -224,21 +224,30 @@ export function HomeSchedulerSection({
                     <div className="mt-4 min-h-12">
                       {item.events.length > 0 ? (
                         <div className="space-y-1">
-                          <div className="mx-auto size-2 rounded-full bg-[#bd2125]" />
-                          {item.events.map((event) => (
+                          <div className="flex items-center justify-center gap-1.5">
+                            {item.events.length === 1 ? (
+                              <span className="size-2 rounded-full bg-[#bd2125]" />
+                            ) : (
+                              <>
+                                <span className="size-2 rounded-full bg-[#bd2125]" />
+                                <span className="size-2 rounded-full bg-[#bd2125]" />
+                                <span className="rounded-[4px] bg-[#bd2125] px-1.5 py-[1px] text-[11px] font-semibold leading-none text-white">
+                                  +{item.events.length}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                          {item.events.slice(0, 2).map((event) => (
                             <p
                               key={`${item.dateIso}-${event}`}
-                              className="text-xs leading-4 text-[#252629] md:text-[13px]"
+                              className="line-clamp-1 text-xs leading-4 text-[#252629] md:text-[13px]"
                             >
                               {event}
                             </p>
                           ))}
                         </div>
-                      ) : (
-                        <div className="pt-2 text-xs text-[#a1a4aa]">
-                          예정 없음
-                        </div>
-                      )}
+                      ) : null
+                      }
                     </div>
                   </article>
                 ))}
