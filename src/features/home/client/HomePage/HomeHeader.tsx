@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
 import { AppLink as Link } from "@/components/AppLink"
+import { Gu3LogoMarkSvg, Gu3LogoWordmarkSvg } from "@/components/svgs"
 import {
   Accordion,
   AccordionContent,
@@ -221,24 +222,13 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       >
         <Link
           href="/"
-          className="flex items-center justify-center gap-4 rounded-md transition-opacity hover:opacity-90 lg:justify-start"
+          className="flex items-center justify-center gap-3 rounded-md transition-opacity hover:opacity-90 lg:justify-start"
           aria-label="홈으로 이동"
         >
-          <div
-            className={`grid size-12 place-items-center rounded-full bg-white/90 text-[10px] font-bold tracking-[0.24em] text-[#7a1418] transition-colors duration-150 lg:group-hover:border-[#7a1418]/30 ${isLight ? "border border-[#7a1418]/30" : "border border-white/40"}`}
-          >
-            G3
-          </div>
-          <div className="leading-tight">
-            <p
-              className={`text-xs font-medium uppercase tracking-[0.28em] transition-colors duration-150 ${isLight ? "text-neutral-500" : "text-white/70"} lg:group-hover:text-neutral-500`}
-            >
-              Catholic Cathedral
-            </p>
-            <p className="text-sm font-semibold md:text-base">
-              천주교 서울대교구 구로3동성당
-            </p>
-          </div>
+          <Gu3LogoMarkSvg className="size-11 shrink-0 md:size-12" />
+          <Gu3LogoWordmarkSvg
+            className={`h-9 w-auto transition-colors duration-150 md:h-10 ${isLight ? "text-[#252629]" : "text-white"} lg:group-hover:text-[#252629]`}
+          />
         </Link>
 
         <div className="absolute right-5 top-1/2 -translate-y-1/2 md:right-8 lg:hidden">

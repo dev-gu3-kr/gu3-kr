@@ -7,3 +7,5 @@ export { default as HomeQuickMassSacramentsSvg } from "./home-quick-links/quick-
 export { default as HomeQuickSalesiansSvg } from "./home-quick-links/quick-salesians.svg"
 export { default as HomeQuickWeeklyBulletinSvg } from "./home-quick-links/quick-weekly-bulletin.svg"
 export { default as HomeQuickYoutubeSvg } from "./home-quick-links/quick-youtube.svg"
+export { default as Gu3LogoMarkSvg } from "./logo/gu3-logo-mark.svg"
+export { default as Gu3LogoWordmarkSvg } from "./logo/gu3-logo-wordmark.svg"
