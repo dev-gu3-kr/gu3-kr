@@ -246,8 +246,7 @@ export function HomeSchedulerSection({
                             </p>
                           ))}
                         </div>
-                      ) : null
-                      }
+                      ) : null}
                     </div>
                   </article>
                 ))}
