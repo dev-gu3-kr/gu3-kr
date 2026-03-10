@@ -19,6 +19,11 @@ export type HomeSchedulerItem = {
   readonly events: readonly string[]
 }
 
+export type HomeSchedulerMonthDataDto = {
+  readonly schedulerMonthLabel: string
+  readonly schedulerItems: readonly HomeSchedulerItem[]
+}
+
 export type HomeEventCard = {
   readonly title: string
   readonly description: string
@@ -63,7 +68,9 @@ export type HomePageViewModel = {
 export type HomePageDataDto = Pick<
   HomePageViewModel,
   "schedulerMonthLabel" | "schedulerItems" | "eventCards" | "boardColumns"
->
+> & {
+  readonly schedulerByMonth: Readonly<Record<string, HomeSchedulerMonthDataDto>>
+}
 
 export type HomePageResponseDto = {
   readonly ok: boolean

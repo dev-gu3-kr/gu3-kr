@@ -43,17 +43,24 @@ function resolveBaseDate(monthParam: string | null, now: Date) {
   return new Date(year, monthIndex, 1)
 }
 
-function getMonthRange(baseDate: Date) {
-  const start = new Date(baseDate.getFullYear(), baseDate.getMonth(), 1)
+function formatMonthKey(date: Date) {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0")
+
+  return `${date.getFullYear()}-${month}`
+}
+
+function getThreeMonthRange(baseDate: Date) {
+  const start = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1)
   const end = new Date(
     baseDate.getFullYear(),
-    baseDate.getMonth() + 1,
+    baseDate.getMonth() + 2,
     0,
     23,
     59,
     59,
     999,
   )
+
   return { start, end }
 }
 
@@ -148,7 +155,7 @@ export async function GET(request: Request) {
   const now = new Date()
   const requestUrl = new URL(request.url)
   const baseDate = resolveBaseDate(requestUrl.searchParams.get("month"), now)
-  const { start, end } = getMonthRange(baseDate)
+  const { start, end } = getThreeMonthRange(baseDate)
 
   const [noticesPage, youthBlogPage, bulletinRows, galleryRows, monthEvents] =
     await Promise.all([
@@ -191,10 +198,32 @@ export async function GET(request: Request) {
       }),
     ])
 
+  const monthDates = [-1, 0, 1].map(
+    (offset) =>
+      new Date(baseDate.getFullYear(), baseDate.getMonth() + offset, 1),
+  )
+
+  const schedulerByMonth = Object.fromEntries(
+    monthDates.map((monthDate) => {
+      const monthKey = formatMonthKey(monthDate)
+
+      return [
+        monthKey,
+        {
+          schedulerMonthLabel: format(monthDate, "yyyy년 M월", { locale: ko }),
+          schedulerItems: buildSchedulerItems(monthEvents, monthDate, now),
+        },
+      ]
+    }),
+  )
+
+  const baseMonthKey = formatMonthKey(baseDate)
+
   const response: HomePageResponseDto = {
     ok: true,
-    schedulerMonthLabel: format(baseDate, "yyyy년 M월", { locale: ko }),
-    schedulerItems: buildSchedulerItems(monthEvents, baseDate, now),
+    schedulerMonthLabel: schedulerByMonth[baseMonthKey].schedulerMonthLabel,
+    schedulerItems: schedulerByMonth[baseMonthKey].schedulerItems,
+    schedulerByMonth,
     eventCards: mapEventCards(
       galleryRows.map((row) => ({
         ...row,

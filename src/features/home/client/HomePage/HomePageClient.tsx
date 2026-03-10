@@ -25,30 +25,50 @@ export function HomePageClient() {
   const [schedulerMonthKey, setSchedulerMonthKey] = React.useState(() =>
     formatMonthKey(new Date()),
   )
+  const [schedulerWindowCenterKey, setSchedulerWindowCenterKey] =
+    React.useState(schedulerMonthKey)
   const [schedulerResetMode, setSchedulerResetMode] = React.useState<
     "active" | "start" | "end"
   >("active")
-  const { data, isFetching } = useHomePageQuery(schedulerMonthKey)
+  const { data, isFetching } = useHomePageQuery(schedulerWindowCenterKey)
+
+  const schedulerMonthData = data?.schedulerByMonth[schedulerMonthKey]
 
   const viewModel = data
     ? {
         ...homePageMock,
-        schedulerMonthLabel: data.schedulerMonthLabel,
-        schedulerItems: data.schedulerItems,
+        schedulerMonthLabel:
+          schedulerMonthData?.schedulerMonthLabel ?? data.schedulerMonthLabel,
+        schedulerItems:
+          schedulerMonthData?.schedulerItems ?? data.schedulerItems,
         eventCards: data.eventCards,
         boardColumns: data.boardColumns,
       }
     : homePageMock
 
+  const moveMonth = React.useCallback(
+    (offset: number, resetMode: "start" | "end") => {
+      setSchedulerResetMode(resetMode)
+      setSchedulerMonthKey((currentMonthKey) => {
+        const nextMonthKey = shiftMonth(currentMonthKey, offset)
+
+        if (!data?.schedulerByMonth[nextMonthKey]) {
+          setSchedulerWindowCenterKey(nextMonthKey)
+        }
+
+        return nextMonthKey
+      })
+    },
+    [data],
+  )
+
   const handleRequestPreviousMonth = React.useCallback(() => {
-    setSchedulerResetMode("end")
-    setSchedulerMonthKey((currentMonthKey) => shiftMonth(currentMonthKey, -1))
-  }, [])
+    moveMonth(-1, "end")
+  }, [moveMonth])
 
   const handleRequestNextMonth = React.useCallback(() => {
-    setSchedulerResetMode("start")
-    setSchedulerMonthKey((currentMonthKey) => shiftMonth(currentMonthKey, 1))
-  }, [])
+    moveMonth(1, "start")
+  }, [moveMonth])
 
   return (
     <main className="min-h-screen bg-white text-[#252629]">

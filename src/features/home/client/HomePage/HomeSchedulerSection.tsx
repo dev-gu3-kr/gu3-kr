@@ -106,7 +106,7 @@ export function HomeSchedulerSection({
   )
   const [slideDirection, setSlideDirection] = React.useState<1 | -1>(1)
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     setPageStart(getInitialPageStart(items, pageResetMode))
   }, [items, pageResetMode])
 
