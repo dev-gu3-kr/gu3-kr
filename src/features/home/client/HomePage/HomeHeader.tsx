@@ -1,9 +1,24 @@
 "use client"
 
+import { Menu, X } from "lucide-react"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import { AppLink as Link } from "@/components/AppLink"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import type { HomeNavItem } from "@/features/home/isomorphic"
 
 type HomeHeaderProps = {
@@ -125,7 +140,23 @@ function isPathActive(pathname: string, targetUrl: string) {
 export function HomeHeader({ navItems }: HomeHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSubMenuDismissed, setIsSubMenuDismissed] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const pathname = usePathname()
+
+  const defaultOpenMobileMenu = useMemo<TopMenuKey>(() => {
+    for (const item of navItems) {
+      const key = MENU_KEY_BY_LABEL[item.label]
+      if (key && isMenuActive(key, pathname)) {
+        return key
+      }
+    }
+
+    return "parish"
+  }, [navItems, pathname])
+
+  const [mobileAccordionValue, setMobileAccordionValue] = useState<string>(
+    defaultOpenMobileMenu,
+  )
 
   useEffect(() => {
     const handleScroll = () => {
@@ -157,11 +188,11 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
   return (
     <header className={headerClassName}>
       <div
-        className={`mx-auto grid h-22 w-full max-w-[1380px] grid-cols-[300px_1fr] items-center px-5 transition-colors duration-150 md:px-8 lg:group-hover:text-neutral-900 ${isLight ? "text-neutral-900" : "text-white"}`}
+        className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal lg:group-hover:text-neutral-900 ${isLight ? "text-neutral-900" : "text-white"}`}
       >
         <Link
           href="/"
-          className="flex items-center gap-4 rounded-md transition-opacity hover:opacity-90"
+          className="flex items-center justify-center gap-4 rounded-md transition-opacity hover:opacity-90 lg:justify-start"
           aria-label="홈으로 이동"
         >
           <div
@@ -180,6 +211,139 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
             </p>
           </div>
         </Link>
+
+        <div className="absolute right-5 top-1/2 -translate-y-1/2 md:right-8 lg:hidden">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <button
+                type="button"
+                className="grid size-[42px] place-items-center bg-transparent text-white"
+                aria-label="모바일 메뉴 열기"
+              >
+                <Menu className="size-7" strokeWidth={2.2} />
+              </button>
+            </SheetTrigger>
+            <SheetContent
+              side="right"
+              showCloseButton={false}
+              className="w-[92%] max-w-[340px] overflow-y-auto border-l border-neutral-200 bg-white px-0"
+            >
+              <SheetHeader className="px-6 pb-5 pt-6 text-left">
+                <div className="flex items-center justify-end">
+                  <SheetTitle className="sr-only">모바일 메뉴</SheetTitle>
+                  <SheetClose asChild>
+                    <button
+                      type="button"
+                      aria-label="모바일 메뉴 닫기"
+                      className="grid size-8 place-items-center text-neutral-900"
+                    >
+                      <X className="size-7" strokeWidth={2.1} />
+                    </button>
+                  </SheetClose>
+                </div>
+              </SheetHeader>
+
+              <nav>
+                <Accordion
+                  type="single"
+                  collapsible
+                  value={mobileAccordionValue}
+                  onValueChange={setMobileAccordionValue}
+                  className="border-y border-neutral-200"
+                >
+                  {navItems.map((item) => {
+                    const menuKey = MENU_KEY_BY_LABEL[item.label]
+                    const subMenus = menuKey ? SUB_MENU_BY_KEY[menuKey] : []
+                    const accordionValue = menuKey ?? `menu-${item.label}`
+
+                    return (
+                      <AccordionItem
+                        key={`mobile-${item.label}`}
+                        value={accordionValue}
+                      >
+                        <AccordionTrigger className="px-6 py-5 hover:no-underline [&>svg]:hidden">
+                          <span className="text-[20px] font-semibold leading-none tracking-[-0.01em] text-neutral-900">
+                            {item.label}
+                          </span>
+                          <span className="grid size-8 place-items-center rounded-full border border-neutral-300 text-neutral-900">
+                            <svg
+                              aria-hidden="true"
+                              className="size-4 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M6 9L12 15L18 9"
+                                stroke="currentColor"
+                                strokeWidth="2.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </span>
+                        </AccordionTrigger>
+
+                        <AccordionContent className="bg-[#f4f4f6] px-6 py-4">
+                          {subMenus.length > 0 ? (
+                            <ul>
+                              {subMenus.map((subMenu) => {
+                                const active = isPathActive(
+                                  pathname,
+                                  subMenu.url,
+                                )
+
+                                return (
+                                  <li
+                                    key={`mobile-${item.label}-${subMenu.key}`}
+                                  >
+                                    <SheetClose asChild>
+                                      <Link
+                                        href={subMenu.url}
+                                        className={`block py-2 text-[16px] leading-none tracking-[-0.01em] ${active ? "font-semibold text-neutral-900" : "font-medium text-neutral-800"}`}
+                                      >
+                                        {subMenu.label}
+                                      </Link>
+                                    </SheetClose>
+                                  </li>
+                                )
+                              })}
+                            </ul>
+                          ) : null}
+                        </AccordionContent>
+                      </AccordionItem>
+                    )
+                  })}
+                </Accordion>
+              </nav>
+
+              <section className="bg-[#f4f4f6] px-6 py-6 text-neutral-900">
+                <h3 className="text-xl font-semibold">미사 안내</h3>
+                <div className="mt-5 space-y-4 text-[16px] leading-[1.5]">
+                  <div>
+                    <p className="font-semibold">주일 미사</p>
+                    <p className="mt-1">
+                      오전 : 6시 30분 (새벽), 10시 30분 (교중)
+                    </p>
+                    <p>
+                      오후 : 12시 (중고등부), 3시 (유초등부), 6시 (청년부), 9시
+                      (밤)
+                    </p>
+                    <p>토요일 : 오후 7시(토요주일)</p>
+                  </div>
+                  <div>
+                    <p className="font-semibold">평일 미사</p>
+                    <p className="mt-1">
+                      월/화/수/금요일 : 오전 6시 30분, 오후 7시
+                    </p>
+                    <p>목요일 : 오전 6시 30분, 오전 10시, 오후 7시</p>
+                    <p>토요일 : 오전 6시 30분</p>
+                  </div>
+                </div>
+              </section>
+            </SheetContent>
+          </Sheet>
+        </div>
 
         <nav
           className={`hidden h-full items-center transition-colors duration-150 lg:grid ${isLight ? "text-neutral-900" : "text-white"} lg:group-hover:text-neutral-900`}
