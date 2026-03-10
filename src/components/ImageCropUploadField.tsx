@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react"
 import { Cropper, type ReactCropperElement } from "react-cropper"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import "cropperjs/dist/cropper.css"
 
 type Props = {
   label?: string
