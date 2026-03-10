@@ -13,6 +13,25 @@ const pretendard = localFont({
 export const metadata: Metadata = {
   title: "구로3동성당",
   description: "구로3동성당 홈페이지",
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=2", type: "image/x-icon" },
+      { url: "/icon.svg?v=2", type: "image/svg+xml" },
+    ],
+    shortcut: "/favicon.ico?v=2",
+    apple: "/icon.svg?v=2",
+  },
+  openGraph: {
+    title: "구로3동성당",
+    description: "구로3동성당 홈페이지",
+    images: ["/icon.svg?v=2"],
+  },
+  twitter: {
+    card: "summary",
+    title: "구로3동성당",
+    description: "구로3동성당 홈페이지",
+    images: ["/icon.svg?v=2"],
+  },
 }
 
 export default function RootLayout({
