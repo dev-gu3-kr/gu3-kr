@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server"
+import { eventService } from "@/features/events/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { prisma } from "@/lib/prisma"
-
-// 관리자 세션 쿠키에서 작성자 식별자를 추출한다.
 
 export async function GET(request: Request) {
   const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
-      { ok: false, message: "로그인이 필요합니다." },
+      { ok: false, message: "로그인이 필요합니다." },
       { status: 401 },
     )
   }
@@ -18,75 +16,24 @@ export async function GET(request: Request) {
   const take = Number.isFinite(takeParam)
     ? Math.min(Math.max(takeParam, 1), 100)
     : 30
-  const cursor = searchParams.get("cursor") || undefined
-  const query = (searchParams.get("query") || "").trim()
-  const status = searchParams.get("status")
-  const from = searchParams.get("from")
-  const to = searchParams.get("to")
 
-  // 목록 API는 리스트/스케줄러를 모두 지원하므로 from/to 유무에 따라 정렬 기준을 분기한다.
-  const rows = await prisma.event.findMany({
-    where: {
-      ...(query
-        ? {
-            title: {
-              contains: query,
-            },
-          }
-        : {}),
-      ...(status === "published"
-        ? { isPublished: true }
-        : status === "draft"
-          ? { isPublished: false }
-          : {}),
-      ...(from || to
-        ? {
-            startsAt: {
-              ...(from ? { gte: new Date(from) } : {}),
-              ...(to ? { lte: new Date(to) } : {}),
-            },
-          }
-        : {}),
-    },
-    orderBy:
-      from || to
-        ? [{ startsAt: "asc" }, { id: "desc" }]
-        : [{ createdAt: "desc" }, { id: "desc" }],
-    take: take + 1,
-    ...(cursor
-      ? {
-          cursor: { id: cursor },
-          skip: 1,
-        }
-      : {}),
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      startsAt: true,
-      endsAt: true,
-      isPublished: true,
-      createdAt: true,
-    },
+  const page = await eventService.getEventPage({
+    take,
+    cursor: searchParams.get("cursor") || undefined,
+    query: (searchParams.get("query") || "").trim(),
+    status: searchParams.get("status"),
+    from: searchParams.get("from"),
+    to: searchParams.get("to"),
   })
 
-  // take+1 조회로 다음 페이지 존재 여부를 계산한다.
-  const hasMore = rows.length > take
-  const items = hasMore ? rows.slice(0, take) : rows
-  const nextCursor = hasMore ? items[items.length - 1]?.id : null
-
-  return NextResponse.json({
-    ok: true,
-    items,
-    pageInfo: { hasMore, nextCursor, take },
-  })
+  return NextResponse.json({ ok: true, ...page })
 }
 
 export async function POST(request: Request) {
   const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
-      { ok: false, message: "로그인이 필요합니다." },
+      { ok: false, message: "로그인이 필요합니다." },
       { status: 401 },
     )
   }
@@ -99,47 +46,21 @@ export async function POST(request: Request) {
     isPublished?: boolean
   } | null
 
-  const title = String(body?.title || "").trim()
-  const description = String(body?.description || "").trim()
-  const startsAtText = String(body?.startsAt || "")
-  const endsAtText = String(body?.endsAt || "")
-  const isPublished = body?.isPublished ?? true
-
-  if (!title || !description || !startsAtText || !endsAtText) {
-    return NextResponse.json(
-      { ok: false, message: "제목/내용/시작/종료는 필수입니다." },
-      { status: 400 },
-    )
-  }
-
-  const startsAt = new Date(startsAtText)
-  const endsAt = new Date(endsAtText)
-
-  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
-    return NextResponse.json(
-      { ok: false, message: "일정 날짜 형식이 올바르지 않습니다." },
-      { status: 400 },
-    )
-  }
-
-  if (endsAt < startsAt) {
-    return NextResponse.json(
-      { ok: false, message: "종료일은 시작일보다 빠를 수 없습니다." },
-      { status: 400 },
-    )
-  }
-
-  const created = await prisma.event.create({
-    data: {
-      title,
-      description,
-      startsAt,
-      endsAt,
-      isPublished,
-      createdById: author.id,
-    },
-    select: { id: true },
+  const result = await eventService.createEvent({
+    title: String(body?.title || ""),
+    description: String(body?.description || ""),
+    startsAtText: String(body?.startsAt || ""),
+    endsAtText: String(body?.endsAt || ""),
+    isPublished: body?.isPublished ?? true,
+    createdById: author.id,
   })
 
-  return NextResponse.json({ ok: true, id: created.id })
+  if ("error" in result) {
+    return NextResponse.json(
+      { ok: false, message: result.error },
+      { status: 400 },
+    )
+  }
+
+  return NextResponse.json({ ok: true, id: result.created.id })
 }

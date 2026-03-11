@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { z } from "zod"
-import { prisma } from "@/lib/prisma"
+import { inquiryService } from "@/features/inquiries/server"
 
 const createInquirySchema = z
   .object({
@@ -47,15 +47,12 @@ export async function POST(request: Request) {
     )
   }
 
-  const created = await prisma.inquiry.create({
-    data: {
-      title: parsed.data.title,
-      content: parsed.data.content,
-      email: parsed.data.email,
-      phone: parsed.data.phone,
-      isPrivate: parsed.data.isPrivate,
-    },
-    select: { id: true },
+  const created = await inquiryService.createInquiry({
+    title: parsed.data.title,
+    content: parsed.data.content,
+    email: parsed.data.email,
+    phone: parsed.data.phone,
+    isPrivate: parsed.data.isPrivate,
   })
 
   return NextResponse.json({ ok: true, id: created.id })
