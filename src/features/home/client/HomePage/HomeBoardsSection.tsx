@@ -56,17 +56,31 @@ export function HomeBoardsSection({
                     key={`${column.title}-${item.title}-${item.date}-${index}`}
                     className="min-w-0 overflow-hidden"
                   >
-                    <button
-                      type="button"
-                      className="flex min-w-0 w-full items-center justify-between gap-3 overflow-hidden text-sm text-[#4a4d53] transition-colors hover:text-[#252629]"
-                    >
-                      <span className="min-w-0 flex-1 truncate pr-2 text-left">
-                        {item.title}
-                      </span>
-                      <span className="ml-3 w-[72px] shrink-0 text-right text-xs tabular-nums text-[#9ea1a8]">
-                        {item.date}
-                      </span>
-                    </button>
+                    {item.href ? (
+                      <Link
+                        href={item.href}
+                        className="flex min-w-0 w-full items-center justify-between gap-3 overflow-hidden text-sm text-[#4a4d53] transition-colors hover:text-[#252629]"
+                      >
+                        <span className="min-w-0 flex-1 truncate pr-2 text-left">
+                          {item.title}
+                        </span>
+                        <span className="ml-3 w-[72px] shrink-0 text-right text-xs tabular-nums text-[#9ea1a8]">
+                          {item.date}
+                        </span>
+                      </Link>
+                    ) : (
+                      <button
+                        type="button"
+                        className="flex min-w-0 w-full items-center justify-between gap-3 overflow-hidden text-sm text-[#4a4d53] transition-colors hover:text-[#252629]"
+                      >
+                        <span className="min-w-0 flex-1 truncate pr-2 text-left">
+                          {item.title}
+                        </span>
+                        <span className="ml-3 w-[72px] shrink-0 text-right text-xs tabular-nums text-[#9ea1a8]">
+                          {item.date}
+                        </span>
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

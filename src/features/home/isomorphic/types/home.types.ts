@@ -38,6 +38,7 @@ export type HomeEventCard = {
 export type HomeBoardItem = {
   readonly title: string
   readonly date: string
+  readonly href?: string
 }
 
 export type HomeBoardColumn = {

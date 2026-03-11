@@ -23,14 +23,20 @@ export function PublicNoticeDetailView({
       </h2>
 
       <div className="mt-4 bg-[#efefef] px-4 py-3 text-sm">
-        <div className="grid grid-cols-[64px_1fr_180px] items-center gap-3">
-          <div className="text-center text-xs text-[#3b3b3b]">
-            {detail.isPinned ? (
+        <div
+          className={
+            detail.isPinned
+              ? "grid grid-cols-[64px_1fr_180px] items-center gap-3"
+              : "grid grid-cols-[1fr_180px] items-center gap-3"
+          }
+        >
+          {detail.isPinned ? (
+            <div className="text-center text-xs text-[#3b3b3b]">
               <span className="inline-flex rounded-sm bg-white px-3 py-1 font-semibold text-[#1f1f1f]">
                 공지
               </span>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
 
           <p className="font-medium text-[#2f2f2f]">{detail.title}</p>
 
@@ -41,7 +47,7 @@ export function PublicNoticeDetailView({
         </div>
       </div>
 
-      <article className="border-b border-[#e5e5e5] px-2 py-6 text-[15px] leading-7 text-[#2f2f2f]">
+      <article className="border-b border-[#e5e5e5] px-2 py-6 text-[15px] leading-7 text-[#2f2f2f] [&_.toastui-editor-contents]:text-[16px] [&_.toastui-editor-contents]:leading-8">
         <NoticeContentViewer content={detail.content} />
       </article>
 

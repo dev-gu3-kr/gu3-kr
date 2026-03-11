@@ -73,7 +73,7 @@ export function PublicNoticeListView({
                       )}
                     </td>
 
-                    <td className="px-4 py-3 text-left text-[13px]">
+                    <td className="px-4 py-3 text-left text-[15px]">
                       <Link
                         href={`/notice/notices/${item.id}`}
                         className="line-clamp-1 hover:underline"

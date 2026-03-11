@@ -127,12 +127,17 @@ function mapBoardColumn(
     "본당 주보": "/notice/weekly-bulletin",
   }
 
+  const itemHrefByTitle: Partial<Record<string, (id: string) => string>> = {
+    공지사항: (id) => `/notice/notices/${id}`,
+  }
+
   return {
     title,
     href: hrefByTitle[title],
     items: items.map((item) => ({
       title: item.title,
       date: format(new Date(item.createdAt), "yyyy/MM/dd"),
+      href: itemHrefByTitle[title]?.(item.id),
     })),
   }
 }
