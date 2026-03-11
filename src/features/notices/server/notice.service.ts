@@ -23,6 +23,7 @@ export async function createNotice(input: {
   summary?: string
   content: string
   isPublished?: boolean
+  isPinned?: boolean
   authorId: string
 }) {
   // 공지 작성 입력을 정규화한다.
@@ -36,6 +37,7 @@ export async function createNotice(input: {
     summary: normalizedSummary || undefined,
     content: normalizedContent,
     isPublished: Boolean(input.isPublished),
+    isPinned: Boolean(input.isPinned),
     authorId: input.authorId,
   })
 }
@@ -45,6 +47,7 @@ export async function getNoticePage(params: {
   cursor?: string
   query?: string
   isPublished?: boolean
+  isPinned?: boolean
 }) {
   // 인피니티 스크롤용 공지 페이지를 반환한다.
   const take = params.take ?? 10
@@ -74,6 +77,7 @@ export async function updateNotice(input: {
   summary?: string
   content: string
   isPublished?: boolean
+  isPinned?: boolean
 }) {
   // 공지 수정 입력을 정규화해 반영한다.
   const normalizedSummary = input.summary?.trim()
@@ -83,6 +87,7 @@ export async function updateNotice(input: {
     summary: normalizedSummary ? normalizedSummary : null,
     content: input.content.trim(),
     isPublished: Boolean(input.isPublished),
+    isPinned: Boolean(input.isPinned),
   })
 }
 

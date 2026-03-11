@@ -6,6 +6,7 @@ export async function createNoticeRecord(params: {
   summary?: string
   content: string
   isPublished: boolean
+  isPinned: boolean
   authorId: string
 }) {
   // 공지 게시글 레코드를 생성한다.
@@ -17,6 +18,7 @@ export async function createNoticeRecord(params: {
       summary: params.summary,
       content: params.content,
       isPublished: params.isPublished,
+      isPinned: params.isPinned,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
     },
@@ -45,7 +47,7 @@ export async function findNoticePage(params: {
           }
         : {}),
     },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "desc" }],
     take: params.take,
     ...(params.cursor
       ? {
@@ -59,6 +61,7 @@ export async function findNoticePage(params: {
       summary: true,
       content: true,
       isPublished: true,
+      isPinned: true,
       createdAt: true,
     },
   })
@@ -77,6 +80,7 @@ export async function findNoticeById(id: string) {
       summary: true,
       content: true,
       isPublished: true,
+      isPinned: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -90,6 +94,7 @@ export async function updateNoticeById(
     summary?: string | null
     content: string
     isPublished: boolean
+    isPinned: boolean
   },
 ) {
   // 공지 ID 기준으로 게시글을 수정한다.
@@ -100,6 +105,7 @@ export async function updateNoticeById(
       summary: params.summary,
       content: params.content,
       isPublished: params.isPublished,
+      isPinned: params.isPinned,
       publishedAt: params.isPublished ? new Date() : null,
     },
   })

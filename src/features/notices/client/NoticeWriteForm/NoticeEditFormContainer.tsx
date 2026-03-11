@@ -88,6 +88,7 @@ export function NoticeEditFormContainer({ noticeId }: { noticeId: string }) {
       initialSummary={data.summary ?? undefined}
       initialContent={data.content}
       initialIsPublished={data.isPublished}
+      initialIsPinned={data.isPinned}
       submitLabel="수정 저장"
       onUploadImageAction={uploadNoticeImage}
     />

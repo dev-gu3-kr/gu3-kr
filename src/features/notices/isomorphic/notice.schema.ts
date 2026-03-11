@@ -5,4 +5,5 @@ export const createNoticeSchema = z.object({
   summary: z.string().trim().max(300).optional(),
   content: z.string().trim().min(1),
   isPublished: z.boolean().optional(),
+  isPinned: z.boolean().optional(),
 })

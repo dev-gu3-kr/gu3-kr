@@ -146,7 +146,14 @@ export function NoticeListContainer({ initialPage }: NoticeListContainerProps) {
               href={`/admin/notices/${notice.id}`}
               className="block rounded-md border p-4 transition-colors hover:bg-neutral-50"
             >
-              <p className="font-medium">{notice.title}</p>
+              <div className="flex items-center gap-2">
+                {notice.isPinned ? (
+                  <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+                    공지
+                  </span>
+                ) : null}
+                <p className="font-medium">{notice.title}</p>
+              </div>
               {notice.summary?.trim() ? (
                 <p className="mt-1 text-sm text-neutral-600">
                   {notice.summary.trim()}

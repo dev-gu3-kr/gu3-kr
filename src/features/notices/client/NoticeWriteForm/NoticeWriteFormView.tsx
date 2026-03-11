@@ -17,6 +17,7 @@ type NoticeWriteFormViewProps = {
   initialSummary?: string
   initialContent?: string
   initialIsPublished?: boolean
+  initialIsPinned?: boolean
   submitLabel?: string
   onUploadImageAction: (file: File) => Promise<string>
 }
@@ -53,6 +54,7 @@ export function NoticeWriteFormView({
   initialSummary,
   initialContent,
   initialIsPublished,
+  initialIsPinned,
   submitLabel = "공지 저장",
   onUploadImageAction,
 }: NoticeWriteFormViewProps) {
@@ -68,6 +70,7 @@ export function NoticeWriteFormView({
       summary: initialSummary ?? "",
       content: initialContent ?? "",
       isPublished: initialIsPublished ?? false,
+      isPinned: initialIsPinned ?? false,
     },
     mode: "onSubmit",
   })
@@ -240,6 +243,17 @@ export function NoticeWriteFormView({
         ) : null}
       </div>
 
+
+      <label htmlFor="is-pinned" className="flex items-center gap-2 text-sm">
+        <Checkbox
+          id="is-pinned"
+          checked={Boolean(watch("isPinned"))}
+          onCheckedChange={(checked: boolean | "indeterminate") =>
+            setValue("isPinned", Boolean(checked), { shouldDirty: true })
+          }
+        />
+        목록 상단 고정
+      </label>
       <label htmlFor="is-published" className="flex items-center gap-2 text-sm">
         <Checkbox
           id="is-published"

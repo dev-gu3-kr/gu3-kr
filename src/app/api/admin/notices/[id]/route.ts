@@ -37,6 +37,7 @@ export async function GET(
     summary: notice.summary,
     content: notice.content,
     isPublished: notice.isPublished,
+    isPinned: notice.isPinned,
     createdAt: notice.createdAt.toISOString(),
   }
 

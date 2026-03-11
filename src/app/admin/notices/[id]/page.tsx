@@ -64,7 +64,14 @@ export default function AdminNoticeViewPage() {
         </p>
       </div>
 
-      <h1 className="text-3xl font-semibold tracking-tight">{notice.title}</h1>
+      <div className="flex items-center gap-2">
+        {notice.isPinned ? (
+          <span className="rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700">
+            공지
+          </span>
+        ) : null}
+        <h1 className="text-3xl font-semibold tracking-tight">{notice.title}</h1>
+      </div>
 
       {notice.summary ? (
         <p className="text-base text-neutral-700">{notice.summary}</p>

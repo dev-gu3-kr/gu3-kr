@@ -4,6 +4,7 @@ export type CreateNoticeInputDto = {
   summary?: string // 목록 노출용 요약(미입력 가능)
   content: string // 에디터 본문 HTML
   isPublished?: boolean // 공개 여부(미전달 시 서버 기본값 사용)
+  isPinned?: boolean // 공지 상단 고정 여부
 }
 
 // 공지 공개 상태 필터 DTO
@@ -16,6 +17,7 @@ export type NoticeListItemDto = {
   summary: string | null // 요약(없으면 null)
   content: string // 본문 HTML
   isPublished: boolean // 공개 여부
+  isPinned: boolean // 상단 고정 여부
   createdAt: string | Date // 생성 시각(ISO 문자열 또는 Date 객체)
 }
 
@@ -26,6 +28,7 @@ export type NoticeDetailDto = {
   summary: string | null // 요약(없으면 null)
   content: string // 본문 HTML
   isPublished: boolean // 공개 여부
+  isPinned: boolean // 상단 고정 여부
   createdAt: string // 생성 시각(ISO datetime)
 }
 
