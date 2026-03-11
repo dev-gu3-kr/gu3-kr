@@ -29,6 +29,7 @@ export type NoticeDetailDto = {
   content: string // 본문 HTML
   isPublished: boolean // 공개 여부
   isPinned: boolean // 상단 고정 여부
+  authorName: string // 작성자 디스플레이 이름
   createdAt: string // 생성 시각(ISO datetime)
 }
 
@@ -51,4 +52,14 @@ export type NoticePublicPageDto = {
   totalPages: number
   currentPage: number
   pageSize: number
+}
+
+export type NoticeNavigationItemDto = {
+  id: string
+  title: string
+}
+
+export type NoticeNavigationDto = {
+  prev: NoticeNavigationItemDto | null
+  next: NoticeNavigationItemDto | null
 }

@@ -6,11 +6,11 @@ import {
   findNoticePage,
   findNoticePageByOffset,
   findPublishedNoticeById,
+  findPublishedNoticeNavigationList,
   updateNoticeById,
 } from "./notice.query"
 
 function toSlug(title: string) {
-  // 제목 기반 슬러그를 생성하고 중복 방지를 위해 timestamp를 덧붙인다.
   const base = title
     .toLowerCase()
     .trim()
@@ -21,6 +21,24 @@ function toSlug(title: string) {
   return `${base || "notice"}-${Date.now()}`
 }
 
+type NoticeRow = {
+  id: string
+  title: string
+  summary: string | null
+  content: string
+  isPublished: boolean
+  isPinned: boolean
+  createdAt: Date
+  author?: { displayName: string } | null
+}
+
+function mapNoticeItem<T extends NoticeRow>(item: T) {
+  return {
+    ...item,
+    authorName: item.author?.displayName ?? "관리자",
+  }
+}
+
 export async function createNotice(input: {
   title: string
   summary?: string
@@ -29,7 +47,6 @@ export async function createNotice(input: {
   isPinned?: boolean
   authorId: string
 }) {
-  // 공지 작성 입력을 정규화한다.
   const normalizedTitle = input.title.trim()
   const normalizedSummary = input.summary?.trim()
   const normalizedContent = input.content.trim()
@@ -52,15 +69,15 @@ export async function getNoticePage(params: {
   isPublished?: boolean
   isPinned?: boolean
 }) {
-  // 인피니티 스크롤용 공지 페이지를 반환한다.
   const take = params.take ?? 10
-  const items = await findNoticePage({
+  const rows = await findNoticePage({
     take,
     cursor: params.cursor,
     query: params.query,
     isPublished: params.isPublished,
   })
 
+  const items = rows.map(mapNoticeItem)
   const nextCursor = items.length === take ? items[items.length - 1]?.id : null
 
   return {
@@ -70,8 +87,8 @@ export async function getNoticePage(params: {
 }
 
 export async function getNoticeById(id: string) {
-  // 공지 상세 페이지에서 사용할 단건 공지 데이터를 반환한다.
-  return findNoticeById(id)
+  const row = await findNoticeById(id)
+  return row ? mapNoticeItem(row) : null
 }
 
 export async function updateNotice(input: {
@@ -82,7 +99,6 @@ export async function updateNotice(input: {
   isPublished?: boolean
   isPinned?: boolean
 }) {
-  // 공지 수정 입력을 정규화해 반영한다.
   const normalizedSummary = input.summary?.trim()
 
   return updateNoticeById(input.id, {
@@ -95,7 +111,6 @@ export async function updateNotice(input: {
 }
 
 export async function removeNoticeById(id: string) {
-  // 공지 삭제를 수행한다.
   return deleteNoticeById(id)
 }
 
@@ -115,14 +130,44 @@ export async function getNoticePageByOffset(params: {
   query?: string
   isPublished?: boolean
 }) {
-  return findNoticePageByOffset({
+  const rows = await findNoticePageByOffset({
     take: params.take,
     skip: params.skip,
     query: params.query,
     isPublished: params.isPublished,
   })
+
+  return rows.map(mapNoticeItem)
 }
 
 export async function getPublishedNoticeById(id: string) {
-  return findPublishedNoticeById(id)
+  const row = await findPublishedNoticeById(id)
+  return row ? mapNoticeItem(row) : null
+}
+
+export async function getPublishedNoticeDetailWithNavigation(id: string) {
+  const item = await getPublishedNoticeById(id)
+  if (!item) return null
+
+  const ordered = await findPublishedNoticeNavigationList()
+  const currentIndex = ordered.findIndex((row) => row.id === id)
+
+  const navigation = {
+    prev:
+      currentIndex >= 0 && currentIndex < ordered.length - 1
+        ? {
+            id: ordered[currentIndex + 1].id,
+            title: ordered[currentIndex + 1].title,
+          }
+        : null,
+    next:
+      currentIndex > 0
+        ? {
+            id: ordered[currentIndex - 1].id,
+            title: ordered[currentIndex - 1].title,
+          }
+        : null,
+  }
+
+  return { item, navigation }
 }

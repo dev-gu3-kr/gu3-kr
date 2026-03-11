@@ -38,6 +38,7 @@ export async function GET(
     content: notice.content,
     isPublished: notice.isPublished,
     isPinned: notice.isPinned,
+    authorName: notice.authorName,
     createdAt: notice.createdAt.toISOString(),
   }
 

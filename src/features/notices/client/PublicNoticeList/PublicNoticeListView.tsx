@@ -14,8 +14,8 @@ type PublicNoticeListViewProps = {
 
 function buildPageHref(pageNo: number, query: string) {
   return query
-    ? "/notice/notices?page=" + pageNo + "&q=" + encodeURIComponent(query)
-    : "/notice/notices?page=" + pageNo
+    ? `/notice/notices?page=${pageNo}&q=${encodeURIComponent(query)}`
+    : `/notice/notices?page=${pageNo}`
 }
 
 export function PublicNoticeListView({
@@ -26,7 +26,8 @@ export function PublicNoticeListView({
   query,
   pageNumbers,
 }: PublicNoticeListViewProps) {
-  const prevHref = currentPage > 1 ? buildPageHref(currentPage - 1, query) : null
+  const prevHref =
+    currentPage > 1 ? buildPageHref(currentPage - 1, query) : null
   const nextHref =
     currentPage < totalPages ? buildPageHref(currentPage + 1, query) : null
 
@@ -35,13 +36,10 @@ export function PublicNoticeListView({
       <h2 className="text-[30px] font-semibold tracking-[-0.02em] text-[#252629]">
         공지사항
       </h2>
-
-      <div className="mt-4 border-t border-[#2f2f2f]" />
-
-      <div className="mt-1 overflow-x-auto">
+      <div className="mt-4 overflow-x-auto">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-[#d9d9d9] text-center text-[#2f2f2f]">
+            <tr className="bg-[#efefef] text-center text-[#2f2f2f]">
               <th className="w-20 py-3 font-medium">No.</th>
               <th className="px-4 py-3 font-medium">제목</th>
               <th className="w-28 py-3 font-medium">작성자</th>
@@ -65,9 +63,9 @@ export function PublicNoticeListView({
                     key={item.id}
                     className="border-b border-[#ececec] text-[#2f2f2f]"
                   >
-                    <td className="py-3 text-center text-xs text-[#666]">
+                    <td className="py-3 text-center text-xs font-medium text-[#666]">
                       {item.isPinned ? (
-                        <span className="inline-block rounded-sm bg-[#ececec] px-2 py-0.5 font-medium text-[#3b3b3b]">
+                        <span className="inline-block text-xs font-semibold text-[#3b3b3b]">
                           공지
                         </span>
                       ) : (
@@ -75,16 +73,18 @@ export function PublicNoticeListView({
                       )}
                     </td>
 
-                    <td className="px-4 py-3 text-left">
+                    <td className="px-4 py-3 text-left text-[13px]">
                       <Link
-                        href={"/notice/notices/" + item.id}
+                        href={`/notice/notices/${item.id}`}
                         className="line-clamp-1 hover:underline"
                       >
                         {item.title}
                       </Link>
                     </td>
 
-                    <td className="py-3 text-center text-xs text-[#444]">관리자</td>
+                    <td className="py-3 text-center text-xs text-[#444]">
+                      관리자
+                    </td>
 
                     <td className="py-3 text-center text-xs text-[#666]">
                       {new Date(item.createdAt).toLocaleDateString("ko-KR")}
@@ -98,17 +98,17 @@ export function PublicNoticeListView({
       </div>
 
       <div className="mt-8 space-y-3 md:relative md:h-10 md:space-y-0">
-        <div className="flex items-center justify-center gap-1.5">
+        <div className="flex items-center justify-center gap-2">
           {prevHref ? (
             <Link
               href={prevHref}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#666] hover:bg-[#f3f3f3]"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#888] hover:bg-[#ececec]"
               aria-label="이전 페이지"
             >
               <ChevronLeft className="h-4 w-4" />
             </Link>
           ) : (
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#c4c4c4]">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0]">
               <ChevronLeft className="h-4 w-4" />
             </span>
           )}
@@ -134,13 +134,13 @@ export function PublicNoticeListView({
           {nextHref ? (
             <Link
               href={nextHref}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#666] hover:bg-[#f3f3f3]"
+              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#888] hover:bg-[#ececec]"
               aria-label="다음 페이지"
             >
               <ChevronRight className="h-4 w-4" />
             </Link>
           ) : (
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[#c4c4c4]">
+            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0]">
               <ChevronRight className="h-4 w-4" />
             </span>
           )}
@@ -155,7 +155,7 @@ export function PublicNoticeListView({
             name="q"
             defaultValue={query}
             placeholder="검색어 입력시"
-            className="h-9 w-full rounded bg-[#f3f3f3] px-3 pr-9 text-sm text-[#444] outline-none"
+            className="h-9 w-full rounded bg-[#efefef] px-3 pr-9 text-sm text-[#444] outline-none"
           />
           <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8d8d8d]" />
         </form>

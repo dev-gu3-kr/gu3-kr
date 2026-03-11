@@ -10,6 +10,7 @@ import type {
   ApiResponseDto,
   NoticeDetailDto,
   NoticeListItemDto,
+  NoticeNavigationDto,
   NoticePageDto,
   NoticePublicPageDto,
   NoticePublishFilterDto,
@@ -190,7 +191,10 @@ export function useNoticeDetailQuery(id: string) {
 }
 
 type PublicNoticePageResponse = ApiResponseDto<NoticePublicPageDto>
-type PublicNoticeDetailResponse = ApiResponseDto<{ item: NoticeDetailDto }>
+type PublicNoticeDetailResponse = ApiResponseDto<{
+  item: NoticeDetailDto
+  navigation: NoticeNavigationDto
+}>
 
 async function fetchPublicNoticePage(params: { page: number; query: string }) {
   const response = await apiFetch
@@ -209,7 +213,7 @@ async function fetchPublicNoticePage(params: { page: number; query: string }) {
 }
 
 async function fetchPublicNoticeDetail(id: string) {
-  const response = await apiFetch.get("/api/notices/" + id).send()
+  const response = await apiFetch.get(`/api/notices/${id}`).send()
   if (!response.ok) throw new Error("공지사항 상세를 불러오지 못했습니다.")
 
   const json = (await response
@@ -218,7 +222,10 @@ async function fetchPublicNoticeDetail(id: string) {
   if (!json?.ok || !json.item)
     throw new Error("공지사항 상세를 불러오지 못했습니다.")
 
-  return json.item
+  return {
+    item: json.item,
+    navigation: json.navigation ?? { prev: null, next: null },
+  }
 }
 
 export function usePublicNoticePageQuery(params: {
@@ -234,7 +241,7 @@ export function usePublicNoticePageQuery(params: {
 
 export function usePublicNoticeDetailQuery(id: string) {
   return useQuery({
-    queryKey: ["public", "notices", "detail", id] as const,
+    queryKey: ["public", "notices", "detail", "v2", id] as const,
     enabled: id.length > 0,
     queryFn: () => fetchPublicNoticeDetail(id),
     staleTime: 10_000,

@@ -3,6 +3,7 @@ import type { QueryClient } from "@tanstack/react-query"
 import type {
   ApiResponseDto,
   NoticeDetailDto,
+  NoticeNavigationDto,
   NoticePublicPageDto,
 } from "@/features/notices/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
@@ -17,9 +18,9 @@ async function fetchPublicNoticePage(params: { page: number; query: string }) {
     throw new Error("공지사항 목록을 불러오지 못했습니다.")
   }
 
-  const json = (await response.json().catch(() => null)) as
-    | ApiResponseDto<NoticePublicPageDto>
-    | null
+  const json = (await response
+    .json()
+    .catch(() => null)) as ApiResponseDto<NoticePublicPageDto> | null
 
   if (!json?.ok) {
     throw new Error("공지사항 목록을 불러오지 못했습니다.")
@@ -35,15 +36,19 @@ async function fetchPublicNoticeDetail(id: string) {
     throw new Error("공지사항 상세를 불러오지 못했습니다.")
   }
 
-  const json = (await response.json().catch(() => null)) as
-    | ApiResponseDto<{ item: NoticeDetailDto }>
-    | null
+  const json = (await response.json().catch(() => null)) as ApiResponseDto<{
+    item: NoticeDetailDto
+    navigation: NoticeNavigationDto
+  }> | null
 
   if (!json?.ok || !json.item) {
     throw new Error("공지사항 상세를 불러오지 못했습니다.")
   }
 
-  return json.item
+  return {
+    item: json.item,
+    navigation: json.navigation ?? { prev: null, next: null },
+  }
 }
 
 export async function prefetchPublicNoticeList(
@@ -61,7 +66,7 @@ export async function prefetchPublicNoticeDetail(
   id: string,
 ) {
   await queryClient.prefetchQuery({
-    queryKey: ["public", "notices", "detail", id] as const,
+    queryKey: ["public", "notices", "detail", "v2", id] as const,
     queryFn: () => fetchPublicNoticeDetail(id),
   })
 }
