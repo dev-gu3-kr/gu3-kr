@@ -1,9 +1,39 @@
 "use client"
 
+import { useEffect, useMemo, useState } from "react"
+
 import { ADMIN_MENU_ITEMS } from "@/features/admin/isomorphic"
 import { AdminDashboardView } from "./AdminDashboardView"
 
 export function AdminDashboardContainer() {
-  // 현재는 정적 메뉴 목록으로 시작하고, 추후 권한 기반 필터를 적용한다.
-  return <AdminDashboardView menuItems={ADMIN_MENU_ITEMS} />
+  const [role, setRole] = useState<string | null>(null)
+
+  useEffect(() => {
+    const run = async () => {
+      const response = await fetch("/api/admin/session", { cache: "no-store" })
+      const json = (await response.json().catch(() => null)) as {
+        ok?: boolean
+        role?: string
+      } | null
+
+      if (!response.ok || !json?.ok || !json.role) {
+        setRole(null)
+        return
+      }
+
+      setRole(json.role)
+    }
+
+    void run()
+  }, [])
+
+  const menuItems = useMemo(() => {
+    const isSuperAdmin = role === "SUPER_ADMIN"
+
+    return ADMIN_MENU_ITEMS.filter((item) =>
+      item.superAdminOnly ? isSuperAdmin : true,
+    )
+  }, [role])
+
+  return <AdminDashboardView menuItems={menuItems} />
 }
