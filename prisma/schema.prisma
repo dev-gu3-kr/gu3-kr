@@ -45,7 +45,7 @@ model User {
 
   posts        Post[]                            // 작성한 게시글 목록
   events       Event[]                           // 작성한 일정 목록
-  inquiryNotes InquiryNote[]                     // 작성한 문의 처리 메모 목록
+  processedInquiries Inquiry[]                    @relation("InquiryProcessedBy") // 처리한 문의 목록
 }
 
 model Post {
@@ -169,31 +169,21 @@ model PastoralCouncilMember {
 
 
 model Inquiry {
-  id        String        @id @default(cuid())  // 고유 식별자
-  title     String                              // 제목
-  email     String?                             // 관리자 이메일(선택, 중복 불가)
-  phone     String?                             // 연락처(선택)
-  content   String        @db.Text              // 본문 내용
-  status    InquiryStatus @default(RECEIVED)    // 문의 처리 상태
-  isPrivate Boolean       @default(true)        // 비공개 문의 여부
-  createdAt DateTime      @default(now())       // 생성 시각
-  updatedAt DateTime      @updatedAt            // 수정 시각
-  handledAt DateTime?                           // 처리 완료 시각(선택)
+  id             String        @id @default(cuid())  // 고유 식별자
+  title          String                              // 제목
+  email          String?                             // 관리자 이메일(선택, 중복 불가)
+  phone          String?                             // 연락처(선택)
+  content        String        @db.Text              // 본문 내용
+  status         InquiryStatus @default(RECEIVED)    // 문의 처리 상태
+  isPrivate      Boolean       @default(true)        // 비공개 문의 여부
+  processingMemo String?       @db.Text              // 내부 처리 메모(1개)
+  processedAt    DateTime?                           // 메모 처리/완료 시각
+  processedById  String?                             // 메모 처리자(User) FK
+  createdAt      DateTime      @default(now())       // 생성 시각
+  updatedAt      DateTime      @updatedAt            // 수정 시각
 
-  notes InquiryNote[]                           // 문의 처리 메모 목록
+  processedBy User? @relation("InquiryProcessedBy", fields: [processedById], references: [id], onDelete: SetNull)
 
   @@index([status, createdAt])
-}
-
-model InquiryNote {
-  id        String   @id @default(cuid())                                              // 고유 식별자
-  inquiryId String                                                                     // 문의(Inquiry) FK
-  authorId  String                                                                     // 작성자(User) FK
-  note      String   @db.Text                                                          // 처리 메모 내용
-  createdAt DateTime @default(now())                                                   // 생성 시각
-
-  inquiry Inquiry @relation(fields: [inquiryId], references: [id], onDelete: Cascade)  // 문의(Inquiry) 관계
-  author  User    @relation(fields: [authorId], references: [id])                      // 작성자(User) 관계
-
-  @@index([inquiryId])
+  @@index([processedById])
 }
