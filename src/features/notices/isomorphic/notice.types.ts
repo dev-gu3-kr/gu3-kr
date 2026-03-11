@@ -43,3 +43,12 @@ export type ApiResponseDto<T> = {
   ok: boolean // 요청 성공 여부
   message?: string // 사용자 표시용 메시지(선택)
 } & T
+
+// 공개 공지 목록 페이지 DTO
+export type NoticePublicPageDto = {
+  items: NoticeListItemDto[]
+  totalCount: number
+  totalPages: number
+  currentPage: number
+  pageSize: number
+}

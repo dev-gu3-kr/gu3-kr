@@ -117,3 +117,82 @@ export async function deleteNoticeById(id: string) {
     where: { id },
   })
 }
+
+export async function countNotices(params: {
+  query?: string
+  isPublished?: boolean
+}) {
+  return prisma.post.count({
+    where: {
+      category: "NOTICE",
+      ...(typeof params.isPublished === "boolean"
+        ? { isPublished: params.isPublished }
+        : {}),
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { summary: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
+    },
+  })
+}
+
+export async function findNoticePageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+  isPublished?: boolean
+}) {
+  return prisma.post.findMany({
+    where: {
+      category: "NOTICE",
+      ...(typeof params.isPublished === "boolean"
+        ? { isPublished: params.isPublished }
+        : {}),
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { summary: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
+    },
+    orderBy: [{ isPinned: "desc" }, { publishedAt: "desc" }, { id: "desc" }],
+    take: params.take,
+    skip: params.skip,
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      content: true,
+      isPublished: true,
+      isPinned: true,
+      createdAt: true,
+    },
+  })
+}
+
+export async function findPublishedNoticeById(id: string) {
+  return prisma.post.findFirst({
+    where: {
+      id,
+      category: "NOTICE",
+      isPublished: true,
+    },
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      content: true,
+      isPublished: true,
+      isPinned: true,
+      createdAt: true,
+    },
+  })
+}

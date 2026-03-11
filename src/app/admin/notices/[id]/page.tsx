@@ -70,7 +70,9 @@ export default function AdminNoticeViewPage() {
             공지
           </span>
         ) : null}
-        <h1 className="text-3xl font-semibold tracking-tight">{notice.title}</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          {notice.title}
+        </h1>
       </div>
 
       {notice.summary ? (

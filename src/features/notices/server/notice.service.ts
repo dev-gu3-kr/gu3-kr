@@ -1,8 +1,11 @@
 import {
+  countNotices,
   createNoticeRecord,
   deleteNoticeById,
   findNoticeById,
   findNoticePage,
+  findNoticePageByOffset,
+  findPublishedNoticeById,
   updateNoticeById,
 } from "./notice.query"
 
@@ -94,4 +97,32 @@ export async function updateNotice(input: {
 export async function removeNoticeById(id: string) {
   // 공지 삭제를 수행한다.
   return deleteNoticeById(id)
+}
+
+export async function getNoticeCount(params: {
+  query?: string
+  isPublished?: boolean
+}) {
+  return countNotices({
+    query: params.query,
+    isPublished: params.isPublished,
+  })
+}
+
+export async function getNoticePageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+  isPublished?: boolean
+}) {
+  return findNoticePageByOffset({
+    take: params.take,
+    skip: params.skip,
+    query: params.query,
+    isPublished: params.isPublished,
+  })
+}
+
+export async function getPublishedNoticeById(id: string) {
+  return findPublishedNoticeById(id)
 }

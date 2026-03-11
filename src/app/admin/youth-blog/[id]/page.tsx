@@ -68,7 +68,9 @@ export default function AdminYouthBlogViewPage() {
 
       <h1 className="text-3xl font-semibold tracking-tight">{post.title}</h1>
 
-      {post.summary ? <p className="text-base text-neutral-700">{post.summary}</p> : null}
+      {post.summary ? (
+        <p className="text-base text-neutral-700">{post.summary}</p>
+      ) : null}
 
       <article className="toastui-editor-contents text-[15px] leading-7 text-neutral-900">
         <YouthBlogContentViewer content={post.content} />

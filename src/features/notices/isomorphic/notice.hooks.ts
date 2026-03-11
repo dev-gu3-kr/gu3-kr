@@ -8,8 +8,10 @@ import {
 import { apiFetch } from "@/lib/api"
 import type {
   ApiResponseDto,
+  NoticeDetailDto,
   NoticeListItemDto,
   NoticePageDto,
+  NoticePublicPageDto,
   NoticePublishFilterDto,
 } from "./notice.types"
 
@@ -184,5 +186,57 @@ export function useNoticeDetailQuery(id: string) {
       return undefined
     },
     initialDataUpdatedAt: 0,
+  })
+}
+
+type PublicNoticePageResponse = ApiResponseDto<NoticePublicPageDto>
+type PublicNoticeDetailResponse = ApiResponseDto<{ item: NoticeDetailDto }>
+
+async function fetchPublicNoticePage(params: { page: number; query: string }) {
+  const response = await apiFetch
+    .get("/api/notices")
+    .query({ page: params.page, q: params.query || undefined })
+    .send()
+
+  if (!response.ok) throw new Error("공지사항 목록을 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicNoticePageResponse | null
+  if (!json?.ok) throw new Error("공지사항 목록을 불러오지 못했습니다.")
+
+  return json
+}
+
+async function fetchPublicNoticeDetail(id: string) {
+  const response = await apiFetch.get("/api/notices/" + id).send()
+  if (!response.ok) throw new Error("공지사항 상세를 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicNoticeDetailResponse | null
+  if (!json?.ok || !json.item)
+    throw new Error("공지사항 상세를 불러오지 못했습니다.")
+
+  return json.item
+}
+
+export function usePublicNoticePageQuery(params: {
+  page: number
+  query: string
+}) {
+  return useQuery({
+    queryKey: ["public", "notices", "list", params] as const,
+    queryFn: () => fetchPublicNoticePage(params),
+    staleTime: 10_000,
+  })
+}
+
+export function usePublicNoticeDetailQuery(id: string) {
+  return useQuery({
+    queryKey: ["public", "notices", "detail", id] as const,
+    enabled: id.length > 0,
+    queryFn: () => fetchPublicNoticeDetail(id),
+    staleTime: 10_000,
   })
 }

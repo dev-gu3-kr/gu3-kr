@@ -243,7 +243,6 @@ export function NoticeWriteFormView({
         ) : null}
       </div>
 
-
       <label htmlFor="is-pinned" className="flex items-center gap-2 text-sm">
         <Checkbox
           id="is-pinned"

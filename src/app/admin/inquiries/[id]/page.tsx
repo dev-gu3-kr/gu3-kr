@@ -1,9 +1,9 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { format, formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import { useParams } from "next/navigation"
-import { useQueryClient } from "@tanstack/react-query"
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 
@@ -71,7 +71,9 @@ export default function AdminInquiryViewPage() {
 
       toast.success("문의 메모가 저장되었습니다.")
       await refetch()
-      await queryClient.invalidateQueries({ queryKey: ["admin", "inquiries", "list"] })
+      await queryClient.invalidateQueries({
+        queryKey: ["admin", "inquiries", "list"],
+      })
     } catch {
       toast.error("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.")
     } finally {
@@ -80,11 +82,7 @@ export default function AdminInquiryViewPage() {
   }
 
   const handleStatusChange = (value: string) => {
-    if (
-      value !== "RECEIVED" &&
-      value !== "IN_PROGRESS" &&
-      value !== "DONE"
-    ) {
+    if (value !== "RECEIVED" && value !== "IN_PROGRESS" && value !== "DONE") {
       return
     }
 
@@ -159,7 +157,9 @@ export default function AdminInquiryViewPage() {
 
       <div className="border-t border-neutral-200 pt-5">
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-neutral-900">처리 상태 변경</h2>
+          <h2 className="text-sm font-semibold text-neutral-900">
+            처리 상태 변경
+          </h2>
 
           <ToggleGroup
             type="single"
@@ -191,7 +191,10 @@ export default function AdminInquiryViewPage() {
           </ToggleGroup>
 
           <div className="space-y-2">
-            <label htmlFor="inquiry-note" className="text-sm font-medium text-neutral-800">
+            <label
+              htmlFor="inquiry-note"
+              className="text-sm font-medium text-neutral-800"
+            >
               처리 메모
             </label>
             <Input

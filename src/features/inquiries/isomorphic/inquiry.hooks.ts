@@ -1,6 +1,12 @@
 "use client"
 
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query"
+import {
+  type InfiniteData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 
 import { apiFetch } from "@/lib/api"
 
@@ -119,12 +125,16 @@ export function useInquiryStatusMutation(id: string) {
       )
 
       if (previousInquiry) {
-        queryClient.setQueryData<InquiryDetailDto>(inquiryQueryKeys.detail(id), {
-          ...previousInquiry,
-          status: nextStatus,
-          processedAt: nextStatus === "DONE" ? new Date().toISOString() : null,
-          processedById: null,
-        })
+        queryClient.setQueryData<InquiryDetailDto>(
+          inquiryQueryKeys.detail(id),
+          {
+            ...previousInquiry,
+            status: nextStatus,
+            processedAt:
+              nextStatus === "DONE" ? new Date().toISOString() : null,
+            processedById: null,
+          },
+        )
       }
 
       return { previousInquiry }
