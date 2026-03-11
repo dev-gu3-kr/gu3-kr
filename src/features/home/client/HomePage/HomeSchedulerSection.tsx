@@ -239,10 +239,10 @@ export function HomeSchedulerSection({
                           </div>
                           {item.events.slice(0, 2).map((event) => (
                             <p
-                              key={`${item.dateIso}-${event}`}
+                              key={`${item.dateIso}-${event.title}`}
                               className="line-clamp-1 text-xs leading-4 text-[#252629] md:text-[13px]"
                             >
-                              {event}
+                              {event.title}
                             </p>
                           ))}
                         </div>

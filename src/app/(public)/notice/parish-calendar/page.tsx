@@ -1,15 +1,21 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
+
 import { SubLanding } from "@/components/SubLanding"
+import { ParishCalendarContainer } from "@/features/home/client"
+import { homePrefetch } from "@/features/home/server"
+import { getQueryClient } from "@/lib/react-query"
 
 export default async function Page() {
+  const queryClient = getQueryClient()
+  await homePrefetch.prefetchHomePage(queryClient)
+
   return (
     <>
       <SubLanding title="" sectionLabel="본당알림" currentLabel="본당 달력" />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#252629] md:text-3xl">
-          본당 달력
-        </h2>
-      </section>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <ParishCalendarContainer />
+      </HydrationBoundary>
     </>
   )
 }

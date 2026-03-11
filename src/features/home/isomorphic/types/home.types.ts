@@ -16,7 +16,10 @@ export type HomeSchedulerItem = {
   readonly dayLabel: string
   readonly dayNumber: number
   readonly isActive?: boolean
-  readonly events: readonly string[]
+  readonly events: readonly {
+    title: string
+    description: string
+  }[]
 }
 
 export type HomeSchedulerMonthDataDto = {

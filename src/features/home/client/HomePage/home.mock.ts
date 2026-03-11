@@ -22,7 +22,7 @@ function createSchedulerItems(year: number, month: number) {
         dayLabel: "화",
         dayNumber: 3,
         isActive: true,
-        events: ["등록된 스케줄 한 줄"],
+        events: [{ title: "등록된 스케줄 한 줄", description: "" }],
       }
     }
 
@@ -31,7 +31,10 @@ function createSchedulerItems(year: number, month: number) {
         dateIso,
         dayLabel: "수",
         dayNumber: 4,
-        events: ["등록된 스케줄의 내용", "최대 두줄까지 표시"],
+        events: [
+          { title: "등록된 스케줄의 내용", description: "" },
+          { title: "최대 두줄까지 표시", description: "" },
+        ],
       }
     }
 

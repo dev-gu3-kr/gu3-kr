@@ -65,7 +65,12 @@ function getThreeMonthRange(baseDate: Date) {
 }
 
 function buildSchedulerItems(
-  events: Array<{ title: string; startsAt: Date; endsAt: Date }>,
+  events: Array<{
+    title: string
+    description: string | null
+    startsAt: Date
+    endsAt: Date
+  }>,
   monthDate: Date,
   today: Date,
 ) {
@@ -105,8 +110,10 @@ function buildSchedulerItems(
     )
     const eventTitles = events
       .filter((event) => event.startsAt <= dayEnd && event.endsAt >= dayStart)
-      .slice(0, 2)
-      .map((event) => event.title)
+      .map((event) => ({
+        title: event.title,
+        description: event.description ?? "",
+      }))
 
     items.push({
       dateIso: date.toISOString(),
@@ -201,7 +208,12 @@ export async function GET(request: Request) {
           endsAt: { gte: start },
         },
         orderBy: [{ startsAt: "asc" }, { id: "desc" }],
-        select: { title: true, startsAt: true, endsAt: true },
+        select: {
+          title: true,
+          description: true,
+          startsAt: true,
+          endsAt: true,
+        },
       }),
     ])
 
