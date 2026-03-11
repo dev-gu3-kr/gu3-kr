@@ -1,5 +1,6 @@
 "use client"
 
+import { Suspense } from "react"
 import { QueryClientProvider } from "@tanstack/react-query"
 import { Toaster } from "sonner"
 import { getQueryClient } from "@/lib/react-query"
@@ -14,7 +15,7 @@ export function Providers({ children }: Props) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RouteProgress />
+      <Suspense fallback={null}><RouteProgress /></Suspense>
       {children}
       <Toaster richColors position="top-right" />
     </QueryClientProvider>
