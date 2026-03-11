@@ -52,6 +52,7 @@ function shouldHandleAnchorClick(event: MouseEvent) {
 export function RouteProgress() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
+  const search = searchParams.toString()
 
   useEffect(() => {
     NProgress.configure({
@@ -73,8 +74,9 @@ export function RouteProgress() {
 
   useEffect(() => {
     if (!pathname) return
+    void search
     NProgress.done()
-  }, [pathname, searchParams])
+  }, [pathname, search])
 
   return null
 }

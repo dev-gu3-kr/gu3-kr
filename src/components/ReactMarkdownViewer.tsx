@@ -12,7 +12,10 @@ type ReactMarkdownViewerProps = {
 export function ReactMarkdownViewer({ content }: ReactMarkdownViewerProps) {
   return (
     <div className="prose prose-neutral max-w-none break-words prose-img:rounded-md prose-a:text-blue-700 hover:prose-a:text-blue-800">
-      <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]} rehypePlugins={[rehypeSanitize]}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkBreaks]}
+        rehypePlugins={[rehypeSanitize]}
+      >
         {content || ""}
       </ReactMarkdown>
     </div>

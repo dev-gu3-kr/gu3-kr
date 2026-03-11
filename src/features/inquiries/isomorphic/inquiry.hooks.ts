@@ -1,7 +1,6 @@
 "use client"
 
 import {
-  type InfiniteData,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -26,7 +25,6 @@ const inquiryQueryKeys = {
 } as const
 
 type InquiryPageResponse = ApiResponseDto<InquiryPageDto>
-type InquiryPageInfiniteData = InfiniteData<InquiryPageResponse>
 
 type InquiryListFilters = {
   query: string
