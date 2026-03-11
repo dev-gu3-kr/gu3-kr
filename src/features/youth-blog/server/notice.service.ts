@@ -1,3 +1,4 @@
+import { extractFirstYoutubeUrl } from "@/lib/youtube"
 import {
   createYouthBlogRecord,
   deleteYouthBlogById,
@@ -28,12 +29,14 @@ export async function createYouthBlog(input: {
   const normalizedTitle = input.title.trim()
   const normalizedSummary = input.summary?.trim()
   const normalizedContent = input.content.trim()
+  const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
 
   return createYouthBlogRecord({
     title: normalizedTitle,
     slug: toSlug(normalizedTitle),
     summary: normalizedSummary || undefined,
     content: normalizedContent,
+    youtubeUrl,
     isPublished: Boolean(input.isPublished),
     authorId: input.authorId,
   })
@@ -73,11 +76,14 @@ export async function updateYouthBlog(input: {
   isPublished?: boolean
 }) {
   const normalizedSummary = input.summary?.trim()
+  const normalizedContent = input.content.trim()
+  const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
 
   return updateYouthBlogById(input.id, {
     title: input.title.trim(),
     summary: normalizedSummary ? normalizedSummary : null,
-    content: input.content.trim(),
+    content: normalizedContent,
+    youtubeUrl,
     isPublished: Boolean(input.isPublished),
   })
 }

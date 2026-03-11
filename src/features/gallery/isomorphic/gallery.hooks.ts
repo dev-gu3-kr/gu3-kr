@@ -23,6 +23,8 @@ type GalleryDetailDto = {
   isPublished: boolean
   createdAt: string
   galleryImages: Array<{ id: string; originalName: string; url: string }>
+  youtubeUrl?: string | null
+  hasYoutube?: boolean
 }
 
 export const galleryQueryKeys = {

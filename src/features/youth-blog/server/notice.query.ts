@@ -5,6 +5,7 @@ export async function createYouthBlogRecord(params: {
   slug: string
   summary?: string
   content: string
+  youtubeUrl: string | null
   isPublished: boolean
   authorId: string
 }) {
@@ -16,6 +17,7 @@ export async function createYouthBlogRecord(params: {
       slug: params.slug,
       summary: params.summary,
       content: params.content,
+      youtubeUrl: params.youtubeUrl,
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
@@ -91,6 +93,7 @@ export async function updateYouthBlogById(
     title: string
     summary?: string | null
     content: string
+    youtubeUrl: string | null
     isPublished: boolean
   },
 ) {
@@ -101,6 +104,7 @@ export async function updateYouthBlogById(
       title: params.title,
       summary: params.summary,
       content: params.content,
+      youtubeUrl: params.youtubeUrl,
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
     },

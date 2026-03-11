@@ -8,16 +8,25 @@ type SubLandingProps = {
   readonly imageUrl?: string
 }
 
+const sectionImageMap: Record<string, string> = {
+  본당알림: "/images/sub-landing-notice.webp",
+}
+
 export function SubLanding({
   title,
   sectionLabel,
   currentLabel,
-  imageUrl = "/images/sub-landing-default.webp",
+  imageUrl,
 }: SubLandingProps) {
+  const resolvedImageUrl =
+    imageUrl ??
+    sectionImageMap[sectionLabel] ??
+    "/images/sub-landing-default.webp"
+
   return (
     <section className="relative h-[280px] overflow-hidden md:h-[320px]">
       <Image
-        src={imageUrl}
+        src={resolvedImageUrl}
         alt={`${title} 서브 비주얼`}
         fill
         priority

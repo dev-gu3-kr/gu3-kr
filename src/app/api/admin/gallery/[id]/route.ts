@@ -1,16 +1,9 @@
-// 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { randomUUID } from "node:crypto"
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
+import { galleryService } from "@/features/gallery/server"
 import { assertAdminSession } from "@/lib/admin/session"
 import { getMinioS3Client } from "@/lib/admin/storage"
-import { prisma } from "@/lib/prisma"
-
-// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
-
-// 관리자 세션 유효성을 검사한다.
-
-// 업로드/삭제에 사용할 S3(MinIO) 클라이언트를 생성한다.
 
 function resolveObjectKey(raw: string) {
   const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
@@ -39,11 +32,12 @@ async function uploadThumbnailFile(thumbnail: File) {
     ? thumbnail.name.split(".").pop()?.toLowerCase()
     : ""
   const allowed = new Set(["jpg", "jpeg", "png", "webp", "gif"])
-  if (!ext || !allowed.has(ext))
-    throw new Error("허용되지 않는 이미지 형식입니다.")
+  if (!ext || !allowed.has(ext)) {
+    throw new Error("허용되지 않는 이미지 형식입니다.")
+  }
 
   const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-  if (!bucket) throw new Error("버킷 설정이 비어 있습니다.")
+  if (!bucket) throw new Error("버킷 설정이 비어 있습니다.")
 
   const key = `cathedral/gallery/${Date.now()}-${randomUUID()}.${ext}`
   const client = getMinioS3Client()
@@ -60,95 +54,54 @@ async function uploadThumbnailFile(thumbnail: File) {
   const fileUrl = `${endpoint}/${bucket}/${key}`
 
   return {
-    imageRecord: {
-      fileName: key.split("/").pop() || thumbnail.name,
-      originalName: thumbnail.name,
-      mimeType: thumbnail.type || "application/octet-stream",
-      sizeBytes: thumbnail.size,
-      url: fileUrl,
-      isCover: true,
-      sortOrder: 0,
-    },
-    bucket,
-    client,
+    fileName: key.split("/").pop() || thumbnail.name,
+    originalName: thumbnail.name,
+    mimeType: thumbnail.type || "application/octet-stream",
+    sizeBytes: thumbnail.size,
+    url: fileUrl,
+    isCover: true,
+    sortOrder: 0,
   }
 }
 
-// 목록/상세 조회 요청을 처리한다.
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const author = await assertAdminSession(request)
-  if (!author)
+  if (!author) {
     return NextResponse.json(
-      { ok: false, message: "로그인이 필요합니다." },
+      { ok: false, message: "로그인이 필요합니다." },
       { status: 401 },
     )
+  }
 
   const { id } = await context.params
-  const item = await prisma.post.findFirst({
-    where: { id, category: "GALLERY" },
-    select: {
-      id: true,
-      title: true,
-      content: true,
-      isPublished: true,
-      createdAt: true,
-      galleryImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
-        take: 1,
-        select: { id: true, originalName: true, url: true },
-      },
-    },
-  })
+  const item = await galleryService.getGalleryById(id)
 
-  if (!item)
+  if (!item) {
     return NextResponse.json(
-      { ok: false, message: "게시글을 찾을 수 없습니다." },
+      { ok: false, message: "게시글을 찾을 수 없습니다." },
       { status: 404 },
     )
+  }
 
   return NextResponse.json({ ok: true, item })
 }
 
-// 수정 요청을 처리한다.
 export async function PATCH(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const author = await assertAdminSession(request)
-  if (!author)
+  if (!author) {
     return NextResponse.json(
-      { ok: false, message: "로그인이 필요합니다." },
+      { ok: false, message: "로그인이 필요합니다." },
       { status: 401 },
     )
+  }
 
   const { id } = await context.params
-  const target = await prisma.post.findFirst({
-    where: { id, category: "GALLERY" },
-    select: {
-      id: true,
-      galleryImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
-        take: 1,
-        select: { id: true, url: true },
-      },
-    },
-  })
-  if (!target)
-    return NextResponse.json(
-      { ok: false, message: "게시글을 찾을 수 없습니다." },
-      { status: 404 },
-    )
 
   const formData = await request.formData()
   const title = String(formData.get("title") || "").trim()
@@ -157,11 +110,20 @@ export async function PATCH(
   const thumbnailUrl = String(formData.get("thumbnailUrl") || "").trim()
   const thumbnail = formData.get("thumbnail")
 
-  if (!title || !content)
+  if (!title || !content) {
     return NextResponse.json(
-      { ok: false, message: "제목과 내용은 필수입니다." },
+      { ok: false, message: "제목과 내용은 필수입니다." },
       { status: 400 },
     )
+  }
+
+  const detail = await galleryService.getGalleryById(id)
+  if (!detail) {
+    return NextResponse.json(
+      { ok: false, message: "게시글을 찾을 수 없습니다." },
+      { status: 404 },
+    )
+  }
 
   let replaceImage: null | {
     fileName: string
@@ -173,12 +135,11 @@ export async function PATCH(
     sortOrder: number
   } = null
 
-  if (thumbnailUrl && thumbnailUrl !== target.galleryImages[0]?.url) {
+  if (thumbnailUrl && thumbnailUrl !== detail.galleryImages[0]?.url) {
     replaceImage = toImageRecordFromUrl(thumbnailUrl)
   } else if (thumbnail instanceof File && thumbnail.size > 0) {
     try {
-      const uploaded = await uploadThumbnailFile(thumbnail)
-      replaceImage = uploaded.imageRecord
+      replaceImage = await uploadThumbnailFile(thumbnail)
     } catch (error) {
       return NextResponse.json(
         {
@@ -186,82 +147,80 @@ export async function PATCH(
           message:
             error instanceof Error
               ? error.message
-              : "썸네일 업로드에 실패했습니다.",
+              : "썸네일 업로드에 실패했습니다.",
         },
         { status: 400 },
       )
     }
   }
 
-  if (replaceImage) {
-    const old = target.galleryImages[0]
-    if (old) {
-      await prisma.galleryImage.delete({ where: { id: old.id } })
-      const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-      if (bucket) {
-        const client = getMinioS3Client()
-        await client.send(
-          new DeleteObjectCommand({
-            Bucket: bucket,
-            Key: resolveObjectKey(old.url),
-          }),
-        )
-      }
-    }
+  const updated = await galleryService.updateGallery({
+    id,
+    title,
+    content,
+    isPublished,
+    ...(replaceImage ? { replaceImage } : {}),
+  })
+
+  if (!updated) {
+    return NextResponse.json(
+      { ok: false, message: "게시글을 찾을 수 없습니다." },
+      { status: 404 },
+    )
   }
 
-  await prisma.post.update({
-    where: { id },
-    data: {
-      title,
-      content,
-      isPublished,
-      publishedAt: isPublished ? new Date() : null,
-      ...(replaceImage ? { galleryImages: { create: replaceImage } } : {}),
-    },
-  })
+  if (updated.oldImageUrl) {
+    const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
+    if (bucket) {
+      const client = getMinioS3Client()
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: resolveObjectKey(updated.oldImageUrl),
+        }),
+      )
+    }
+  }
 
   return NextResponse.json({ ok: true })
 }
 
-// 삭제 요청을 처리한다.
 export async function DELETE(
   request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const author = await assertAdminSession(request)
-  if (!author)
+  if (!author) {
     return NextResponse.json(
-      { ok: false, message: "로그인이 필요합니다." },
+      { ok: false, message: "로그인이 필요합니다." },
       { status: 401 },
     )
+  }
 
   const { id } = await context.params
-  const target = await prisma.post.findFirst({
-    where: { id, category: "GALLERY" },
-    select: { id: true, galleryImages: { select: { url: true } } },
-  })
-  if (!target)
+  const removed = await galleryService.removeGallery(id)
+
+  if (!removed) {
     return NextResponse.json(
-      { ok: false, message: "게시글을 찾을 수 없습니다." },
+      { ok: false, message: "게시글을 찾을 수 없습니다." },
       { status: 404 },
     )
+  }
 
   const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-  if (bucket && target.galleryImages.length > 0) {
+  if (bucket && removed.imageUrls.length > 0) {
     const client = getMinioS3Client()
     await Promise.all(
-      target.galleryImages.map((image) =>
+      removed.imageUrls.map((url) =>
         client.send(
           new DeleteObjectCommand({
             Bucket: bucket,
-            Key: resolveObjectKey(image.url),
+            Key: resolveObjectKey(url),
           }),
         ),
       ),
     )
   }
 
-  await prisma.post.delete({ where: { id } })
   return NextResponse.json({ ok: true })
 }

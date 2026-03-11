@@ -55,6 +55,7 @@ model Post {
   slug          String        @unique                                          // URL 식별자(중복 불가)
   summary       String?                                                        // 요약문
   content       String        @db.Text                                         // 본문 내용
+  youtubeUrl    String?                                                        // 본문에서 추출한 최초 YouTube 링크
   isPublished   Boolean       @default(false)                                  // 공개 여부
   publishedAt   DateTime?                                                      // 공개 시각
   isPinned      Boolean       @default(false)                                  // 상단 고정 여부

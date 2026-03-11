@@ -1,3 +1,4 @@
+import { extractFirstYoutubeUrl } from "@/lib/youtube"
 import {
   countNotices,
   createNoticeRecord,
@@ -50,12 +51,14 @@ export async function createNotice(input: {
   const normalizedTitle = input.title.trim()
   const normalizedSummary = input.summary?.trim()
   const normalizedContent = input.content.trim()
+  const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
 
   return createNoticeRecord({
     title: normalizedTitle,
     slug: toSlug(normalizedTitle),
     summary: normalizedSummary || undefined,
     content: normalizedContent,
+    youtubeUrl,
     isPublished: Boolean(input.isPublished),
     isPinned: Boolean(input.isPinned),
     authorId: input.authorId,
@@ -100,11 +103,14 @@ export async function updateNotice(input: {
   isPinned?: boolean
 }) {
   const normalizedSummary = input.summary?.trim()
+  const normalizedContent = input.content.trim()
+  const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
 
   return updateNoticeById(input.id, {
     title: input.title.trim(),
     summary: normalizedSummary ? normalizedSummary : null,
-    content: input.content.trim(),
+    content: normalizedContent,
+    youtubeUrl,
     isPublished: Boolean(input.isPublished),
     isPinned: Boolean(input.isPinned),
   })

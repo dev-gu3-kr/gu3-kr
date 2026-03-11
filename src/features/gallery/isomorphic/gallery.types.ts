@@ -5,6 +5,7 @@ export type GalleryListItemDto = {
   isPublished: boolean // 공개 여부
   createdAt: string // 생성 시각
   thumbnailUrl: string | null // 대표 썸네일 URL
+  hasYoutube: boolean // YouTube 링크 포함 여부
 }
 
 // 갤러리 커서 페이지 DTO

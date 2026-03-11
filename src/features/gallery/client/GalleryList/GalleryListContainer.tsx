@@ -187,6 +187,12 @@ export function GalleryListContainer() {
                       썸네일 없음
                     </div>
                   )}
+
+                  {item.hasYoutube ? (
+                    <span className="absolute bottom-2 right-2 inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-1 text-[10px] font-semibold text-white">
+                      ▶
+                    </span>
+                  ) : null}
                 </div>
                 <div className="space-y-1 p-3">
                   <p className="line-clamp-2 text-sm font-medium">

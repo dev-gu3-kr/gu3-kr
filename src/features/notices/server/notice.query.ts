@@ -5,6 +5,7 @@ export async function createNoticeRecord(params: {
   slug: string
   summary?: string
   content: string
+  youtubeUrl: string | null
   isPublished: boolean
   isPinned: boolean
   authorId: string
@@ -16,6 +17,7 @@ export async function createNoticeRecord(params: {
       slug: params.slug,
       summary: params.summary,
       content: params.content,
+      youtubeUrl: params.youtubeUrl,
       isPublished: params.isPublished,
       isPinned: params.isPinned,
       publishedAt: params.isPublished ? new Date() : null,
@@ -92,6 +94,7 @@ export async function updateNoticeById(
     title: string
     summary?: string | null
     content: string
+    youtubeUrl: string | null
     isPublished: boolean
     isPinned: boolean
   },
@@ -102,6 +105,7 @@ export async function updateNoticeById(
       title: params.title,
       summary: params.summary,
       content: params.content,
+      youtubeUrl: params.youtubeUrl,
       isPublished: params.isPublished,
       isPinned: params.isPinned,
       publishedAt: params.isPublished ? new Date() : null,
