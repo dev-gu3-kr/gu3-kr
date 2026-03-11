@@ -2,25 +2,9 @@
 
 import type { UserRole } from "@prisma/client"
 import { useCallback, useEffect, useState } from "react"
-import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import type { AdminUserListItemDto } from "@/features/users/isomorphic"
 import { apiFetch } from "@/lib/api"
+import { UserManagerView } from "./UserManagerView"
 
 type UserListResponse = {
   ok?: boolean
@@ -43,7 +27,6 @@ export function UserManagerContainer() {
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
   const [resettingUserId, setResettingUserId] = useState<string | null>(null)
 
-  // 모달 닫힘/등록 성공 시 입력 상태를 초기화해 이전 값이 재노출되지 않게 한다.
   const resetCreateForm = () => {
     setDisplayName("")
     setEmail("")
@@ -51,7 +34,6 @@ export function UserManagerContainer() {
     setRole("ADMIN")
   }
 
-  // 목록은 모든 액션(등록/삭제/초기화) 후 재조회해 단일 진실원천을 유지한다.
   const loadUsers = useCallback(async () => {
     setIsLoading(true)
     setMessage(null)
@@ -61,12 +43,12 @@ export function UserManagerContainer() {
         .json()
         .catch(() => null)) as UserListResponse | null
       if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-        throw new Error(json?.message ?? "사용자 목록을 불러오지 못했습니다.")
+        throw new Error(json?.message ?? "사용자 목록을 불러오지 못했습니다.")
       }
       setItems(json.items)
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "오류가 발생했습니다.",
+        error instanceof Error ? error.message : "오류가 발생했습니다.",
       )
     } finally {
       setIsLoading(false)
@@ -77,12 +59,11 @@ export function UserManagerContainer() {
     void loadUsers()
   }, [loadUsers])
 
-  // 등록 모달 제출: 이메일을 로그인 ID로 사용한다.
   async function handleCreate() {
     setMessage(null)
 
     if (!email.trim()) {
-      setMessage("로그인 이메일은 필수입니다.")
+      setMessage("로그인 이메일은 필수입니다.")
       return
     }
 
@@ -103,19 +84,18 @@ export function UserManagerContainer() {
     } | null
 
     if (!response.ok || !json?.ok) {
-      setMessage(json?.message ?? "사용자 등록에 실패했습니다.")
+      setMessage(json?.message ?? "사용자 등록에 실패했습니다.")
       return
     }
 
     resetCreateForm()
     setIsCreateModalOpen(false)
-    setMessage("사용자를 등록했습니다.")
+    setMessage("사용자를 등록했습니다.")
     await loadUsers()
   }
 
-  // 삭제 처리 중에는 동일 행 액션을 잠가 중복 요청을 막는다.
   async function handleDelete(id: string) {
-    if (!window.confirm("정말 삭제하시겠습니까?")) return
+    if (!window.confirm("정말 삭제하시겠습니까?")) return
 
     setDeletingUserId(id)
     try {
@@ -126,7 +106,7 @@ export function UserManagerContainer() {
       } | null
 
       if (!response.ok || !json?.ok) {
-        setMessage(json?.message ?? "삭제에 실패했습니다.")
+        setMessage(json?.message ?? "삭제에 실패했습니다.")
         return
       }
 
@@ -136,9 +116,8 @@ export function UserManagerContainer() {
     }
   }
 
-  // 비밀번호 초기화도 행 단위 로딩 상태를 노출해 무반응 오해를 줄인다.
   async function handleResetPassword(id: string) {
-    const next = window.prompt("새 비밀번호를 입력하세요(8자 이상).")
+    const next = window.prompt("새 비밀번호를 입력하세요(8자 이상).")
     if (!next) return
 
     setResettingUserId(id)
@@ -153,165 +132,40 @@ export function UserManagerContainer() {
       } | null
 
       if (!response.ok || !json?.ok) {
-        setMessage(json?.message ?? "비밀번호 초기화에 실패했습니다.")
+        setMessage(json?.message ?? "비밀번호 초기화에 실패했습니다.")
         return
       }
 
-      setMessage("비밀번호를 초기화했습니다.")
+      setMessage("비밀번호를 초기화했습니다.")
     } finally {
       setResettingUserId(null)
     }
   }
 
-  // 상단 목록 + 등록 모달 구조로 단일 페이지에서 사용자 관리 플로우를 완결한다.
   return (
-    <div className="space-y-6">
-      <section className="flex items-center justify-between">
-        <h2 className="font-medium">사용자 목록</h2>
-        <Button
-          type="button"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-black text-white hover:bg-black/90"
-        >
-          + 사용자 등록
-        </Button>
-      </section>
-
-      {isLoading ? (
-        <p className="text-sm text-neutral-500">불러오는 중...</p>
-      ) : null}
-      {message ? <p className="text-sm text-neutral-600">{message}</p> : null}
-
-      {!isLoading && items.length === 0 ? (
-        <p className="rounded-md border p-4 text-sm text-neutral-500">
-          등록된 사용자가 없습니다.
-        </p>
-      ) : null}
-
-      <div className="space-y-2">
-        {items.map((item) => (
-          <div key={item.id} className="rounded-md border p-3 text-sm">
-            <p className="font-medium">{item.displayName}</p>
-            <p className="text-neutral-600">
-              {item.email} · {item.role} · {item.isActive ? "활성" : "비활성"}
-            </p>
-            <div className="mt-2 flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => void handleResetPassword(item.id)}
-                disabled={
-                  resettingUserId === item.id || deletingUserId === item.id
-                }
-              >
-                {resettingUserId === item.id ? "처리 중..." : "비밀번호 초기화"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => void handleDelete(item.id)}
-                disabled={
-                  deletingUserId === item.id || resettingUserId === item.id
-                }
-                className="border-red-200 text-red-600 hover:bg-red-50"
-              >
-                {deletingUserId === item.id ? "삭제 중..." : "삭제"}
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <Dialog
-        open={isCreateModalOpen}
-        onOpenChange={(open) => {
-          setIsCreateModalOpen(open)
-          if (!open) resetCreateForm()
-        }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>사용자 등록</DialogTitle>
-          </DialogHeader>
-
-          <div className="grid grid-cols-1 gap-2">
-            <div className="space-y-1">
-              <label
-                htmlFor="user-display-name"
-                className="text-sm font-medium"
-              >
-                표시 이름
-              </label>
-              <Input
-                id="user-display-name"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="표시 이름"
-              />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="user-email" className="text-sm font-medium">
-                로그인 이메일
-              </label>
-              <Input
-                id="user-email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="로그인 이메일"
-              />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="user-password" className="text-sm font-medium">
-                초기 비밀번호
-              </label>
-              <Input
-                id="user-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="초기 비밀번호"
-              />
-            </div>
-            <div className="space-y-1">
-              <label htmlFor="user-role" className="text-sm font-medium">
-                권한
-              </label>
-              <Select
-                value={role}
-                onValueChange={(value) => setRole(value as UserRole)}
-              >
-                <SelectTrigger id="user-role">
-                  <SelectValue placeholder="권한 선택" />
-                </SelectTrigger>
-                <SelectContent>
-                  {roleOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <DialogFooter className="mt-4">
-            <DialogClose asChild>
-              <Button type="button" variant="outline" className="min-w-[96px]">
-                취소
-              </Button>
-            </DialogClose>
-            <Button
-              type="button"
-              onClick={() => void handleCreate()}
-              className="min-w-[96px] bg-black text-white hover:bg-black/90"
-            >
-              등록
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+    <UserManagerView
+      items={items}
+      isLoading={isLoading}
+      message={message}
+      isCreateModalOpen={isCreateModalOpen}
+      displayName={displayName}
+      email={email}
+      password={password}
+      role={role}
+      roleOptions={roleOptions}
+      deletingUserId={deletingUserId}
+      resettingUserId={resettingUserId}
+      onCreateModalOpenChange={(open) => {
+        setIsCreateModalOpen(open)
+        if (!open) resetCreateForm()
+      }}
+      onDisplayNameChange={setDisplayName}
+      onEmailChange={setEmail}
+      onPasswordChange={setPassword}
+      onRoleChange={setRole}
+      onCreate={handleCreate}
+      onDelete={handleDelete}
+      onResetPassword={handleResetPassword}
+    />
   )
 }
