@@ -1,6 +1,6 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import NProgress from "nprogress"
 import { useEffect } from "react"
 import "nprogress/nprogress.css"
@@ -51,6 +51,7 @@ function shouldHandleAnchorClick(event: MouseEvent) {
 
 export function RouteProgress() {
   const pathname = usePathname()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     NProgress.configure({
@@ -73,7 +74,7 @@ export function RouteProgress() {
   useEffect(() => {
     if (!pathname) return
     NProgress.done()
-  }, [pathname])
+  }, [pathname, searchParams])
 
   return null
 }
