@@ -143,6 +143,7 @@ function mapEventCards(
     createdAt: Date
     content?: string | null
     thumbnailUrl?: string | null
+    hasYoutube?: boolean
   }>,
 ): HomeEventCard[] {
   return items.map((item, index) => ({
@@ -152,6 +153,7 @@ function mapEventCards(
       "본당의 다양한 행사 소식을 준비하고 있습니다.",
     accentClassName: EVENT_CARD_ACCENTS[index % EVENT_CARD_ACCENTS.length],
     thumbnailUrl: item.thumbnailUrl ?? null,
+    hasYoutube: Boolean(item.hasYoutube),
   }))
 }
 
@@ -198,6 +200,7 @@ export async function getHomePage(monthParam: string | null) {
       galleryRows.map((row) => ({
         ...row,
         thumbnailUrl: row.galleryImages[0]?.url ?? null,
+        hasYoutube: Boolean(row.youtubeUrl),
       })),
     ),
     boardColumns: [

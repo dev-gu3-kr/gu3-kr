@@ -6,7 +6,11 @@ import {
   useQueryClient,
 } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
-import type { GalleryListItemDto } from "./gallery.types"
+import type {
+  ApiResponseDto,
+  GalleryListItemDto,
+  GalleryPublicPageDto,
+} from "./gallery.types"
 
 export type GalleryPublishFilterDto = "all" | "published" | "draft"
 
@@ -34,6 +38,11 @@ export const galleryQueryKeys = {
   detail: (id: string) => [...galleryQueryKeys.all, "detail", id] as const,
 } as const
 
+export const publicGalleryQueryKeys = {
+  list: (params: { page: number; query: string }) =>
+    ["public", "gallery", "list", params] as const,
+} as const
+
 type GalleryListResponseDto = {
   ok?: boolean
   items?: GalleryListItemDto[]
@@ -54,7 +63,7 @@ async function fetchGalleryPage(params: {
     })
     .send()
 
-  if (!response.ok) throw new Error("갤러리 목록을 불러오지 못했습니다.")
+  if (!response.ok) throw new Error("갤러리 목록을 불러오지 못했습니다.")
 
   const json = (await response
     .json()
@@ -73,7 +82,7 @@ async function fetchGalleryPage(params: {
 
 async function fetchGalleryDetail(id: string) {
   const response = await apiFetch.get(`/api/admin/gallery/${id}`).send()
-  if (!response.ok) throw new Error("갤러리 상세를 불러오지 못했습니다.")
+  if (!response.ok) throw new Error("갤러리 상세를 불러오지 못했습니다.")
 
   const json = (await response.json().catch(() => null)) as {
     ok?: boolean
@@ -81,9 +90,26 @@ async function fetchGalleryDetail(id: string) {
   } | null
 
   if (!json?.ok || !json.item)
-    throw new Error("갤러리 상세를 불러오지 못했습니다.")
+    throw new Error("갤러리 상세를 불러오지 못했습니다.")
 
   return json.item
+}
+
+async function fetchPublicGalleryPage(params: { page: number; query: string }) {
+  const response = await apiFetch
+    .get("/api/gallery")
+    .query({ page: params.page, q: params.query || undefined })
+    .send()
+
+  if (!response.ok) throw new Error("갤러리 목록을 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as ApiResponseDto<GalleryPublicPageDto> | null
+
+  if (!json?.ok) throw new Error("갤러리 목록을 불러오지 못했습니다.")
+
+  return json
 }
 
 export function useGalleryListInfinite(params: {
@@ -133,5 +159,16 @@ export function useGalleryDetailQuery(id: string) {
     },
     initialDataUpdatedAt: 0,
     refetchOnMount: "always",
+  })
+}
+
+export function usePublicGalleryPageQuery(params: {
+  page: number
+  query: string
+}) {
+  return useQuery({
+    queryKey: publicGalleryQueryKeys.list(params),
+    queryFn: () => fetchPublicGalleryPage(params),
+    staleTime: 10_000,
   })
 }

@@ -151,3 +151,60 @@ export async function findGalleryDeleteTargetById(id: string) {
 export async function deleteGalleryById(id: string) {
   return prisma.post.delete({ where: { id } })
 }
+
+export async function countPublishedGalleries(query?: string) {
+  return prisma.post.count({
+    where: {
+      category: "GALLERY",
+      isPublished: true,
+      ...(query
+        ? {
+            OR: [
+              { title: { contains: query } },
+              { content: { contains: query } },
+            ],
+          }
+        : {}),
+    },
+  })
+}
+
+export async function findPublishedGalleryPageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+}) {
+  return prisma.post.findMany({
+    where: {
+      category: "GALLERY",
+      isPublished: true,
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: params.take,
+    skip: params.skip,
+    select: {
+      id: true,
+      title: true,
+      isPublished: true,
+      createdAt: true,
+      youtubeUrl: true,
+      galleryImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { url: true },
+      },
+    },
+  })
+}

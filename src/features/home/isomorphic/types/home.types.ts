@@ -32,6 +32,7 @@ export type HomeEventCard = {
   readonly description: string
   readonly accentClassName: string
   readonly thumbnailUrl?: string | null
+  readonly hasYoutube?: boolean
 }
 
 export type HomeBoardItem = {

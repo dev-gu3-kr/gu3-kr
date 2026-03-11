@@ -1,6 +1,7 @@
 import { createTimestampSlug } from "@/lib/admin/slug"
 import { extractFirstYoutubeUrl } from "@/lib/youtube"
 import {
+  countPublishedGalleries,
   createGalleryRecord,
   deleteGalleryById,
   deleteGalleryImageById,
@@ -8,6 +9,7 @@ import {
   findGalleryDetailById,
   findGalleryPageRows,
   findGalleryTargetById,
+  findPublishedGalleryPageByOffset,
   replaceGalleryRecord,
 } from "./gallery.query"
 
@@ -112,4 +114,25 @@ export async function removeGallery(id: string) {
   return {
     imageUrls: target.galleryImages.map((image) => image.url),
   }
+}
+
+export async function getPublicGalleryCount(query?: string) {
+  return countPublishedGalleries(query)
+}
+
+export async function getPublicGalleryPageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+}) {
+  const rows = await findPublishedGalleryPageByOffset(params)
+
+  return rows.map((item) => ({
+    id: item.id,
+    title: item.title,
+    isPublished: item.isPublished,
+    createdAt: item.createdAt,
+    thumbnailUrl: item.galleryImages[0]?.url ?? null,
+    hasYoutube: Boolean(item.youtubeUrl),
+  }))
 }

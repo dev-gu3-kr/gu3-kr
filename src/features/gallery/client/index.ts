@@ -5,3 +5,4 @@ export {
   GalleryEditFormContainer,
   GalleryWriteFormContainer,
 } from "./GalleryWriteForm"
+export { PublicGalleryListContainer } from "./PublicGalleryList"

@@ -90,6 +90,19 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
                           />
                         ) : null}
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(17,18,20,0.28)_58%,rgba(17,18,20,0.56))]" />
+
+                        {card.hasYoutube ? (
+                          <span className="pointer-events-none absolute bottom-4 right-4">
+                            <Image
+                              src="/images/icons/gallery-youtube-badge.svg"
+                              alt="유튜브 링크 포함"
+                              width={28}
+                              height={28}
+                              className="h-7 w-7"
+                            />
+                          </span>
+                        ) : null}
+
                         <div className="absolute inset-x-0 bottom-0 p-6">
                           <h3
                             className="overflow-hidden text-2xl font-semibold text-white"
