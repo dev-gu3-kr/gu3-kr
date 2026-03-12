@@ -308,3 +308,12 @@
     0 0 10px #0ea5e9,
     0 0 5px #0ea5e9 !important;
 }
+
+/* Toast UI 렌더/편집 영역 글꼴을 사이트 기본 Pretendard와 일치시킨다. */
+.toastui-editor-contents,
+.toastui-editor-contents *,
+.toastui-editor-defaultUI,
+.toastui-editor-defaultUI * {
+  font-family: var(--font-pretendard), -apple-system, BlinkMacSystemFont,
+    "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif !important;
+}
