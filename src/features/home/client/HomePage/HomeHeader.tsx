@@ -1,12 +1,17 @@
 "use client"
 
-import { Menu, X } from "lucide-react"
+import { X } from "lucide-react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 
 import { AppLink as Link } from "@/components/AppLink"
-import { Gu3LogoMarkSvg, Gu3LogoWordmarkSvg } from "@/components/svgs"
+import {
+  Gu3LogoMarkSvg,
+  Gu3LogoWordmarkSvg,
+  MobileMenuHamburgerDarkIcon,
+  MobileMenuHamburgerIcon,
+} from "@/components/svgs"
 import {
   Accordion,
   AccordionContent,
@@ -236,10 +241,18 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
             <SheetTrigger asChild>
               <button
                 type="button"
-                className="grid size-[42px] place-items-center bg-transparent text-white"
+                className={
+                  isLight
+                    ? "grid size-[42px] place-items-center bg-transparent transition-colors text-[#252629]"
+                    : "grid size-[42px] place-items-center bg-transparent transition-colors text-white"
+                }
                 aria-label="모바일 메뉴 열기"
               >
-                <Menu className="size-7" strokeWidth={2.2} />
+                {isLight ? (
+                  <MobileMenuHamburgerDarkIcon className="h-6 w-6" />
+                ) : (
+                  <MobileMenuHamburgerIcon className="h-6 w-6" />
+                )}
               </button>
             </SheetTrigger>
             <SheetContent
@@ -393,7 +406,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       </div>
 
       <div className={subMenuPanelClassName}>
-        <div className="mx-auto grid w-full max-w-[1380px] grid-cols-[300px_1fr] px-5 py-6 md:px-8">
+        <div className="mx-auto grid w-full max-w-[1380px] grid-cols-[300px_1fr] px-5 py-7 md:px-8">
           <div className="mr-8">
             <div className="flex h-[170px] items-center justify-center rounded-[22px] bg-[#efefef]">
               <Image
@@ -421,16 +434,14 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
 
               return (
                 <div key={`submenu-${item.label}`}>
-                  <ul className={`${MENU_CELL_INNER_CLASS} space-y-1.5`}>
+                  <ul className={`${MENU_CELL_INNER_CLASS} space-y-2.5`}>
                     {subMenus.map((subMenu) => {
-                      const active = isPathActive(pathname, subMenu.url)
-
                       return (
                         <li key={`${item.label}-${subMenu.key}`}>
                           <Link
                             href={subMenu.url}
                             onClick={handleSubMenuClick}
-                            className={`block text-center text-sm font-semibold transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#8b1c21]" : "text-neutral-600"}`}
+                            className="block py-0 text-center text-sm font-semibold leading-[1.35] text-neutral-600 transition-colors duration-150 hover:text-[#8b1c21]"
                           >
                             {subMenu.label}
                           </Link>

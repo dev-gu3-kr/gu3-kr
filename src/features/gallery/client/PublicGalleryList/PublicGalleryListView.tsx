@@ -2,6 +2,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react"
 import Image from "next/image"
 
 import { AppLink as Link } from "@/components/AppLink"
+import { GalleryYoutubeBadgeIcon } from "@/components/svgs"
 import type { GalleryListItemDto } from "@/features/gallery/isomorphic"
 
 type PublicGalleryListViewProps = {
@@ -64,13 +65,7 @@ export function PublicGalleryListView({
 
                 {item.hasYoutube ? (
                   <span className="pointer-events-none absolute bottom-2 right-2">
-                    <Image
-                      src="/images/icons/gallery-youtube-badge.svg"
-                      alt="유튜브 링크 포함"
-                      width={24}
-                      height={24}
-                      className="h-6 w-6"
-                    />
+                    <GalleryYoutubeBadgeIcon className="h-6 w-6" />
                   </span>
                 ) : null}
               </div>

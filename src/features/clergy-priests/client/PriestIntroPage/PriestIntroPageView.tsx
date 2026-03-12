@@ -1,5 +1,5 @@
-import { Cross } from "lucide-react"
 import Image from "next/image"
+import { FeastMarkerIcon } from "@/components/svgs"
 import type { PriestListItemDto } from "@/features/clergy-priests/isomorphic"
 
 type PriestIntroPageViewProps = {
@@ -77,10 +77,7 @@ function PriestCard({ priest }: { priest: PriestListItemDto }) {
 
         <div className="mt-auto space-y-1.5 pt-5">
           <div className="flex items-center gap-2 text-[15px] text-[#333333]">
-            <Cross
-              className="size-4 shrink-0 text-[#f0c744]"
-              strokeWidth={2.5}
-            />
+            <FeastMarkerIcon className="relative -top-0.5 h-4 w-4 shrink-0" />
             <span>{formatFeastLabel(priest)}</span>
           </div>
           <p className="text-[14px] leading-5 text-[#8a8a8a]">

@@ -4,6 +4,7 @@ import { Loader2, Search } from "lucide-react"
 import Image from "next/image"
 import { AppLink as Link } from "@/components/AppLink"
 import { InfiniteSentinel } from "@/components/InfiniteSentinel"
+import { GalleryYoutubeBadgeIcon } from "@/components/svgs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type {
   GalleryListItemDto,
@@ -159,13 +160,7 @@ export function GalleryListView({
 
                   {item.hasYoutube ? (
                     <span className="pointer-events-none absolute bottom-2 right-2">
-                      <Image
-                        src="/images/icons/gallery-youtube-badge.svg"
-                        alt="유튜브 링크 포함"
-                        width={28}
-                        height={28}
-                        className="h-7 w-7"
-                      />
+                      <GalleryYoutubeBadgeIcon className="h-7 w-7" />
                     </span>
                   ) : null}
                 </div>

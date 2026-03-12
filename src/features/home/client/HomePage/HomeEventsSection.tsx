@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import * as React from "react"
-
+import { GalleryYoutubeBadgeIcon } from "@/components/svgs"
 import {
   Carousel,
   type CarouselApi,
@@ -65,7 +65,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
           className="w-full"
         >
           <div className="flex items-center gap-4">
-            <CarouselPrevious className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full bg-[#eaebef] text-[#7f848c] transition-colors hover:bg-[#dfe2e8] md:flex">
+            <CarouselPrevious className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full bg-[#eaebef] text-[#7f848c] transition-colors hover:bg-[#dfe2e8] disabled:cursor-not-allowed md:flex">
               <ChevronLeft className="size-5" />
             </CarouselPrevious>
 
@@ -93,13 +93,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
 
                         {card.hasYoutube ? (
                           <span className="pointer-events-none absolute bottom-4 right-4">
-                            <Image
-                              src="/images/icons/gallery-youtube-badge.svg"
-                              alt="유튜브 링크 포함"
-                              width={28}
-                              height={28}
-                              className="h-7 w-7"
-                            />
+                            <GalleryYoutubeBadgeIcon className="h-7 w-7" />
                           </span>
                         ) : null}
 
@@ -122,7 +116,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
               </CarouselContent>
             </div>
 
-            <CarouselNext className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full border-0 bg-[#252629] text-white transition-colors hover:bg-[#111317] md:flex">
+            <CarouselNext className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full border-0 bg-[#252629] text-white transition-colors hover:bg-[#111317] disabled:cursor-not-allowed md:flex">
               <ChevronRight className="size-5" />
             </CarouselNext>
           </div>
