@@ -164,7 +164,7 @@ export async function findNoticePageByOffset(params: {
           }
         : {}),
     },
-    orderBy: [{ isPinned: "desc" }, { publishedAt: "desc" }, { id: "desc" }],
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "desc" }],
     take: params.take,
     skip: params.skip,
     select: {
@@ -206,7 +206,7 @@ export async function findPublishedNoticeNavigationList() {
       category: "NOTICE",
       isPublished: true,
     },
-    orderBy: [{ isPinned: "desc" }, { publishedAt: "desc" }, { id: "desc" }],
+    orderBy: [{ isPinned: "desc" }, { createdAt: "desc" }, { id: "desc" }],
     select: {
       id: true,
       title: true,
