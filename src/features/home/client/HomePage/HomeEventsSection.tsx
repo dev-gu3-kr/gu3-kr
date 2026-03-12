@@ -65,7 +65,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
           className="w-full"
         >
           <div className="flex items-center gap-4">
-            <CarouselPrevious className="static hidden size-11 shrink-0 translate-y-0 rounded-full bg-[#eaebef] text-[#7f848c] md:flex">
+            <CarouselPrevious className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full bg-[#eaebef] text-[#7f848c] transition-colors hover:bg-[#dfe2e8] md:flex">
               <ChevronLeft className="size-5" />
             </CarouselPrevious>
 
@@ -122,7 +122,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
               </CarouselContent>
             </div>
 
-            <CarouselNext className="static hidden size-11 shrink-0 translate-y-0 rounded-full border-0 bg-[#252629] text-white md:flex">
+            <CarouselNext className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full border-0 bg-[#252629] text-white transition-colors hover:bg-[#111317] md:flex">
               <ChevronRight className="size-5" />
             </CarouselNext>
           </div>
