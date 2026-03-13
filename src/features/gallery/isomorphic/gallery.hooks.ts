@@ -81,7 +81,10 @@ async function fetchGalleryPage(params: {
 }
 
 async function fetchGalleryDetail(id: string) {
-  const response = await apiFetch.get(`/api/admin/gallery/${id}`).send()
+  const response = await apiFetch
+    .get(`/api/admin/gallery/${id}`)
+    .init({ cache: "no-store" })
+    .send()
   if (!response.ok) throw new Error("갤러리 상세를 불러오지 못했습니다.")
 
   const json = (await response.json().catch(() => null)) as {

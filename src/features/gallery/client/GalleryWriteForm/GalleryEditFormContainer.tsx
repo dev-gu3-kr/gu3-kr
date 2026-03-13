@@ -1,9 +1,13 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { useGalleryDetailQuery } from "@/features/gallery/isomorphic"
+import {
+  galleryQueryKeys,
+  useGalleryDetailQuery,
+} from "@/features/gallery/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { GalleryWriteFormView } from "./GalleryWriteFormView"
 
@@ -19,6 +23,7 @@ export function GalleryEditFormContainer({ postId }: { postId: string }) {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const {
     data,
     isLoading: isDetailLoading,
@@ -62,8 +67,16 @@ export function GalleryEditFormContainer({ postId }: { postId: string }) {
       } | null
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "수정에 실패했습니다.")
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: galleryQueryKeys.detail(postId),
+        }),
+        queryClient.invalidateQueries({ queryKey: galleryQueryKeys.all }),
+      ])
+
       toast.success("갤러리가 수정되었습니다.")
-      router.push(`/admin/gallery/${postId}`)
+      router.replace(`/admin/gallery/${postId}`)
       router.refresh()
     } catch (error) {
       setIsError(true)
