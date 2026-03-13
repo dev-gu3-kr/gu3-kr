@@ -1,6 +1,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { AppLink as Link } from "@/components/AppLink"
+import { Badge } from "@/components/ui/badge"
 import { NoticeContentViewer } from "@/features/notices/client"
 import type {
   NoticeDetailDto,
@@ -22,25 +23,43 @@ export function PublicNoticeDetailView({
         공지사항
       </h2>
 
-      <div className="mt-4 bg-[#efefef] px-4 py-3 text-sm">
-        <div
-          className={
-            detail.isPinned
-              ? "grid grid-cols-[64px_1fr_180px] items-center gap-3"
-              : "grid grid-cols-[1fr_180px] items-center gap-3"
-          }
-        >
+      {/* Mobile: card-like header (no border, gray background) */}
+      <div className="mt-4 rounded-xl bg-[#efefef] px-4 py-4 md:hidden">
+        <p className="break-keep text-[17px] font-medium leading-7 text-[#2f2f2f]">
           {detail.isPinned ? (
-            <div className="text-center text-xs text-[#3b3b3b]">
-              <span className="inline-flex rounded-sm bg-white px-3 py-1 font-semibold text-[#1f1f1f]">
-                공지
-              </span>
-            </div>
+            <Badge
+              variant="outline"
+              className="mr-2 border-transparent bg-white px-3 py-[3px] text-[11px] font-semibold leading-none text-[#1f1f1f]"
+            >
+              공지
+            </Badge>
+          ) : null}
+          {detail.title}
+        </p>
+
+        <p className="mt-3 text-xs text-[#666]">
+          {detail.authorName} <span className="mx-1 text-[#b8b8b8]">·</span>
+          {new Date(detail.createdAt).toLocaleDateString("ko-KR")}
+        </p>
+      </div>
+
+      {/* Desktop: existing row layout */}
+      <div className="mt-4 hidden rounded-md bg-[#efefef] px-4 py-4 md:block">
+        <div className="flex items-center gap-4">
+          {detail.isPinned ? (
+            <Badge
+              variant="outline"
+              className="shrink-0 border-transparent bg-white px-4 py-1.5 text-sm font-semibold text-[#1f1f1f]"
+            >
+              공지
+            </Badge>
           ) : null}
 
-          <p className="font-medium text-[#2f2f2f]">{detail.title}</p>
+          <p className="min-w-0 flex-1 break-keep text-[15px] font-medium leading-8 text-[#2f2f2f]">
+            {detail.title}
+          </p>
 
-          <p className="text-right text-xs text-[#666]">
+          <p className="shrink-0 whitespace-nowrap text-right text-xs text-[#666]">
             {detail.authorName} <span className="mx-1 text-[#b8b8b8]">·</span>
             {new Date(detail.createdAt).toLocaleDateString("ko-KR")}
           </p>
@@ -51,7 +70,7 @@ export function PublicNoticeDetailView({
         <NoticeContentViewer content={detail.content} />
       </article>
 
-      <div className="relative mt-5 min-h-9 text-sm text-[#444]">
+      <div className="relative mt-5 flex items-center justify-between gap-3 text-sm text-[#444] md:min-h-9 md:block">
         <Link
           href="/notice/notices"
           className="inline-flex items-center gap-2 text-[#333] hover:text-[#111]"
@@ -62,7 +81,7 @@ export function PublicNoticeDetailView({
           목록으로
         </Link>
 
-        <div className="mt-4 flex items-center justify-center gap-4 text-[#777] md:absolute md:left-1/2 md:top-1/2 md:mt-0 md:-translate-x-1/2 md:-translate-y-1/2">
+        <div className="ml-auto flex items-center justify-end gap-4 text-[#777] md:absolute md:left-1/2 md:top-1/2 md:ml-0 md:-translate-x-1/2 md:-translate-y-1/2">
           {navigation.prev ? (
             <Link
               href={`/notice/notices/${navigation.prev.id}`}

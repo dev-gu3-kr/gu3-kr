@@ -36,7 +36,44 @@ export function PublicNoticeListView({
       <h2 className="text-[30px] font-semibold tracking-[-0.02em] text-[#252629]">
         공지사항
       </h2>
-      <div className="mt-4 overflow-x-auto">
+
+      <div className="mt-4 space-y-2 md:hidden">
+        {items.length === 0 ? (
+          <div className="rounded-md border border-[#ececec] py-10 text-center text-sm text-neutral-500">
+            등록된 공지사항이 없습니다.
+          </div>
+        ) : (
+          items.map((item, index) => {
+            const rowNo = totalCount - (currentPage - 1) * 10 - index
+
+            return (
+              <article
+                key={item.id}
+                className="rounded-md border border-[#ececec] px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <Link
+                    href={`/notice/notices/${item.id}`}
+                    className="line-clamp-2 text-[15px] font-medium text-[#2f2f2f]"
+                  >
+                    <span className="mr-1.5 text-xs font-semibold text-[#666]">
+                      [{item.isPinned ? "공지" : rowNo}]
+                    </span>
+                    <span>{item.title}</span>
+                  </Link>
+                </div>
+
+                <p className="mt-2 text-xs text-[#666]">
+                  관리자 <span className="mx-1 text-[#c0c0c0]">·</span>
+                  {new Date(item.createdAt).toLocaleDateString("ko-KR")}
+                </p>
+              </article>
+            )
+          })
+        )}
+      </div>
+
+      <div className="mt-4 hidden overflow-x-auto md:block">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <thead>
             <tr className="bg-[#efefef] text-center text-[#2f2f2f]">
