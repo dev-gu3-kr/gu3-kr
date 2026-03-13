@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight, Search } from "lucide-react"
 import Image from "next/image"
 
 import { AppLink as Link } from "@/components/AppLink"
-import { GalleryYoutubeBadgeIcon } from "@/components/svgs"
+import { GalleryYoutubeBadge } from "@/components/GalleryYoutubeBadge"
 import type { GalleryListItemDto } from "@/features/gallery/isomorphic"
 
 type PublicGalleryListViewProps = {
@@ -64,9 +64,7 @@ export function PublicGalleryListView({
                 )}
 
                 {item.hasYoutube ? (
-                  <span className="pointer-events-none absolute bottom-2 right-2">
-                    <GalleryYoutubeBadgeIcon className="h-6 w-6" />
-                  </span>
+                  <GalleryYoutubeBadge className="absolute bottom-2 right-2" />
                 ) : null}
               </div>
 
@@ -91,11 +89,11 @@ export function PublicGalleryListView({
               className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#888] hover:bg-[#ececec]"
               aria-label="이전 페이지"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </Link>
           ) : (
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0]">
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-5 w-5" />
             </span>
           )}
 
@@ -122,11 +120,11 @@ export function PublicGalleryListView({
               className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#888] hover:bg-[#ececec]"
               aria-label="다음 페이지"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </Link>
           ) : (
             <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0]">
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-5 w-5" />
             </span>
           )}
         </div>

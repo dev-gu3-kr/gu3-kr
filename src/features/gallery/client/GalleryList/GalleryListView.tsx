@@ -3,8 +3,8 @@ import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
 import Image from "next/image"
 import { AppLink as Link } from "@/components/AppLink"
+import { GalleryYoutubeBadge } from "@/components/GalleryYoutubeBadge"
 import { InfiniteSentinel } from "@/components/InfiniteSentinel"
-import { GalleryYoutubeBadgeIcon } from "@/components/svgs"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type {
   GalleryListItemDto,
@@ -159,9 +159,7 @@ export function GalleryListView({
                   )}
 
                   {item.hasYoutube ? (
-                    <span className="pointer-events-none absolute bottom-2 right-2">
-                      <GalleryYoutubeBadgeIcon className="h-7 w-7" />
-                    </span>
+                    <GalleryYoutubeBadge className="absolute bottom-2 right-2" />
                   ) : null}
                 </div>
                 <div className="space-y-1 p-3">

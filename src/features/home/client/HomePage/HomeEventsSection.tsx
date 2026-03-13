@@ -3,7 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import * as React from "react"
-import { GalleryYoutubeBadgeIcon } from "@/components/svgs"
+import { GalleryYoutubeBadge } from "@/components/GalleryYoutubeBadge"
 import {
   Carousel,
   type CarouselApi,
@@ -92,9 +92,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
                         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.02),rgba(17,18,20,0.28)_58%,rgba(17,18,20,0.56))]" />
 
                         {card.hasYoutube ? (
-                          <span className="pointer-events-none absolute bottom-4 right-4">
-                            <GalleryYoutubeBadgeIcon className="h-7 w-7" />
-                          </span>
+                          <GalleryYoutubeBadge className="absolute bottom-2 right-2" />
                         ) : null}
 
                         <div className="absolute inset-x-0 bottom-0 p-6">
