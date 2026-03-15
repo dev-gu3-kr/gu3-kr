@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react"
 
-import type { InquiryStatusFilterDto } from "@/features/inquiries/isomorphic"
+import type {
+  InquiryStatusFilterDto,
+  InquiryTypeFilterDto,
+} from "@/features/inquiries/isomorphic"
 import { useInquiryListInfinite } from "@/features/inquiries/isomorphic"
 import { InquiryListView } from "./InquiryListView"
 
@@ -10,6 +13,7 @@ export function InquiryListContainer() {
   const [queryInput, setQueryInput] = useState("")
   const [query, setQuery] = useState("")
   const [status, setStatus] = useState<InquiryStatusFilterDto>("all")
+  const [inquiryType, setInquiryType] = useState<InquiryTypeFilterDto>("all")
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -28,7 +32,7 @@ export function InquiryListContainer() {
     isLoading,
     isError,
   } = useInquiryListInfinite({
-    filters: { query, status },
+    filters: { query, status, inquiryType },
   })
 
   const isFilterFetching = isFetching && !isFetchingNextPage
@@ -46,6 +50,7 @@ export function InquiryListContainer() {
     <InquiryListView
       queryInput={queryInput}
       status={status}
+      inquiryType={inquiryType}
       items={items}
       isLoading={isLoading}
       isError={isError}
@@ -54,6 +59,7 @@ export function InquiryListContainer() {
       hasNextPage={Boolean(hasNextPage)}
       onQueryInputChange={setQueryInput}
       onStatusChange={setStatus}
+      onInquiryTypeChange={setInquiryType}
       onLoadMore={handleLoadMore}
     />
   )

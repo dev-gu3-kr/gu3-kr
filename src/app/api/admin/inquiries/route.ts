@@ -5,6 +5,15 @@ import { inquiryService } from "@/features/inquiries/server"
 import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
 type InquiryStatusFilter = "all" | "RECEIVED" | "IN_PROGRESS" | "DONE"
+type InquiryTypeFilter =
+  | "all"
+  | "MASS_SACRAMENT"
+  | "CATECHUMEN_CLASS"
+  | "FAITH_PARISH_LIFE"
+  | "FACILITY_RENTAL"
+  | "WEBSITE_ONLINE"
+  | "VOLUNTEER_DONATION"
+  | "OTHER"
 
 export async function GET(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
@@ -38,6 +47,9 @@ export async function GET(request: Request) {
     query: searchParams.get("q")?.trim() || "",
     status: ((searchParams.get("status") as InquiryStatusFilter | null) ??
       "all") as InquiryStatusFilter,
+    inquiryType: ((searchParams.get(
+      "inquiryType",
+    ) as InquiryTypeFilter | null) ?? "all") as InquiryTypeFilter,
   })
 
   return NextResponse.json({ ok: true, ...page })

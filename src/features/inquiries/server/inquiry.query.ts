@@ -1,4 +1,4 @@
-import type { InquiryStatus } from "@prisma/client"
+import type { InquiryStatus, InquiryType } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 export async function findInquiryPageRows(params: {
@@ -6,11 +6,15 @@ export async function findInquiryPageRows(params: {
   cursor?: string
   query?: string
   status?: "all" | InquiryStatus
+  inquiryType?: "all" | InquiryType
 }) {
   return prisma.inquiry.findMany({
     where: {
       ...(params.status && params.status !== "all"
         ? { status: params.status }
+        : {}),
+      ...(params.inquiryType && params.inquiryType !== "all"
+        ? { inquiryType: params.inquiryType }
         : {}),
       ...(params.query
         ? {
@@ -30,6 +34,7 @@ export async function findInquiryPageRows(params: {
     select: {
       id: true,
       title: true,
+      inquiryType: true,
       email: true,
       phone: true,
       content: true,
@@ -47,6 +52,7 @@ export async function findInquiryById(id: string) {
     select: {
       id: true,
       title: true,
+      inquiryType: true,
       email: true,
       phone: true,
       content: true,
@@ -87,6 +93,7 @@ export async function updateInquiryById(
     select: {
       id: true,
       title: true,
+      inquiryType: true,
       email: true,
       phone: true,
       content: true,
@@ -102,7 +109,8 @@ export async function updateInquiryById(
 }
 
 export async function createInquiryRecord(params: {
-  title: string
+  title?: string
+  inquiryType: InquiryType
   content: string
   email?: string
   phone?: string

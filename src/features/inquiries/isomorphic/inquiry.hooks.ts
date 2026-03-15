@@ -15,12 +15,16 @@ import type {
   InquiryPageDto,
   InquiryStatusDto,
   InquiryStatusFilterDto,
+  InquiryTypeFilterDto,
 } from "./inquiry.types"
 
 const inquiryQueryKeys = {
   all: ["admin", "inquiries"] as const,
-  list: (filters: { query: string; status: InquiryStatusFilterDto }) =>
-    [...inquiryQueryKeys.all, "list", filters] as const,
+  list: (filters: {
+    query: string
+    status: InquiryStatusFilterDto
+    inquiryType: InquiryTypeFilterDto
+  }) => [...inquiryQueryKeys.all, "list", filters] as const,
   detail: (id: string) => [...inquiryQueryKeys.all, "detail", id] as const,
 } as const
 
@@ -29,6 +33,7 @@ type InquiryPageResponse = ApiResponseDto<InquiryPageDto>
 type InquiryListFilters = {
   query: string
   status: InquiryStatusFilterDto
+  inquiryType: InquiryTypeFilterDto
 }
 
 async function fetchInquiryPage(params: {
@@ -41,6 +46,10 @@ async function fetchInquiryPage(params: {
       take: 10,
       cursor: params.cursor,
       status: params.filters.status,
+      inquiryType:
+        params.filters.inquiryType === "all"
+          ? undefined
+          : params.filters.inquiryType,
       q: params.filters.query.trim() || undefined,
     })
     .send()
@@ -85,10 +94,16 @@ async function fetchInquiryDetail(id: string) {
   return json.item
 }
 
-async function patchInquiryStatus(id: string, status: InquiryStatusDto) {
+async function patchInquiry(
+  id: string,
+  payload: {
+    status?: InquiryStatusDto
+    note?: string
+  },
+) {
   const response = await apiFetch
     .patch(`/api/admin/inquiries/${id}`)
-    .json({ status })
+    .json(payload)
     .send()
 
   const json = (await response.json().catch(() => null)) as ApiResponseDto<{
@@ -96,7 +111,7 @@ async function patchInquiryStatus(id: string, status: InquiryStatusDto) {
   }> | null
 
   if (!response.ok || !json?.ok || !json.item) {
-    throw new Error(json?.message ?? "문의 상태 업데이트에 실패했습니다.")
+    throw new Error(json?.message ?? "문의 업데이트에 실패했습니다.")
   }
 
   return json.item
@@ -114,7 +129,7 @@ export function useInquiryStatusMutation(id: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (status: InquiryStatusDto) => patchInquiryStatus(id, status),
+    mutationFn: (status: InquiryStatusDto) => patchInquiry(id, { status }),
     onMutate: async (nextStatus) => {
       await queryClient.cancelQueries({ queryKey: inquiryQueryKeys.detail(id) })
 
@@ -147,7 +162,21 @@ export function useInquiryStatusMutation(id: string) {
     },
     onSuccess: (updatedInquiry) => {
       queryClient.setQueryData(inquiryQueryKeys.detail(id), updatedInquiry)
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
+        queryKey: [...inquiryQueryKeys.all, "list"],
+      })
+    },
+  })
+}
+
+export function useInquiryNoteMutation(id: string) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (note: string) => patchInquiry(id, { note }),
+    onSuccess: (updatedInquiry) => {
+      queryClient.setQueryData(inquiryQueryKeys.detail(id), updatedInquiry)
+      void queryClient.invalidateQueries({
         queryKey: [...inquiryQueryKeys.all, "list"],
       })
     },

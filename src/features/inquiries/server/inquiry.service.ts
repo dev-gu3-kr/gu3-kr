@@ -1,4 +1,4 @@
-import type { InquiryStatus } from "@prisma/client"
+import type { InquiryStatus, InquiryType } from "@prisma/client"
 import {
   createInquiryRecord,
   findInquiryById,
@@ -11,6 +11,7 @@ export async function getInquiryPage(params: {
   cursor?: string
   query?: string
   status?: "all" | InquiryStatus
+  inquiryType?: "all" | InquiryType
 }) {
   const rows = await findInquiryPageRows(params)
   const hasNextPage = rows.length > params.take
@@ -57,7 +58,8 @@ export async function updateInquiry(input: {
 }
 
 export async function createInquiry(input: {
-  title: string
+  title?: string
+  inquiryType: InquiryType
   content: string
   email?: string
   phone?: string

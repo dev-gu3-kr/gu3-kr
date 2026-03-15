@@ -4,10 +4,18 @@ import { CornerDownRight, Loader2, Search } from "lucide-react"
 
 import { AppLink as Link } from "@/components/AppLink"
 import { InfiniteSentinel } from "@/components/InfiniteSentinel"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import type {
   InquiryListItemDto,
   InquiryStatusFilterDto,
+  InquiryTypeFilterDto,
 } from "@/features/inquiries/isomorphic"
 
 const STATUS_LABEL: Record<Exclude<InquiryStatusFilterDto, "all">, string> = {
@@ -25,6 +33,30 @@ const STATUS_BADGE_CLASSNAME: Record<
   DONE: "bg-emerald-100 text-emerald-700",
 }
 
+const INQUIRY_TYPE_LABEL: Record<InquiryListItemDto["inquiryType"], string> = {
+  MASS_SACRAMENT: "미사 및 성사 문의",
+  CATECHUMEN_CLASS: "예비신자 / 교리 문의",
+  FAITH_PARISH_LIFE: "신앙 및 본당 생활 문의",
+  FACILITY_RENTAL: "시설 및 대관 문의",
+  WEBSITE_ONLINE: "홈페이지 및 온라인 서비스 문의",
+  VOLUNTEER_DONATION: "봉사 및 후원 문의",
+  OTHER: "기타 문의",
+}
+
+const INQUIRY_TYPE_FILTER_OPTIONS: ReadonlyArray<{
+  value: InquiryTypeFilterDto
+  label: string
+}> = [
+  { value: "all", label: "문의 유형 전체" },
+  { value: "MASS_SACRAMENT", label: "미사 및 성사 문의" },
+  { value: "CATECHUMEN_CLASS", label: "예비신자 / 교리 문의" },
+  { value: "FAITH_PARISH_LIFE", label: "신앙 및 본당 생활 문의" },
+  { value: "FACILITY_RENTAL", label: "시설 및 대관 문의" },
+  { value: "WEBSITE_ONLINE", label: "홈페이지 및 온라인 서비스 문의" },
+  { value: "VOLUNTEER_DONATION", label: "봉사 및 후원 문의" },
+  { value: "OTHER", label: "기타 문의" },
+]
+
 const FILTER_ACTIVE_CLASSNAME: Record<InquiryStatusFilterDto, string> = {
   all: "data-[state=on]:bg-neutral-900 data-[state=on]:text-white",
   RECEIVED: "data-[state=on]:bg-amber-100 data-[state=on]:text-amber-700",
@@ -35,6 +67,7 @@ const FILTER_ACTIVE_CLASSNAME: Record<InquiryStatusFilterDto, string> = {
 type InquiryListViewProps = {
   queryInput: string
   status: InquiryStatusFilterDto
+  inquiryType: InquiryTypeFilterDto
   items: InquiryListItemDto[]
   isLoading: boolean
   isError: boolean
@@ -43,12 +76,14 @@ type InquiryListViewProps = {
   hasNextPage: boolean
   onQueryInputChange: (value: string) => void
   onStatusChange: (value: InquiryStatusFilterDto) => void
+  onInquiryTypeChange: (value: InquiryTypeFilterDto) => void
   onLoadMore: () => Promise<void>
 }
 
 export function InquiryListView({
   queryInput,
   status,
+  inquiryType,
   items,
   isLoading,
   isError,
@@ -57,6 +92,7 @@ export function InquiryListView({
   hasNextPage,
   onQueryInputChange,
   onStatusChange,
+  onInquiryTypeChange,
   onLoadMore,
 }: InquiryListViewProps) {
   return (
@@ -116,6 +152,24 @@ export function InquiryListView({
           ) : null}
         </div>
 
+        <Select
+          value={inquiryType}
+          onValueChange={(value) =>
+            onInquiryTypeChange(value as InquiryTypeFilterDto)
+          }
+        >
+          <SelectTrigger className="h-9 w-full min-w-[190px] rounded-md border text-sm sm:w-[220px]">
+            <SelectValue placeholder="문의 유형 전체" />
+          </SelectTrigger>
+          <SelectContent>
+            {INQUIRY_TYPE_FILTER_OPTIONS.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
         <div className="relative sm:max-w-sm sm:flex-1">
           <input
             value={queryInput}
@@ -169,7 +223,9 @@ export function InquiryListView({
               className="block rounded-md border p-4 transition-colors hover:bg-neutral-50"
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium">{inquiry.title}</p>
+                <p className="font-medium">
+                  {INQUIRY_TYPE_LABEL[inquiry.inquiryType]}
+                </p>
                 <span
                   className={`rounded px-2 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSNAME[inquiry.status]}`}
                 >
@@ -177,7 +233,9 @@ export function InquiryListView({
                 </span>
               </div>
 
-              <p className="mt-1 text-sm text-neutral-600">{inquiry.summary}</p>
+              <p className="mt-1 truncate text-sm text-neutral-600">
+                {inquiry.summary}
+              </p>
 
               <p className="mt-2 text-xs text-neutral-500">
                 {format(new Date(inquiry.createdAt), "yyyy.MM.dd HH:mm")} ·{" "}

@@ -2,9 +2,21 @@ export type InquiryStatusDto = "RECEIVED" | "IN_PROGRESS" | "DONE"
 
 export type InquiryStatusFilterDto = "all" | InquiryStatusDto
 
+export type InquiryTypeDto =
+  | "MASS_SACRAMENT"
+  | "CATECHUMEN_CLASS"
+  | "FAITH_PARISH_LIFE"
+  | "FACILITY_RENTAL"
+  | "WEBSITE_ONLINE"
+  | "VOLUNTEER_DONATION"
+  | "OTHER"
+
+export type InquiryTypeFilterDto = "all" | InquiryTypeDto
+
 export type InquiryListItemDto = {
   id: string
-  title: string
+  title: string | null
+  inquiryType: InquiryTypeDto
   email: string | null
   phone: string | null
   summary: string
@@ -21,7 +33,8 @@ export type InquiryPageDto = {
 
 export type InquiryDetailDto = {
   id: string
-  title: string
+  title: string | null
+  inquiryType: InquiryTypeDto
   email: string | null
   phone: string | null
   content: string
