@@ -10,6 +10,7 @@ type SubLandingProps = {
 
 const sectionImageMap: Record<string, string> = {
   본당알림: "/images/sub-landing-notice.webp",
+  본당업무: "/images/office/office-landing-hero.webp",
 }
 
 export function SubLanding({
