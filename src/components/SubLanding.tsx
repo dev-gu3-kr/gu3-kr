@@ -13,6 +13,7 @@ const sectionImageMap: Record<string, string> = {
   본당업무: "/images/office/office-landing-hero.webp",
   "공동체 마당": "/images/community/community-landing-hero.webp",
   "청소년 마당": "/images/youth/youth-landing-hero.webp",
+  신앙생활: "/images/faith/faith-landing-hero.webp",
 }
 
 export function SubLanding({
