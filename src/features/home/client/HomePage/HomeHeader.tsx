@@ -223,7 +223,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
   return (
     <header className={headerClassName}>
       {!isLight ? (
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(37,38,41,0.48)_0%,rgba(37,38,41,0.32)_42%,rgba(37,38,41,0.14)_72%,rgba(37,38,41,0)_100%)] lg:group-hover:hidden" />
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(37,38,41,0.72)_0%,rgba(37,38,41,0.52)_38%,rgba(37,38,41,0.26)_68%,rgba(37,38,41,0)_100%)] lg:group-hover:hidden" />
       ) : null}
 
       <div
