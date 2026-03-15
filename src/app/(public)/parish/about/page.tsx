@@ -1,24 +1,31 @@
-import { HandHeart, HeartHandshake, Sparkles } from "lucide-react"
 import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
+import {
+  ParishMissionEvangelizationIcon,
+  ParishMissionPrayerIcon,
+  ParishMissionSharingIcon,
+} from "@/components/svgs"
 
 const MISSION_ITEMS = [
   {
     title: "기도하는 공동체",
     description: "하느님의 말씀과 성사를 중심으로 신앙을 살아가는 공동체",
-    Icon: HandHeart,
+    Icon: ParishMissionPrayerIcon,
+    iconClassName: "h-10 w-auto",
   },
   {
     title: "나누는 공동체",
     description: "이웃과 사랑을 나누며 지역사회와 함께하는 공동체",
-    Icon: HeartHandshake,
+    Icon: ParishMissionSharingIcon,
+    iconClassName: "h-10 w-auto",
   },
   {
     title: "선교하는 공동체",
     description:
       "복음을 삶으로 증거하며 세상 속에서 그리스도의 빛이 되는 공동체",
-    Icon: Sparkles,
+    Icon: ParishMissionEvangelizationIcon,
+    iconClassName: "h-11 w-auto",
   },
 ] as const
 
@@ -122,23 +129,27 @@ export default async function AboutPage() {
           </p>
 
           <div className="mt-4 space-y-3">
-            {MISSION_ITEMS.map(({ title, description, Icon }) => (
-              <article
-                key={title}
-                className="flex items-center gap-4 rounded-xl border border-[#ececec] bg-white px-5 py-4"
-              >
-                <span className="grid size-11 shrink-0 place-items-center rounded-full bg-[#f4f4f4] text-[#8a8f97]">
-                  <Icon className="size-5" />
-                </span>
+            {MISSION_ITEMS.map(
+              ({ title, description, Icon, iconClassName }) => (
+                <article
+                  key={title}
+                  className="flex items-center gap-4 rounded-xl border border-[#ececec] bg-white px-5 py-4"
+                >
+                  <span className="flex size-[58px] shrink-0 items-center justify-center rounded-full bg-[#f4f4f4] p-[8px] text-[#8a8f97]">
+                    <Icon className={iconClassName} />
+                  </span>
 
-                <div>
-                  <p className="text-[15px] font-bold text-[#b1232a]">
-                    {title}
-                  </p>
-                  <p className="mt-0.5 text-sm text-[#4e525b]">{description}</p>
-                </div>
-              </article>
-            ))}
+                  <div>
+                    <p className="text-[15px] font-bold text-[#b1232a]">
+                      {title}
+                    </p>
+                    <p className="mt-0.5 text-sm text-[#4e525b]">
+                      {description}
+                    </p>
+                  </div>
+                </article>
+              ),
+            )}
           </div>
         </div>
 
