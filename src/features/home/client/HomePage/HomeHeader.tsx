@@ -222,6 +222,10 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
 
   return (
     <header className={headerClassName}>
+      {!isLight ? (
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(37,38,41,0.28)_0%,rgba(37,38,41,0.18)_48%,rgba(37,38,41,0)_100%)]" />
+      ) : null}
+
       <div
         className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal lg:group-hover:text-neutral-900 ${isLight ? "text-neutral-900" : "text-white"}`}
       >
