@@ -1,0 +1,1 @@
+export { PrayerPageContainer } from "./PrayerPageContainer"
