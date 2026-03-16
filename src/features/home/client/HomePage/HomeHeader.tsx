@@ -174,7 +174,6 @@ function isPathActive(pathname: string, targetUrl: string) {
 
 export function HomeHeader({ navItems }: HomeHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isSubMenuDismissed, setIsSubMenuDismissed] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDesktopSubMenuOpen, setIsDesktopSubMenuOpen] = useState(false)
   const headerRef = useRef<HTMLElement | null>(null)
@@ -243,18 +242,12 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
 
   const menuColumnTemplate = `repeat(${Math.max(navItems.length, 1)}, minmax(0, 1fr))`
   const isLight = isScrolled
-  const isSubMenuOpen = !isSubMenuDismissed && isDesktopSubMenuOpen
+  const isSubMenuOpen = isDesktopSubMenuOpen
   const isHeaderLight = isLight || isSubMenuOpen
 
-  const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 ${!isSubMenuDismissed ? "lg:hover:border-neutral-200 lg:hover:bg-white" : ""} ${isHeaderLight ? "border-neutral-200 bg-white" : "border-transparent"}`
+  const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 lg:hover:border-neutral-200 lg:hover:bg-white ${isHeaderLight ? "border-neutral-200 bg-white" : "border-transparent"}`
 
-  const subMenuPanelClassName = `hidden pointer-events-none absolute inset-x-0 top-full border-t border-transparent bg-white opacity-0 transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${isSubMenuOpen ? "pointer-events-auto border-neutral-200 opacity-100 delay-0" : ""} ${!isSubMenuDismissed ? "lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0" : ""}`
-
-  const handleSubMenuClick = () => {
-    setIsDesktopSubMenuOpen(false)
-    setIsSubMenuDismissed(true)
-    window.setTimeout(() => setIsSubMenuDismissed(false), 250)
-  }
+  const subMenuPanelClassName = `hidden pointer-events-none absolute inset-x-0 top-full border-t border-transparent bg-white opacity-0 transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${isSubMenuOpen ? "pointer-events-auto border-neutral-200 opacity-100 delay-0" : ""} lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0`
 
   return (
     <header ref={headerRef} className={headerClassName}>
@@ -483,7 +476,6 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                         <li key={`${item.label}-${subMenu.key}`}>
                           <Link
                             href={subMenu.url}
-                            onClick={handleSubMenuClick}
                             className="block py-0 text-center text-sm font-semibold leading-[1.35] text-neutral-600 transition-colors duration-150 hover:text-[#8b1c21]"
                           >
                             {subMenu.label}
