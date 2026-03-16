@@ -176,8 +176,17 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDesktopSubMenuOpen, setIsDesktopSubMenuOpen] = useState(false)
+  const [canUseDesktopHover, setCanUseDesktopHover] = useState(false)
+  const [isDesktopHoverSuppressed, setIsDesktopHoverSuppressed] =
+    useState(false)
   const headerRef = useRef<HTMLElement | null>(null)
+  const desktopMenuLabelRefs = useRef<
+    Partial<Record<TopMenuKey, HTMLSpanElement | null>>
+  >({})
   const pathname = usePathname()
+  const [desktopMenuLabelWidths, setDesktopMenuLabelWidths] = useState<
+    Partial<Record<TopMenuKey, number>>
+  >({})
 
   const defaultOpenMobileMenu = useMemo<TopMenuKey>(() => {
     for (const item of navItems) {
@@ -206,6 +215,31 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
     return () => {
       window.removeEventListener("scroll", handleScroll)
       window.removeEventListener("resize", handleScroll)
+    }
+  }, [])
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(hover: hover) and (pointer: fine)")
+
+    // iPad Safari는 첫 탭에서 hover 스타일만 먼저 적용해 서브메뉴 클릭을 소비할 수 있어 입력 방식 기준으로 hover를 제한한다.
+    const syncDesktopHoverCapability = () => {
+      setCanUseDesktopHover(mediaQuery.matches)
+    }
+
+    syncDesktopHoverCapability()
+
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", syncDesktopHoverCapability)
+
+      return () => {
+        mediaQuery.removeEventListener("change", syncDesktopHoverCapability)
+      }
+    }
+
+    mediaQuery.addListener(syncDesktopHoverCapability)
+
+    return () => {
+      mediaQuery.removeListener(syncDesktopHoverCapability)
     }
   }, [])
 
@@ -240,23 +274,136 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
     }
   }, [isDesktopSubMenuOpen])
 
+  useEffect(() => {
+    const headerElement = headerRef.current
+
+    if (!headerElement) {
+      return
+    }
+
+    const handleMouseLeave = () => {
+      setIsDesktopHoverSuppressed(false)
+    }
+
+    headerElement.addEventListener("mouseleave", handleMouseLeave)
+
+    return () => {
+      headerElement.removeEventListener("mouseleave", handleMouseLeave)
+    }
+  }, [])
+
+  useEffect(() => {
+    const labelEntries = Object.entries(desktopMenuLabelRefs.current) as [
+      TopMenuKey,
+      HTMLSpanElement | null,
+    ][]
+
+    if (labelEntries.length === 0) {
+      return
+    }
+
+    // 1차 메뉴 텍스트 폭을 기준으로 2차 메뉴 시작점을 맞춘다.
+    const measureDesktopMenuLabelWidths = () => {
+      const nextWidths: Partial<Record<TopMenuKey, number>> = {}
+
+      for (const [menuKey, labelElement] of labelEntries) {
+        if (!labelElement) {
+          continue
+        }
+
+        nextWidths[menuKey] = Math.ceil(
+          labelElement.getBoundingClientRect().width,
+        )
+      }
+
+      setDesktopMenuLabelWidths((previousWidths) => {
+        const previousKeys = Object.keys(previousWidths) as TopMenuKey[]
+        const nextKeys = Object.keys(nextWidths) as TopMenuKey[]
+
+        if (
+          previousKeys.length === nextKeys.length &&
+          nextKeys.every(
+            (menuKey) => previousWidths[menuKey] === nextWidths[menuKey],
+          )
+        ) {
+          return previousWidths
+        }
+
+        return nextWidths
+      })
+    }
+
+    measureDesktopMenuLabelWidths()
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measureDesktopMenuLabelWidths)
+
+      return () => {
+        window.removeEventListener("resize", measureDesktopMenuLabelWidths)
+      }
+    }
+
+    const resizeObserver = new ResizeObserver(measureDesktopMenuLabelWidths)
+
+    for (const [, labelElement] of labelEntries) {
+      if (labelElement) {
+        resizeObserver.observe(labelElement)
+      }
+    }
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [])
+
   const menuColumnTemplate = `repeat(${Math.max(navItems.length, 1)}, minmax(0, 1fr))`
   const isLight = isScrolled
   const isSubMenuOpen = isDesktopSubMenuOpen
   const isHeaderLight = isLight || isSubMenuOpen
+  const canApplyDesktopHover = canUseDesktopHover && !isDesktopHoverSuppressed
+  const desktopHoverHeaderClassName = canApplyDesktopHover
+    ? "lg:hover:border-neutral-200 lg:hover:bg-white"
+    : ""
+  const desktopHoverTextClassName = canApplyDesktopHover
+    ? "lg:group-hover:text-neutral-900"
+    : ""
+  const desktopHoverHideOverlayClassName = canApplyDesktopHover
+    ? "lg:group-hover:hidden"
+    : ""
+  const desktopHoverSubMenuClassName = canApplyDesktopHover
+    ? "lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0"
+    : ""
+  const subMenuPanelStateClassName = isSubMenuOpen
+    ? "pointer-events-auto border-neutral-200 opacity-100 delay-0"
+    : "pointer-events-none border-transparent opacity-0"
+  const desktopHoverActiveMenuTextClassName = canApplyDesktopHover
+    ? "lg:group-hover:text-[#8b1c21]"
+    : ""
+  const desktopHoverActiveMenuIndicatorClassName = canApplyDesktopHover
+    ? "lg:group-hover:opacity-100"
+    : ""
 
-  const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 lg:hover:border-neutral-200 lg:hover:bg-white ${isHeaderLight ? "border-neutral-200 bg-white" : "border-transparent"}`
+  const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 ${desktopHoverHeaderClassName} ${isHeaderLight ? "border-neutral-200 bg-white" : "border-transparent"}`
 
-  const subMenuPanelClassName = `hidden pointer-events-none absolute inset-x-0 top-full border-t border-transparent bg-white opacity-0 transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${isSubMenuOpen ? "pointer-events-auto border-neutral-200 opacity-100 delay-0" : ""} lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0`
+  const subMenuPanelClassName = `hidden absolute inset-x-0 top-full border-t bg-white transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${subMenuPanelStateClassName} ${desktopHoverSubMenuClassName}`
+  const handleDesktopSubMenuLinkClick = () => {
+    setIsDesktopSubMenuOpen(false)
+
+    if (canUseDesktopHover) {
+      setIsDesktopHoverSuppressed(true)
+    }
+  }
 
   return (
     <header ref={headerRef} className={headerClassName}>
       {!isLight && !isSubMenuOpen ? (
-        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.62)_36%,rgba(0,0,0,0.24)_72%,rgba(0,0,0,0)_100%)] lg:group-hover:hidden" />
+        <div
+          className={`pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.62)_36%,rgba(0,0,0,0.24)_72%,rgba(0,0,0,0)_100%)] ${desktopHoverHideOverlayClassName}`}
+        />
       ) : null}
 
       <div
-        className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal lg:group-hover:text-neutral-900 ${isHeaderLight ? "text-neutral-900" : "text-white"}`}
+        className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal ${desktopHoverTextClassName} ${isHeaderLight ? "text-neutral-900" : "text-white"}`}
       >
         <Link
           href="/"
@@ -265,7 +412,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
         >
           <Gu3LogoMarkSvg className="size-11 shrink-0 md:size-12" />
           <Gu3LogoWordmarkSvg
-            className={`h-9 w-auto transition-colors duration-150 md:h-10 ${isHeaderLight ? "text-[#252629]" : "text-white"} lg:group-hover:text-[#252629]`}
+            className={`h-9 w-auto transition-colors duration-150 md:h-10 ${isHeaderLight ? "text-[#252629]" : "text-white"} ${canApplyDesktopHover ? "lg:group-hover:text-[#252629]" : ""}`}
           />
         </Link>
 
@@ -411,7 +558,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
         </div>
 
         <nav
-          className={`hidden h-full items-center transition-colors duration-150 lg:grid ${isHeaderLight ? "text-neutral-900" : "text-white"} lg:group-hover:text-neutral-900`}
+          className={`hidden h-full items-center transition-colors duration-150 lg:grid ${isHeaderLight ? "text-neutral-900" : "text-white"} ${desktopHoverTextClassName}`}
           style={{ gridTemplateColumns: menuColumnTemplate }}
         >
           {navItems.map((item) => {
@@ -428,13 +575,26 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                 aria-controls="home-header-submenu"
               >
                 <span
-                  className={`${MENU_CELL_INNER_CLASS} block text-center leading-none ${active ? "lg:group-hover:text-[#8b1c21]" : ""}`}
+                  className={`${MENU_CELL_INNER_CLASS} flex h-full items-center justify-center`}
                 >
-                  {item.label}
+                  <span
+                    ref={(node) => {
+                      if (menuKey) {
+                        desktopMenuLabelRefs.current[menuKey] = node
+                      }
+                    }}
+                    className="relative inline-flex h-full items-center"
+                  >
+                    <span
+                      className={`block text-center leading-none ${active ? desktopHoverActiveMenuTextClassName : ""}`}
+                    >
+                      {item.label}
+                    </span>
+                    <span
+                      className={`pointer-events-none absolute bottom-0 left-0 h-[2px] w-full bg-[#8b1c21] opacity-0 transition-opacity duration-150 ${active ? desktopHoverActiveMenuIndicatorClassName : ""}`}
+                    />
+                  </span>
                 </span>
-                <span
-                  className={`pointer-events-none absolute bottom-0 left-1/2 h-[2px] w-[160px] -translate-x-1/2 bg-[#8b1c21] opacity-0 transition-opacity duration-150 ${active ? "lg:group-hover:opacity-100" : ""}`}
-                />
               </button>
             )
           })}
@@ -467,23 +627,39 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
             {navItems.map((item) => {
               const menuKey = MENU_KEY_BY_LABEL[item.label]
               const subMenus = menuKey ? SUB_MENU_BY_KEY[menuKey] : []
+              const subMenuAnchorWidth = menuKey
+                ? desktopMenuLabelWidths[menuKey]
+                : undefined
 
               return (
                 <div key={`submenu-${item.label}`}>
-                  <ul className={`${MENU_CELL_INNER_CLASS} space-y-2.5`}>
-                    {subMenus.map((subMenu) => {
-                      return (
-                        <li key={`${item.label}-${subMenu.key}`}>
-                          <Link
-                            href={subMenu.url}
-                            className="block py-0 text-center text-sm font-semibold leading-[1.35] text-neutral-600 transition-colors duration-150 hover:text-[#8b1c21]"
-                          >
-                            {subMenu.label}
-                          </Link>
-                        </li>
-                      )
-                    })}
-                  </ul>
+                  <div
+                    className="mx-auto"
+                    style={
+                      subMenuAnchorWidth
+                        ? { width: `${subMenuAnchorWidth}px` }
+                        : undefined
+                    }
+                  >
+                    <ul className="space-y-2.5">
+                      {subMenus.map((subMenu) => {
+                        const active = isPathActive(pathname, subMenu.url)
+
+                        return (
+                          <li key={`${item.label}-${subMenu.key}`}>
+                            <Link
+                              href={subMenu.url}
+                              onClick={handleDesktopSubMenuLinkClick}
+                              aria-current={active ? "page" : undefined}
+                              className={`block whitespace-nowrap py-0 text-left text-sm font-semibold leading-[1.35] transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#8b1c21]" : "text-neutral-600"}`}
+                            >
+                              {subMenu.label}
+                            </Link>
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  </div>
                 </div>
               )
             })}
