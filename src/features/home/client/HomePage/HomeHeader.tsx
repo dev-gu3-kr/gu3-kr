@@ -371,11 +371,17 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
     ? "lg:group-hover:hidden"
     : ""
   const desktopHoverSubMenuClassName = canApplyDesktopHover
-    ? "lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0"
+    ? "lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:bg-white"
     : ""
   const subMenuPanelStateClassName = isSubMenuOpen
-    ? "pointer-events-auto border-neutral-200 opacity-100 delay-0"
-    : "pointer-events-none border-transparent opacity-0"
+    ? "pointer-events-auto border-neutral-200 bg-white"
+    : "pointer-events-none border-transparent bg-transparent"
+  const desktopHoverSubMenuContentClassName = canApplyDesktopHover
+    ? "lg:group-hover:opacity-100"
+    : ""
+  const subMenuContentStateClassName = isSubMenuOpen
+    ? "opacity-100"
+    : "opacity-0"
   const desktopHoverActiveMenuTextClassName = canApplyDesktopHover
     ? "lg:group-hover:text-[#8b1c21]"
     : ""
@@ -385,7 +391,8 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
 
   const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 ${desktopHoverHeaderClassName} ${isHeaderLight ? "border-neutral-200 bg-white" : "border-transparent"}`
 
-  const subMenuPanelClassName = `hidden absolute inset-x-0 top-full border-t bg-white transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${subMenuPanelStateClassName} ${desktopHoverSubMenuClassName}`
+  const subMenuPanelClassName = `hidden absolute inset-x-0 top-full border-t transition-colors duration-150 lg:block ${subMenuPanelStateClassName} ${desktopHoverSubMenuClassName}`
+  const subMenuContentClassName = `transition-opacity duration-150 ${subMenuContentStateClassName} ${desktopHoverSubMenuContentClassName}`
   const handleDesktopSubMenuLinkClick = () => {
     setIsDesktopSubMenuOpen(false)
 
@@ -602,7 +609,9 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       </div>
 
       <div id="home-header-submenu" className={subMenuPanelClassName}>
-        <div className="mx-auto grid w-full max-w-[1380px] grid-cols-[300px_1fr] px-5 py-7 md:px-8">
+        <div
+          className={`mx-auto grid w-full max-w-[1380px] grid-cols-[300px_1fr] px-5 py-7 md:px-8 ${subMenuContentClassName}`}
+        >
           <div className="mr-8">
             <div className="flex h-[170px] items-center justify-center rounded-[22px] bg-[#efefef]">
               <Image

@@ -131,6 +131,14 @@
   }
 }
 
+/* iOS Safari pull-to-refresh에서 드러나는 루트 배경을 홈 비주얼 톤과 맞춘다. */
+@media (hover: none) and (pointer: coarse) {
+  html,
+  body {
+    background: #000;
+  }
+}
+
 /* Toast UI 내부 Markdown 탭(Write/Preview)이 본문 영역에 텍스트로 섞여 보이는 현상을 숨긴다. */
 .toastui-editor-defaultUI .toastui-editor-md-tab-container {
   display: none !important;
