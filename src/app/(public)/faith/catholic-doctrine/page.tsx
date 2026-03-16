@@ -192,7 +192,7 @@ export default function Page() {
                 <AccordionContent className="pt-4 pb-0">
                   <div className="bg-[#f6f6f6] px-4 py-4 md:px-5 md:py-4">
                     <div className="flex flex-col gap-4 md:flex-row md:items-start">
-                      <div className="relative h-[144px] w-[130px] shrink-0 overflow-hidden rounded-[10px]">
+                      <div className="relative mx-auto h-[144px] w-[130px] shrink-0 overflow-hidden rounded-[10px] md:mx-0">
                         <Image
                           src={section.imageSrc}
                           alt={section.imageAlt}

@@ -81,7 +81,7 @@ export function PrayerPageView(props: PrayerPageViewProps) {
       </div>
 
       <nav
-        className="mt-8 flex flex-wrap gap-3 md:gap-2.5 lg:gap-4"
+        className="mt-8 flex flex-wrap gap-2.5 md:gap-2.5 lg:gap-4"
         aria-label="기도문 탭"
       >
         {props.tabs.map((tab) => (
@@ -91,7 +91,7 @@ export function PrayerPageView(props: PrayerPageViewProps) {
             onClick={() => props.onTabChange(tab.id)}
             variant="outline"
             className={cn(
-              "min-h-10 rounded-full px-4 py-1.5 text-[14px] font-semibold shadow-none transition-all duration-150 hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(37,38,41,0.08)] focus-visible:ring-[#e85a5e]/30 md:min-h-[42px] md:px-4 md:py-2 md:text-[14px] lg:min-h-[48px] lg:px-6 lg:py-2.5 lg:text-[15px]",
+              "min-h-9 rounded-full px-3.5 py-1 text-[14px] font-semibold shadow-none transition-all duration-150 hover:-translate-y-px hover:shadow-[0_8px_20px_rgba(37,38,41,0.08)] focus-visible:ring-[#e85a5e]/30 md:min-h-[42px] md:px-4 md:py-2 md:text-[14px] lg:min-h-[48px] lg:px-6 lg:py-2.5 lg:text-[15px]",
               props.activeTab === tab.id
                 ? "border-[#e85a5e] bg-white text-[#cf2e33] hover:border-[#e85a5e] hover:bg-white hover:text-[#cf2e33]"
                 : "border-[#d8d8d8] bg-white text-[#333] hover:border-[#c7c7c7] hover:bg-[#fcfcfc] hover:text-[#252629]",

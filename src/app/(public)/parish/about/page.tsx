@@ -67,7 +67,7 @@ export default async function AboutPage() {
         </h2>
 
         <div className="mt-6 grid gap-5 md:grid-cols-[230px_minmax(0,1fr)] md:gap-8">
-          <div className="relative aspect-[206/302] w-full max-w-[230px] overflow-hidden rounded-md border border-[#e6e6e6] bg-[#f4f4f4]">
+          <div className="relative mx-auto aspect-[206/302] w-full max-w-[230px] overflow-hidden rounded-md border border-[#e6e6e6] bg-[#f4f4f4] md:mx-0">
             <Image
               src="/images/parish/parish-about-intro.webp"
               alt="구로3동 성당 본당 소개 이미지"
