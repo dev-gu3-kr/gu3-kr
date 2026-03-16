@@ -3,7 +3,7 @@
 import { X } from "lucide-react"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { AppLink as Link } from "@/components/AppLink"
 import {
@@ -176,6 +176,8 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isSubMenuDismissed, setIsSubMenuDismissed] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isDesktopSubMenuOpen, setIsDesktopSubMenuOpen] = useState(false)
+  const headerRef = useRef<HTMLElement | null>(null)
   const pathname = usePathname()
 
   const defaultOpenMobileMenu = useMemo<TopMenuKey>(() => {
@@ -208,26 +210,60 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
     }
   }, [])
 
+  useEffect(() => {
+    void pathname
+    setIsDesktopSubMenuOpen(false)
+  }, [pathname])
+
+  useEffect(() => {
+    if (!isDesktopSubMenuOpen) {
+      return
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!headerRef.current?.contains(event.target as Node)) {
+        setIsDesktopSubMenuOpen(false)
+      }
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDesktopSubMenuOpen(false)
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown)
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown)
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [isDesktopSubMenuOpen])
+
   const menuColumnTemplate = `repeat(${Math.max(navItems.length, 1)}, minmax(0, 1fr))`
   const isLight = isScrolled
+  const isSubMenuOpen = !isSubMenuDismissed && isDesktopSubMenuOpen
+  const isHeaderLight = isLight || isSubMenuOpen
 
-  const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 ${!isSubMenuDismissed ? "lg:hover:border-neutral-200 lg:hover:bg-white" : ""} ${isLight ? "border-neutral-200 bg-white" : "border-transparent"}`
+  const headerClassName = `group fixed inset-x-0 top-0 z-40 border-b transition-colors duration-150 ${!isSubMenuDismissed ? "lg:hover:border-neutral-200 lg:hover:bg-white" : ""} ${isHeaderLight ? "border-neutral-200 bg-white" : "border-transparent"}`
 
-  const subMenuPanelClassName = `hidden pointer-events-none absolute inset-x-0 top-full border-t border-transparent bg-white opacity-0 transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${!isSubMenuDismissed ? "lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0" : ""}`
+  const subMenuPanelClassName = `hidden pointer-events-none absolute inset-x-0 top-full border-t border-transparent bg-white opacity-0 transition-[opacity,border-color] duration-150 ease-out delay-75 lg:block ${isSubMenuOpen ? "pointer-events-auto border-neutral-200 opacity-100 delay-0" : ""} ${!isSubMenuDismissed ? "lg:group-hover:pointer-events-auto lg:group-hover:border-neutral-200 lg:group-hover:opacity-100 lg:group-hover:delay-0" : ""}`
 
   const handleSubMenuClick = () => {
+    setIsDesktopSubMenuOpen(false)
     setIsSubMenuDismissed(true)
     window.setTimeout(() => setIsSubMenuDismissed(false), 250)
   }
 
   return (
-    <header className={headerClassName}>
-      {!isLight ? (
+    <header ref={headerRef} className={headerClassName}>
+      {!isLight && !isSubMenuOpen ? (
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.95)_0%,rgba(0,0,0,0.62)_36%,rgba(0,0,0,0.24)_72%,rgba(0,0,0,0)_100%)] lg:group-hover:hidden" />
       ) : null}
 
       <div
-        className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal lg:group-hover:text-neutral-900 ${isLight ? "text-neutral-900" : "text-white"}`}
+        className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal lg:group-hover:text-neutral-900 ${isHeaderLight ? "text-neutral-900" : "text-white"}`}
       >
         <Link
           href="/"
@@ -236,7 +272,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
         >
           <Gu3LogoMarkSvg className="size-11 shrink-0 md:size-12" />
           <Gu3LogoWordmarkSvg
-            className={`h-9 w-auto transition-colors duration-150 md:h-10 ${isLight ? "text-[#252629]" : "text-white"} lg:group-hover:text-[#252629]`}
+            className={`h-9 w-auto transition-colors duration-150 md:h-10 ${isHeaderLight ? "text-[#252629]" : "text-white"} lg:group-hover:text-[#252629]`}
           />
         </Link>
 
@@ -382,7 +418,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
         </div>
 
         <nav
-          className={`hidden h-full items-center transition-colors duration-150 lg:grid ${isLight ? "text-neutral-900" : "text-white"} lg:group-hover:text-neutral-900`}
+          className={`hidden h-full items-center transition-colors duration-150 lg:grid ${isHeaderLight ? "text-neutral-900" : "text-white"} lg:group-hover:text-neutral-900`}
           style={{ gridTemplateColumns: menuColumnTemplate }}
         >
           {navItems.map((item) => {
@@ -394,6 +430,9 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                 key={item.label}
                 type="button"
                 className="relative flex h-22 w-full items-center justify-center text-base font-semibold leading-none text-inherit transition-colors duration-150"
+                onClick={() => setIsDesktopSubMenuOpen(true)}
+                aria-expanded={isSubMenuOpen}
+                aria-controls="home-header-submenu"
               >
                 <span
                   className={`${MENU_CELL_INNER_CLASS} block text-center leading-none ${active ? "lg:group-hover:text-[#8b1c21]" : ""}`}
@@ -409,7 +448,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
         </nav>
       </div>
 
-      <div className={subMenuPanelClassName}>
+      <div id="home-header-submenu" className={subMenuPanelClassName}>
         <div className="mx-auto grid w-full max-w-[1380px] grid-cols-[300px_1fr] px-5 py-7 md:px-8">
           <div className="mr-8">
             <div className="flex h-[170px] items-center justify-center rounded-[22px] bg-[#efefef]">
