@@ -185,7 +185,7 @@ export function PublicNoticeListView({
 
         <form
           action="/notice/notices"
-          className="relative mx-auto w-full max-w-[260px] md:absolute md:right-0 md:top-0 md:mx-0"
+          className="relative mx-auto w-full max-w-[260px] md:absolute md:right-0 md:top-0 md:mx-0 md:max-w-[200px] lg:max-w-[260px]"
         >
           <input type="hidden" name="page" value="1" />
           <input

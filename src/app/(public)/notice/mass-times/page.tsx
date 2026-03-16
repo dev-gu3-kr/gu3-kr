@@ -5,7 +5,6 @@ import { SubLanding } from "@/components/SubLanding"
 type MassTimeChip = {
   time: string
   label: string
-  isEmphasis?: boolean
 }
 
 type MassTimeRow = {
@@ -20,7 +19,7 @@ const SUNDAY_ROWS: MassTimeRow[] = [
     isDayEmphasis: true,
     chips: [
       { time: "06:30", label: "새벽미사" },
-      { time: "10:30", label: "교중미사", isEmphasis: true },
+      { time: "10:30", label: "교중미사" },
       { time: "12:00", label: "중고등부 미사" },
       { time: "15:30", label: "유초등부 미사" },
       { time: "18:00", label: "청년 미사" },
@@ -91,11 +90,7 @@ function MassTimeSection({
               {row.chips.map((chip) => (
                 <div
                   key={`${row.dayLabel}-${chip.time}-${chip.label}`}
-                  className={
-                    chip.isEmphasis
-                      ? "inline-flex items-center gap-2 rounded-md border border-[#b78083] bg-white px-3 py-2 text-[13px] text-[#252629]"
-                      : "inline-flex items-center gap-2 rounded-md bg-[#f3f3f3] px-3 py-2 text-[13px] text-[#252629]"
-                  }
+                  className="inline-flex items-center gap-2 rounded-md bg-[#f3f3f3] px-3 py-2 text-[13px] text-[#252629]"
                 >
                   <span className="text-[#707070] font-semibold">
                     {chip.time}
