@@ -219,7 +219,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       return
     }
 
-    const handlePointerDown = (event: PointerEvent) => {
+    const handleDocumentClick = (event: MouseEvent) => {
       if (!headerRef.current?.contains(event.target as Node)) {
         setIsDesktopSubMenuOpen(false)
       }
@@ -231,11 +231,11 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       }
     }
 
-    document.addEventListener("pointerdown", handlePointerDown)
+    document.addEventListener("click", handleDocumentClick)
     window.addEventListener("keydown", handleKeyDown)
 
     return () => {
-      document.removeEventListener("pointerdown", handlePointerDown)
+      document.removeEventListener("click", handleDocumentClick)
       window.removeEventListener("keydown", handleKeyDown)
     }
   }, [isDesktopSubMenuOpen])
