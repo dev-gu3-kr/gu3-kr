@@ -23,6 +23,8 @@ type CouncilLeader = {
 type CouncilBranch = {
   readonly role: string
   readonly name: string
+  readonly imageUrl?: string
+  readonly fallbackImageUrl: string
 }
 
 function createVacantItem(role: keyof typeof pastoralCouncilRoleLabels) {
@@ -55,6 +57,10 @@ function toBranch(item: PastoralCouncilListItemDto): CouncilBranch {
   return {
     role: pastoralCouncilRoleLabels[item.role],
     name: formatPastoralCouncilDisplayName(item),
+    imageUrl: item.imageUrl ?? undefined,
+    fallbackImageUrl: getPastoralCouncilPlaceholderImageSrc(
+      item.placeholderImageType,
+    ),
   }
 }
 

@@ -17,6 +17,8 @@ type CouncilLeader = {
 type CouncilBranch = {
   readonly role: string
   readonly name: string
+  readonly imageUrl?: string
+  readonly fallbackImageUrl: string
 }
 
 type ExecutiveLeaders = {
@@ -482,22 +484,40 @@ function BranchNode({
           "rounded-xl px-3.5 py-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]",
       )}
     >
-      <p
-        className={cn(
-          "text-[15px] font-semibold tracking-[-0.02em] text-primary",
-          compact && "text-[13px] leading-5",
-        )}
-      >
-        {branch.role}
-      </p>
-      <p
-        className={cn(
-          "mt-1 text-sm leading-6 text-muted-foreground",
-          compact && "text-[13px] leading-5",
-        )}
-      >
-        {branch.name}
-      </p>
+      <div className={cn("flex items-start gap-4", compact && "gap-3")}>
+        <div
+          className={cn(
+            "relative aspect-[13/16] w-[52px] shrink-0 overflow-hidden rounded-xl border border-border/70 bg-secondary",
+            compact && "w-11 rounded-lg",
+          )}
+        >
+          <Image
+            src={branch.imageUrl ?? branch.fallbackImageUrl}
+            alt={`${branch.role} ${branch.name} 프로필 사진`}
+            fill
+            sizes={compact ? "44px" : "52px"}
+            className="object-cover"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p
+            className={cn(
+              "text-[15px] font-semibold tracking-[-0.02em] text-primary",
+              compact && "text-[13px] leading-5",
+            )}
+          >
+            {branch.role}
+          </p>
+          <p
+            className={cn(
+              "mt-1 text-sm leading-6 text-muted-foreground",
+              compact && "text-[13px] leading-5",
+            )}
+          >
+            {branch.name}
+          </p>
+        </div>
+      </div>
     </article>
   )
 }
