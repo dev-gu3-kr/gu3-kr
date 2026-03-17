@@ -124,6 +124,11 @@ const SUB_MENU_BY_KEY: Record<TopMenuKey, readonly SubMenuItem[]> = {
   ],
   community: [
     {
+      key: "communityIntro",
+      label: "공동체 마당 소개",
+      url: "/community/about",
+    },
+    {
       key: "pastoralCouncil",
       label: "사목협의회",
       url: "/community/pastoral-council",
@@ -134,15 +139,10 @@ const SUB_MENU_BY_KEY: Record<TopMenuKey, readonly SubMenuItem[]> = {
       url: "/community/district-map",
     },
     { key: "inquiry", label: "1:1 문의", url: "/community/inquiry" },
-    {
-      key: "communityIntro",
-      label: "공동체 마당 소개",
-      url: "/community/about",
-    },
   ],
   youth: [
-    { key: "youthBlog", label: "청소년 블로그", url: "/youth/blog" },
     { key: "youthIntro", label: "청소년 마당 소개", url: "/youth/about" },
+    { key: "youthBlog", label: "청소년 블로그", url: "/youth/blog" },
   ],
   faith: [
     {
