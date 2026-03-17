@@ -1,9 +1,20 @@
+"use client"
+
+import {
+  formatPastoralCouncilDisplayName,
+  type PastoralCouncilListItemDto,
+  pastoralCouncilDepartmentRoles,
+  pastoralCouncilDistrictRoles,
+  pastoralCouncilExecutiveRoleMap,
+  pastoralCouncilRoleLabels,
+  usePublicPastoralCouncilListQuery,
+} from "@/features/pastoral-council/isomorphic"
 import { PastoralCouncilPageView } from "./PastoralCouncilPageView"
 
 type CouncilLeader = {
   readonly role: string
   readonly name: string
-  readonly note?: string
+  readonly imageUrl?: string
 }
 
 type CouncilBranch = {
@@ -11,71 +22,93 @@ type CouncilBranch = {
   readonly name: string
 }
 
-const executiveLeaders = {
-  parishPriest: {
-    role: "주임신부",
-    name: "백승준 시몬",
-    note: "사목 전반 지도",
-  },
-  leftWing: {
-    role: "보좌신부",
-    name: "사목 보좌",
-    note: "전례와 교우 돌봄",
-  },
-  rightWing: {
-    role: "수도자",
-    name: "수도회 협력",
-    note: "교육과 봉사 협조",
-  },
-  chair: {
-    role: "총 회장",
-    name: "최석준 마르코",
-    note: "평신도 사목협의회 총괄",
-  },
-  viceChair: {
-    role: "남성 부회장",
-    name: "이운영 요한",
-    note: "남성 구역 협의",
-  },
-  secretary: {
-    role: "총무",
-    name: "최용조 보나벤뚜라",
-    note: "실무와 운영 관리",
-  },
-  districtChief: {
-    role: "남성 총구역장",
-    name: "최승일 다니엘",
-    note: "구역 운영 및 전달 체계 총괄",
-  },
-} satisfies Record<string, CouncilLeader>
+function createVacantItem(role: keyof typeof pastoralCouncilRoleLabels) {
+  return {
+    id: `vacant-${role}`,
+    role,
+    name: "공석",
+    baptismalName: null,
+    phone: null,
+    imageUrl: null,
+    sortOrder: 0,
+    isActive: true,
+    createdAt: new Date(0).toISOString(),
+  } satisfies PastoralCouncilListItemDto
+}
 
-const departmentBranches = [
-  { role: "전례 분과", name: "최경희 안젤라" },
-  { role: "교육/청년 분과", name: "최용조 보나벤뚜라" },
-  { role: "사회사목 분과", name: "황원선 호주아네스" },
-  { role: "재정 분과", name: "권태희 안나" },
-  { role: "선교 분과", name: "이화봉 안토니오" },
-  { role: "시설관리 분과", name: "박홍식 모이세" },
-  { role: "노인 분과", name: "이현지 카타리나" },
-  { role: "가정/생명/환경 분과", name: "백희자 스텔라" },
-  { role: "중고등 분과", name: "이상종 안드레아" },
-  { role: "유초등/홍보 분과", name: "정상범 야고보" },
-] satisfies readonly CouncilBranch[]
+function toLeader(item: PastoralCouncilListItemDto): CouncilLeader {
+  return {
+    role: pastoralCouncilRoleLabels[item.role],
+    name: formatPastoralCouncilDisplayName(item),
+    imageUrl: item.imageUrl ?? undefined,
+  }
+}
 
-const districtBranches = [
-  { role: "남성 1지역장", name: "김영균 안셀모" },
-  { role: "여성 1지역장", name: "공석" },
-  { role: "남성 2지역장", name: "공석" },
-  { role: "여성 2지역장", name: "이영민 수산나" },
-  { role: "남성 3지역장", name: "임종윤 마르티노" },
-  { role: "여성 3지역장", name: "김미향 다니엘라" },
-  { role: "남성 4지역장", name: "김진수 벤자민" },
-  { role: "여성 4지역장", name: "정연희 로사" },
-  { role: "남성 5지역장", name: "김용진 시몬" },
-  { role: "여성 5지역장", name: "최순란 데레사" },
-] satisfies readonly CouncilBranch[]
+function toBranch(item: PastoralCouncilListItemDto): CouncilBranch {
+  return {
+    role: pastoralCouncilRoleLabels[item.role],
+    name: formatPastoralCouncilDisplayName(item),
+  }
+}
 
 export function PastoralCouncilPageContainer() {
+  const { data, isLoading, isError } = usePublicPastoralCouncilListQuery()
+  const items = data ?? []
+  const itemMap = new Map(items.map((item) => [item.role, item]))
+
+  const executiveLeaders = {
+    parishPriest: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.parishPriest) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.parishPriest),
+    ),
+    leftWing: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.leftWing) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.leftWing),
+    ),
+    rightWing: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.rightWing) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.rightWing),
+    ),
+    chair: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.chair) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.chair),
+    ),
+    viceChair: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.viceChair) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.viceChair),
+    ),
+    secretary: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.secretary) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.secretary),
+    ),
+    districtChief: toLeader(
+      itemMap.get(pastoralCouncilExecutiveRoleMap.districtChief) ??
+        createVacantItem(pastoralCouncilExecutiveRoleMap.districtChief),
+    ),
+  }
+
+  const departmentBranches = pastoralCouncilDepartmentRoles.map((role) =>
+    toBranch(itemMap.get(role) ?? createVacantItem(role)),
+  )
+
+  const districtBranches = pastoralCouncilDistrictRoles.map((role) =>
+    toBranch(itemMap.get(role) ?? createVacantItem(role)),
+  )
+
+  if (isLoading && items.length === 0) {
+    return (
+      <div className="mt-8 min-h-[640px] animate-pulse rounded-3xl border border-border/60 bg-card/60" />
+    )
+  }
+
+  if (isError && items.length === 0) {
+    return (
+      <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+        사목협의회 정보를 불러오지 못했습니다.
+      </div>
+    )
+  }
+
   return (
     <PastoralCouncilPageView
       executiveLeaders={executiveLeaders}

@@ -4,8 +4,19 @@ import { useForm } from "react-hook-form"
 import { ImageCropUploadField } from "@/components/ImageCropUploadField"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import type { UpsertPastoralCouncilInputDto } from "@/features/pastoral-council/isomorphic"
+import {
+  pastoralCouncilRoleLabels,
+  pastoralCouncilRoleValues,
+  type UpsertPastoralCouncilInputDto,
+} from "@/features/pastoral-council/isomorphic"
 
 type Props = {
   initialValues?: UpsertPastoralCouncilInputDto
@@ -36,39 +47,66 @@ export function PastoralCouncilFormView({
     formState: { errors },
   } = useForm<UpsertPastoralCouncilInputDto>({
     defaultValues: initialValues ?? {
+      role: pastoralCouncilRoleValues[0],
       name: "",
       baptismalName: "",
-      duty: "",
       phone: "",
       imageUrl: "",
       isActive: true,
-      sortOrder: 0,
     },
     mode: "onSubmit",
   })
 
   const imageUrl = watch("imageUrl")
+  const selectedRole = watch("role")
 
   return (
     <form onSubmit={handleSubmit(onSubmitAction)} className="space-y-4">
       <input type="hidden" {...register("imageUrl")} />
 
+      <div className="space-y-1">
+        <label htmlFor="role" className="text-sm">
+          직책 <span className="text-red-500">*</span>
+        </label>
+        <Select
+          value={selectedRole}
+          onValueChange={(value) =>
+            setValue("role", value as UpsertPastoralCouncilInputDto["role"], {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+        >
+          <SelectTrigger id="role">
+            <SelectValue placeholder="직책을 선택해 주세요." />
+          </SelectTrigger>
+          <SelectContent>
+            {pastoralCouncilRoleValues.map((role) => (
+              <SelectItem key={role} value={role}>
+                {pastoralCouncilRoleLabels[role]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
           <label htmlFor="name" className="text-sm">
-            이름 <span className="text-red-500">*</span>
+            이름 <span className="text-red-500">*</span>
           </label>
           <Input
             id="name"
             {...register("name", {
-              validate: (v) => v.trim().length > 0 || "이름은 필수 입력입니다.",
+              validate: (value) =>
+                value.trim().length > 0 || "이름은 필수 입력입니다.",
             })}
             className={errors.name ? "border-red-500 ring-1 ring-red-500" : ""}
           />
         </div>
         <div className="space-y-1">
           <label htmlFor="baptismalName" className="text-sm">
-            세례명
+            세례명
           </label>
           <Input id="baptismalName" {...register("baptismalName")} />
         </div>
@@ -76,73 +114,38 @@ export function PastoralCouncilFormView({
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div className="space-y-1">
-          <label htmlFor="duty" className="text-sm">
-            담당영역 <span className="text-red-500">*</span>
-          </label>
-          <Input
-            id="duty"
-            {...register("duty", {
-              validate: (v) =>
-                v.trim().length > 0 || "담당영역은 필수 입력입니다.",
-            })}
-            className={errors.duty ? "border-red-500 ring-1 ring-red-500" : ""}
-          />
-        </div>
-        <div className="space-y-1">
           <label htmlFor="phone" className="text-sm">
-            연락처 <span className="text-red-500">*</span>
+            연락처
           </label>
-          <Input
-            id="phone"
-            {...register("phone", {
-              validate: (v) =>
-                v.trim().length > 0 || "연락처는 필수 입력입니다.",
-            })}
-            className={errors.phone ? "border-red-500 ring-1 ring-red-500" : ""}
+          <Input id="phone" {...register("phone")} />
+        </div>
+
+        <div className="flex items-center gap-2 pt-7 text-sm">
+          <Switch
+            id="is-active"
+            checked={Boolean(watch("isActive"))}
+            onCheckedChange={(checked: boolean) =>
+              setValue("isActive", checked, { shouldDirty: true })
+            }
           />
+          <label htmlFor="is-active" className="cursor-pointer">
+            활성 상태
+          </label>
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <ImageCropUploadField
-          value={imageUrl}
-          onUploadAction={onUploadImageAction}
-          onRemoveImageAction={onRemoveImageAction}
-          onChangeAction={(nextUrl) =>
-            setValue("imageUrl", nextUrl, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-          disabled={isLoading}
-        />
-
-        <div className="space-y-3">
-          <div className="space-y-1">
-            <label htmlFor="sortOrder" className="text-sm">
-              정렬 순서
-            </label>
-            <Input
-              id="sortOrder"
-              type="number"
-              min={0}
-              {...register("sortOrder", { valueAsNumber: true })}
-            />
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Switch
-              id="is-active"
-              checked={Boolean(watch("isActive"))}
-              onCheckedChange={(checked: boolean) =>
-                setValue("isActive", checked, { shouldDirty: true })
-              }
-            />
-            <label htmlFor="is-active" className="cursor-pointer">
-              활성 상태
-            </label>
-          </div>
-        </div>
-      </div>
+      <ImageCropUploadField
+        value={imageUrl}
+        onUploadAction={onUploadImageAction}
+        onRemoveImageAction={onRemoveImageAction}
+        onChangeAction={(nextUrl) =>
+          setValue("imageUrl", nextUrl, {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
+        }
+        disabled={isLoading}
+      />
 
       {message ? (
         <p
@@ -159,7 +162,7 @@ export function PastoralCouncilFormView({
         disabled={isLoading}
         className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60 sm:w-auto"
       >
-        {isLoading ? "저장 중..." : submitLabel}
+        {isLoading ? "저장 중..." : submitLabel}
       </Button>
     </form>
   )

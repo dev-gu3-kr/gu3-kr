@@ -1,4 +1,6 @@
 // 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
+
+import { Prisma } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { authService } from "@/features/auth/server"
 import type { ApiResponseDto } from "@/features/notices/isomorphic"
@@ -16,9 +18,9 @@ function mapItem(
 ) {
   return {
     id: item.id,
+    role: item.role,
     name: item.name,
     baptismalName: item.baptismalName,
-    duty: item.duty,
     phone: item.phone,
     imageUrl: item.imageUrl,
     sortOrder: item.sortOrder,
@@ -90,8 +92,22 @@ export async function POST(request: Request) {
       { status: 400 },
     )
 
-  const created = await pastoralCouncilService.createPastoralCouncilMember(
-    parsed.data,
-  )
-  return NextResponse.json({ ok: true, id: created.id })
+  try {
+    const created = await pastoralCouncilService.createPastoralCouncilMember(
+      parsed.data,
+    )
+    return NextResponse.json({ ok: true, id: created.id })
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { ok: false, message: "이미 등록된 직책입니다." },
+        { status: 409 },
+      )
+    }
+
+    throw error
+  }
 }

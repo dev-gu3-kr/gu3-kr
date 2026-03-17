@@ -5,7 +5,11 @@ import Image from "next/image"
 import { useParams } from "next/navigation"
 import { AppLink as Link } from "@/components/AppLink"
 import { PastoralCouncilDeleteButton } from "@/features/pastoral-council/client"
-import { usePastoralCouncilDetailQuery } from "@/features/pastoral-council/isomorphic"
+import {
+  formatPastoralCouncilDisplayName,
+  pastoralCouncilRoleLabels,
+  usePastoralCouncilDetailQuery,
+} from "@/features/pastoral-council/isomorphic"
 
 export default function AdminPastoralCouncilViewPage() {
   const params = useParams<{ id: string }>()
@@ -59,9 +63,7 @@ export default function AdminPastoralCouncilViewPage() {
   }
 
   const item = data
-  const displayName = item.baptismalName
-    ? `${item.name} · ${item.baptismalName}`
-    : item.name
+  const displayName = formatPastoralCouncilDisplayName(item)
 
   return (
     <main className="space-y-6">
@@ -96,16 +98,16 @@ export default function AdminPastoralCouncilViewPage() {
             <div className="mx-auto grid w-fit gap-y-4">
               <div className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3">
                 <BriefcaseBusiness className="h-5 w-5 text-primary" />
-                <p className="text-sm text-neutral-500">담당영역</p>
+                <p className="text-sm text-neutral-500">직책</p>
                 <p className="text-lg font-normal text-neutral-900">
-                  {item.duty}
+                  {pastoralCouncilRoleLabels[item.role]}
                 </p>
               </div>
               <div className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3">
                 <Phone className="h-5 w-5 text-primary" />
                 <p className="text-sm text-neutral-500">연락처</p>
                 <p className="text-lg font-normal text-neutral-900">
-                  {item.phone}
+                  {item.phone || "미입력"}
                 </p>
               </div>
               <div className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3">

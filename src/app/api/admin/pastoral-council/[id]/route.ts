@@ -1,4 +1,6 @@
 // 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
+
+import { Prisma } from "@prisma/client"
 import { NextResponse } from "next/server"
 import { authService } from "@/features/auth/server"
 import { upsertPastoralCouncilSchema } from "@/features/pastoral-council/isomorphic"
@@ -21,9 +23,9 @@ function mapItem(
 ) {
   return {
     id: item.id,
+    role: item.role,
     name: item.name,
     baptismalName: item.baptismalName,
-    duty: item.duty,
     phone: item.phone,
     imageUrl: item.imageUrl,
     sortOrder: item.sortOrder,
@@ -85,10 +87,10 @@ export async function PATCH(
 
   if (imageOnlyPayload) {
     await pastoralCouncilService.updatePastoralCouncilMember(id, {
+      role: item.role,
       name: item.name,
       baptismalName: item.baptismalName ?? undefined,
-      duty: item.duty,
-      phone: item.phone,
+      phone: item.phone ?? undefined,
       imageUrl: (json as { imageUrl: string }).imageUrl,
       isActive: item.isActive,
       sortOrder: item.sortOrder,
@@ -103,8 +105,22 @@ export async function PATCH(
       { status: 400 },
     )
 
-  await pastoralCouncilService.updatePastoralCouncilMember(id, parsed.data)
-  return NextResponse.json({ ok: true })
+  try {
+    await pastoralCouncilService.updatePastoralCouncilMember(id, parsed.data)
+    return NextResponse.json({ ok: true })
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      return NextResponse.json(
+        { ok: false, message: "이미 등록된 직책입니다." },
+        { status: 409 },
+      )
+    }
+
+    throw error
+  }
 }
 
 // 삭제 요청을 처리한다.

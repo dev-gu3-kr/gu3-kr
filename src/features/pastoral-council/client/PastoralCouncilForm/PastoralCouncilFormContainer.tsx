@@ -21,7 +21,7 @@ function normalizeInput(
   return {
     ...values,
     baptismalName: values.baptismalName?.trim() || undefined,
-    phone: values.phone.trim(),
+    phone: values.phone?.trim() || undefined,
     imageUrl: values.imageUrl?.trim() || undefined,
     sortOrder: normalizeNumber(values.sortOrder),
   }
@@ -48,10 +48,10 @@ export function PastoralCouncilFormContainer({
       ? (initialValues ??
         (detailQuery.data
           ? {
+              role: detailQuery.data.role,
               name: detailQuery.data.name,
               baptismalName: detailQuery.data.baptismalName ?? undefined,
-              duty: detailQuery.data.duty,
-              phone: detailQuery.data.phone,
+              phone: detailQuery.data.phone ?? undefined,
               imageUrl: detailQuery.data.imageUrl ?? undefined,
               isActive: detailQuery.data.isActive,
               sortOrder: detailQuery.data.sortOrder,

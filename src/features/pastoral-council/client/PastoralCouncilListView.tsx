@@ -1,7 +1,11 @@
 import { BriefcaseBusiness, Phone } from "lucide-react"
 import Image from "next/image"
 import { AppLink as Link } from "@/components/AppLink"
-import type { PastoralCouncilListItemDto } from "@/features/pastoral-council/isomorphic"
+import {
+  formatPastoralCouncilDisplayName,
+  type PastoralCouncilListItemDto,
+  pastoralCouncilRoleLabels,
+} from "@/features/pastoral-council/isomorphic"
 
 type PastoralCouncilListViewProps = {
   items: PastoralCouncilListItemDto[]
@@ -77,22 +81,21 @@ export function PastoralCouncilListView({
             )}
             <div className="space-y-2">
               <p className="text-base font-medium leading-tight">
-                {item.name}
-                {item.baptismalName ? ` · ${item.baptismalName}` : ""}
+                {formatPastoralCouncilDisplayName(item)}
               </p>
               <div className="space-y-1.5 text-sm text-neutral-700">
                 <p className="flex items-center gap-1.5">
                   <BriefcaseBusiness className="h-4 w-4 text-primary" />
                   <span>
-                    <span className="text-neutral-500">담당영역:</span>{" "}
-                    {item.duty}
+                    <span className="text-neutral-500">직책:</span>{" "}
+                    {pastoralCouncilRoleLabels[item.role]}
                   </span>
                 </p>
                 <p className="flex items-center gap-1.5">
                   <Phone className="h-4 w-4 text-primary" />
                   <span>
                     <span className="text-neutral-500">연락처:</span>{" "}
-                    {item.phone}
+                    {item.phone || "미입력"}
                   </span>
                 </p>
               </div>

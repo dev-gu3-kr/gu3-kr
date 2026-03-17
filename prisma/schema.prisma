@@ -25,6 +25,36 @@ enum ClergyType {
   NUN
 }
 
+enum PastoralCouncilRole {
+  PARISH_PRIEST
+  ASSISTANT_PRIEST
+  RELIGIOUS
+  CHAIRPERSON
+  VICE_CHAIRMAN_MALE
+  SECRETARY
+  DISTRICT_CHIEF_MALE
+  LITURGY_DEPARTMENT
+  EDUCATION_YOUTH_DEPARTMENT
+  SOCIAL_PASTORAL_DEPARTMENT
+  FINANCE_DEPARTMENT
+  MISSION_DEPARTMENT
+  FACILITY_MANAGEMENT_DEPARTMENT
+  SENIOR_DEPARTMENT
+  FAMILY_LIFE_ENVIRONMENT_DEPARTMENT
+  MIDDLE_HIGH_DEPARTMENT
+  ELEMENTARY_PR_DEPARTMENT
+  MALE_DISTRICT_1
+  FEMALE_DISTRICT_1
+  MALE_DISTRICT_2
+  FEMALE_DISTRICT_2
+  MALE_DISTRICT_3
+  FEMALE_DISTRICT_3
+  MALE_DISTRICT_4
+  FEMALE_DISTRICT_4
+  MALE_DISTRICT_5
+  FEMALE_DISTRICT_5
+}
+
 enum InquiryStatus {
   RECEIVED     // 접수됨(아직 답변/처리 전)
   IN_PROGRESS  // 담당자 확인/처리 중
@@ -164,16 +194,16 @@ model ClergyProfile {
 }
 
 model PastoralCouncilMember {
-  id            String   @id @default(cuid())  // 고유 식별자
-  name          String                         // 이름
-  baptismalName String?                        // 세례명
-  duty          String                         // 담당 직무/영역
-  phone         String                         // 연락처(선택)
-  imageUrl      String?                        // 프로필 이미지 URL(선택)
-  sortOrder     Int      @default(0)           // 노출 정렬 순서
-  isActive      Boolean  @default(true)        // 활성/비활성 상태
-  createdAt     DateTime @default(now())       // 생성 시각
-  updatedAt     DateTime @updatedAt            // 수정 시각
+  id            String              @id @default(cuid())  // 고유 식별자
+  role          PastoralCouncilRole @unique               // 직책 enum(필수, 중복 불가)
+  name          String                                     // 이름 또는 공석 표시명
+  baptismalName String?                                    // 세례명(선택)
+  phone         String?                                    // 연락처(선택)
+  imageUrl      String?                                    // 프로필 이미지 URL(선택)
+  sortOrder     Int                 @default(0)            // 노출 정렬 순서
+  isActive      Boolean             @default(true)         // 공개 활성 상태
+  createdAt     DateTime            @default(now())        // 생성 시각
+  updatedAt     DateTime            @updatedAt             // 수정 시각
 
   @@index([isActive, sortOrder])
 }
