@@ -1,5 +1,7 @@
-import { AppLink as Link } from "@/components/AppLink"
-import { PastoralCouncilListContainer } from "@/features/pastoral-council/client"
+import {
+  PastoralCouncilCreateButton,
+  PastoralCouncilListContainer,
+} from "@/features/pastoral-council/client"
 
 export default function AdminPastoralCouncilPage() {
   return (
@@ -11,12 +13,7 @@ export default function AdminPastoralCouncilPage() {
             사목협의회 위원 정보를 확인하고 등록/수정합니다.
           </p>
         </div>
-        <Link
-          href="/admin/pastoral-council/new"
-          className="inline-flex min-w-[92px] items-center justify-center whitespace-nowrap rounded-md bg-black px-3 py-2 text-sm font-medium text-white"
-        >
-          + 등록
-        </Link>
+        <PastoralCouncilCreateButton />
       </section>
 
       <PastoralCouncilListContainer />

@@ -1,11 +1,19 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
+  getAvailablePastoralCouncilRoles,
+  type PastoralCouncilDetailDto,
+  type PastoralCouncilListItemDto,
+  pastoralCouncilQueryKeys,
+  pastoralCouncilRoleSortOrder,
+  publicPastoralCouncilQueryKeys,
   type UpsertPastoralCouncilInputDto,
   usePastoralCouncilDetailQuery,
+  usePastoralCouncilListQuery,
 } from "@/features/pastoral-council/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { PastoralCouncilFormView } from "./PastoralCouncilFormView"
@@ -13,6 +21,11 @@ import { PastoralCouncilFormView } from "./PastoralCouncilFormView"
 function normalizeNumber(input?: number) {
   if (typeof input !== "number" || Number.isNaN(input)) return undefined
   return input
+}
+
+function normalizeNullableString(input?: string) {
+  const normalized = input?.trim()
+  return normalized ? normalized : null
 }
 
 function normalizeInput(
@@ -24,6 +37,52 @@ function normalizeInput(
     phone: values.phone?.trim() || undefined,
     imageUrl: values.imageUrl?.trim() || undefined,
     sortOrder: normalizeNumber(values.sortOrder),
+  }
+}
+
+function sortPastoralCouncilItems(items: PastoralCouncilListItemDto[]) {
+  return [...items].sort((left, right) => {
+    if (left.sortOrder !== right.sortOrder)
+      return left.sortOrder - right.sortOrder
+    return right.createdAt.localeCompare(left.createdAt)
+  })
+}
+
+function upsertPastoralCouncilListItem(
+  previous: PastoralCouncilListItemDto[] | undefined,
+  nextItem: PastoralCouncilListItemDto,
+) {
+  const nextItems = previous?.filter((item) => item.id !== nextItem.id) ?? []
+  nextItems.push(nextItem)
+  return sortPastoralCouncilItems(nextItems)
+}
+
+function upsertPublicPastoralCouncilListItem(
+  previous: PastoralCouncilListItemDto[] | undefined,
+  nextItem: PastoralCouncilListItemDto,
+) {
+  const nextItems = previous?.filter((item) => item.id !== nextItem.id) ?? []
+  if (nextItem.isActive) nextItems.push(nextItem)
+  return sortPastoralCouncilItems(nextItems)
+}
+
+function createCachedPastoralCouncilItem(params: {
+  id: string
+  createdAt: string
+  values: UpsertPastoralCouncilInputDto
+}): PastoralCouncilDetailDto {
+  const { id, createdAt, values } = params
+
+  return {
+    id,
+    role: values.role,
+    name: values.name.trim(),
+    baptismalName: normalizeNullableString(values.baptismalName),
+    phone: normalizeNullableString(values.phone),
+    imageUrl: normalizeNullableString(values.imageUrl),
+    sortOrder: values.sortOrder ?? pastoralCouncilRoleSortOrder[values.role],
+    isActive: values.isActive ?? true,
+    createdAt,
   }
 }
 
@@ -40,7 +99,9 @@ export function PastoralCouncilFormContainer({
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
+  const listQuery = usePastoralCouncilListQuery()
   const detailQuery = usePastoralCouncilDetailQuery(memberId ?? "")
 
   const resolvedInitialValues =
@@ -58,6 +119,23 @@ export function PastoralCouncilFormContainer({
             }
           : undefined))
       : initialValues
+
+  const roleOptions = listQuery.data
+    ? getAvailablePastoralCouncilRoles({
+        usedRoles: listQuery.data.map((item) => item.role),
+        currentRole: resolvedInitialValues?.role,
+      })
+    : resolvedInitialValues?.role
+      ? [resolvedInitialValues.role]
+      : []
+  const isRoleOptionsLoading = listQuery.isLoading && !listQuery.data
+  const isRoleSelectionDisabled =
+    isLoading || isRoleOptionsLoading || roleOptions.length === 0
+  const roleHelperMessage = isRoleOptionsLoading
+    ? "직책 목록을 불러오는 중입니다."
+    : roleOptions.length === 0
+      ? "모든 직책이 이미 등록되어 있습니다. 기존 위원을 수정하거나 삭제한 뒤 다시 시도해 주세요."
+      : null
 
   const handleSubmit = async (values: UpsertPastoralCouncilInputDto) => {
     const normalizedValues = normalizeInput(values)
@@ -77,6 +155,39 @@ export function PastoralCouncilFormContainer({
         } | null
         if (!response.ok || !json?.ok || !json.id)
           throw new Error(json?.message ?? "저장에 실패했습니다.")
+
+        const createdItem = createCachedPastoralCouncilItem({
+          id: json.id,
+          createdAt: new Date().toISOString(),
+          values: normalizedValues,
+        })
+
+        queryClient.setQueryData(
+          pastoralCouncilQueryKeys.detail(json.id),
+          createdItem,
+        )
+        queryClient.setQueryData<PastoralCouncilListItemDto[]>(
+          pastoralCouncilQueryKeys.lists(),
+          (previous) => upsertPastoralCouncilListItem(previous, createdItem),
+        )
+        queryClient.setQueryData<PastoralCouncilListItemDto[]>(
+          publicPastoralCouncilQueryKeys.lists(),
+          (previous) =>
+            upsertPublicPastoralCouncilListItem(previous, createdItem),
+        )
+
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: pastoralCouncilQueryKeys.lists(),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: pastoralCouncilQueryKeys.detail(json.id),
+          }),
+          queryClient.invalidateQueries({
+            queryKey: publicPastoralCouncilQueryKeys.lists(),
+          }),
+        ])
+
         toast.success("사목협의회 위원이 저장되었습니다.")
         router.push(`/admin/pastoral-council/${json.id}`)
         router.refresh()
@@ -93,6 +204,43 @@ export function PastoralCouncilFormContainer({
       } | null
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "수정에 실패했습니다.")
+
+      const existingItem =
+        detailQuery.data ??
+        listQuery.data?.find((item) => item.id === memberId) ??
+        null
+      const updatedItem = createCachedPastoralCouncilItem({
+        id: memberId ?? "",
+        createdAt: existingItem?.createdAt ?? new Date().toISOString(),
+        values: normalizedValues,
+      })
+
+      queryClient.setQueryData(
+        pastoralCouncilQueryKeys.detail(memberId ?? ""),
+        updatedItem,
+      )
+      queryClient.setQueryData<PastoralCouncilListItemDto[]>(
+        pastoralCouncilQueryKeys.lists(),
+        (previous) => upsertPastoralCouncilListItem(previous, updatedItem),
+      )
+      queryClient.setQueryData<PastoralCouncilListItemDto[]>(
+        publicPastoralCouncilQueryKeys.lists(),
+        (previous) =>
+          upsertPublicPastoralCouncilListItem(previous, updatedItem),
+      )
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: pastoralCouncilQueryKeys.lists(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: pastoralCouncilQueryKeys.detail(memberId ?? ""),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: publicPastoralCouncilQueryKeys.lists(),
+        }),
+      ])
+
       toast.success("사목협의회 위원이 수정되었습니다.")
       router.push(`/admin/pastoral-council/${memberId}`)
       router.refresh()
@@ -170,11 +318,15 @@ export function PastoralCouncilFormContainer({
   return (
     <PastoralCouncilFormView
       initialValues={resolvedInitialValues}
+      roleOptions={roleOptions}
+      roleHelperMessage={roleHelperMessage}
+      isRoleSelectionDisabled={isRoleSelectionDisabled}
       onSubmitAction={handleSubmit}
       onUploadImageAction={uploadClergyImage}
       onRemoveImageAction={removeClergyImage}
       submitLabel={mode === "create" ? "저장" : "수정 저장"}
       isLoading={isLoading}
+      isSubmitDisabled={isRoleSelectionDisabled}
       message={message}
       isError={isError}
     />

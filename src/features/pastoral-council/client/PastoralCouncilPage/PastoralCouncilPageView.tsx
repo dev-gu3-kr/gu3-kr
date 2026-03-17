@@ -504,6 +504,17 @@ function BranchNode({
   )
 }
 
+function MobileSectionTitle({ title }: { readonly title: string }) {
+  return (
+    <div className="space-y-2">
+      <h3 className="text-lg font-bold tracking-[-0.02em] text-[#252629]">
+        {title}
+      </h3>
+      <div className="h-px bg-border/70" />
+    </div>
+  )
+}
+
 function MobileTreeItem({
   node,
   isRoot = false,
@@ -709,32 +720,6 @@ export function PastoralCouncilPageView({
         showImage: true,
       },
       {
-        id: "chair",
-        kind: "leader",
-        leader: executiveLeaders.chair,
-        accent: "rose",
-        showImage: true,
-        children: [
-          ...departmentBranches.map((branch) => ({
-            id: `department-${branch.role}`,
-            kind: "branch" as const,
-            branch,
-          })),
-          {
-            id: "district-chief",
-            kind: "leader" as const,
-            leader: executiveLeaders.districtChief,
-            accent: "stone",
-            showImage: true,
-            children: districtBranches.map((branch) => ({
-              id: `district-${branch.role}`,
-              kind: "branch" as const,
-              branch,
-            })),
-          },
-        ],
-      },
-      {
         id: "religious",
         kind: "leader",
         leader: executiveLeaders.rightWing,
@@ -742,31 +727,46 @@ export function PastoralCouncilPageView({
         showImage: true,
       },
       {
-        id: "vice-chair",
+        id: "chair",
         kind: "leader",
-        leader: executiveLeaders.viceChair,
+        leader: executiveLeaders.chair,
         accent: "rose",
         showImage: true,
-      },
-      {
-        id: "secretary",
-        kind: "leader",
-        leader: executiveLeaders.secretary,
-        accent: "rose",
-        showImage: true,
+        children: [
+          {
+            id: "vice-chair",
+            kind: "leader",
+            leader: executiveLeaders.viceChair,
+            accent: "rose",
+            showImage: true,
+          },
+          {
+            id: "secretary",
+            kind: "leader",
+            leader: executiveLeaders.secretary,
+            accent: "rose",
+            showImage: true,
+          },
+        ],
       },
     ],
   }
+  const mobileDistrictTree: MobileTreeNode = {
+    id: "district-chief",
+    kind: "leader",
+    leader: executiveLeaders.districtChief,
+    accent: "stone",
+    showImage: true,
+    children: districtBranches.map((branch) => ({
+      id: `district-${branch.role}`,
+      kind: "branch" as const,
+      branch,
+    })),
+  }
 
   return (
-    <section className="mx-auto w-full max-w-[1380px] px-5 py-10 md:px-8 md:py-14">
-      <div>
-        <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629] md:text-[30px]">
-          사목협의회
-        </h2>
-      </div>
-
-      <div className="mt-8 space-y-10 md:mt-10">
+    <section className="mx-auto w-full max-w-[1200px] px-5 pb-10 md:px-8 md:pb-14">
+      <div className="space-y-10">
         <div className="hidden xl:block">
           <div ref={desktopBoard.boardRef} className="relative min-h-[1640px]">
             <CouncilBoardLines lines={desktopBoard.lines} />
@@ -797,7 +797,7 @@ export function PastoralCouncilPageView({
 
             <div
               ref={desktopBoard.registerNode("chair")}
-              className="absolute left-1/2 top-[226px] w-[320px] -translate-x-1/2"
+              className="absolute left-1/2 top-[258px] w-[320px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.chair}
@@ -911,7 +911,7 @@ export function PastoralCouncilPageView({
 
             <div
               ref={tabletBoard.registerNode("chair")}
-              className="absolute left-1/2 top-[182px] w-[236px] -translate-x-1/2"
+              className="absolute left-1/2 top-[210px] w-[236px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.chair}
@@ -999,7 +999,23 @@ export function PastoralCouncilPageView({
         </div>
 
         <div className="md:hidden">
-          <MobileTreeItem node={mobileTree} isRoot />
+          <div className="space-y-8">
+            <MobileTreeItem node={mobileTree} isRoot />
+
+            <section className="space-y-4">
+              <MobileSectionTitle title="분과 담당" />
+              <div className="space-y-3">
+                {departmentBranches.map((branch) => (
+                  <BranchNode key={branch.role} branch={branch} />
+                ))}
+              </div>
+            </section>
+
+            <section className="space-y-4">
+              <MobileSectionTitle title="구역/지역 담당" />
+              <MobileTreeItem node={mobileDistrictTree} isRoot />
+            </section>
+          </div>
         </div>
       </div>
     </section>

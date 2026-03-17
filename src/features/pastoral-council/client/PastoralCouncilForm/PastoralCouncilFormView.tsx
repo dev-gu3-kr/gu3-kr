@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { ImageCropUploadField } from "@/components/ImageCropUploadField"
 import { Button } from "@/components/ui/button"
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import {
+  type PastoralCouncilRoleDto,
   pastoralCouncilRoleLabels,
   pastoralCouncilRoleValues,
   type UpsertPastoralCouncilInputDto,
@@ -20,22 +22,30 @@ import {
 
 type Props = {
   initialValues?: UpsertPastoralCouncilInputDto
+  roleOptions: PastoralCouncilRoleDto[]
+  roleHelperMessage: string | null
+  isRoleSelectionDisabled: boolean
   onSubmitAction: (v: UpsertPastoralCouncilInputDto) => void
   onUploadImageAction: (file: File, previousUrl?: string) => Promise<string>
   onRemoveImageAction: (url: string) => Promise<void>
   submitLabel: string
   isLoading: boolean
+  isSubmitDisabled: boolean
   message: string | null
   isError: boolean
 }
 
 export function PastoralCouncilFormView({
   initialValues,
+  roleOptions,
+  roleHelperMessage,
+  isRoleSelectionDisabled,
   onSubmitAction,
   onUploadImageAction,
   onRemoveImageAction,
   submitLabel,
   isLoading,
+  isSubmitDisabled,
   message,
   isError,
 }: Props) {
@@ -59,9 +69,29 @@ export function PastoralCouncilFormView({
 
   const imageUrl = watch("imageUrl")
   const selectedRole = watch("role")
+  const resolvedSelectedRole =
+    selectedRole && roleOptions.includes(selectedRole)
+      ? selectedRole
+      : undefined
+
+  useEffect(() => {
+    if (roleOptions.length === 0) return
+    if (resolvedSelectedRole) return
+
+    setValue("role", roleOptions[0], {
+      shouldDirty: false,
+      shouldValidate: true,
+    })
+  }, [resolvedSelectedRole, roleOptions, setValue])
 
   return (
-    <form onSubmit={handleSubmit(onSubmitAction)} className="space-y-4">
+    <form
+      onSubmit={handleSubmit((values) => {
+        if (isSubmitDisabled) return
+        onSubmitAction(values)
+      })}
+      className="space-y-4"
+    >
       <input type="hidden" {...register("imageUrl")} />
 
       <div className="space-y-1">
@@ -69,7 +99,8 @@ export function PastoralCouncilFormView({
           직책 <span className="text-red-500">*</span>
         </label>
         <Select
-          value={selectedRole}
+          value={resolvedSelectedRole}
+          disabled={isRoleSelectionDisabled}
           onValueChange={(value) =>
             setValue("role", value as UpsertPastoralCouncilInputDto["role"], {
               shouldDirty: true,
@@ -81,13 +112,22 @@ export function PastoralCouncilFormView({
             <SelectValue placeholder="직책을 선택해 주세요." />
           </SelectTrigger>
           <SelectContent>
-            {pastoralCouncilRoleValues.map((role) => (
-              <SelectItem key={role} value={role}>
-                {pastoralCouncilRoleLabels[role]}
-              </SelectItem>
-            ))}
+            {roleOptions.length > 0 ? (
+              roleOptions.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {pastoralCouncilRoleLabels[role]}
+                </SelectItem>
+              ))
+            ) : (
+              <p className="px-2 py-1.5 text-sm text-neutral-500">
+                선택 가능한 직책이 없습니다.
+              </p>
+            )}
           </SelectContent>
         </Select>
+        {roleHelperMessage ? (
+          <p className="text-sm text-neutral-500">{roleHelperMessage}</p>
+        ) : null}
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -159,7 +199,7 @@ export function PastoralCouncilFormView({
 
       <Button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || isSubmitDisabled}
         className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60 sm:w-auto"
       >
         {isLoading ? "저장 중..." : submitLabel}

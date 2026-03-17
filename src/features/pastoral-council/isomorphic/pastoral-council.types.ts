@@ -130,6 +130,18 @@ export const pastoralCouncilDistrictRoles = [
   "FEMALE_DISTRICT_5",
 ] as const satisfies readonly PastoralCouncilRoleDto[]
 
+// 이미 배정된 직책을 제외하고, 수정 중인 현재 직책은 계속 선택할 수 있게 한다.
+export function getAvailablePastoralCouncilRoles(params: {
+  usedRoles: readonly PastoralCouncilRoleDto[]
+  currentRole?: PastoralCouncilRoleDto
+}) {
+  const usedRoleSet = new Set(params.usedRoles)
+
+  return pastoralCouncilRoleValues.filter(
+    (role) => role === params.currentRole || !usedRoleSet.has(role),
+  )
+}
+
 export function formatPastoralCouncilDisplayName(params: {
   name: string
   baptismalName?: string | null
