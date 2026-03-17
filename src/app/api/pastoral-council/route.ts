@@ -15,6 +15,7 @@ function mapItem(
     baptismalName: item.baptismalName,
     phone: item.phone,
     imageUrl: item.imageUrl,
+    placeholderImageType: item.placeholderImageType,
     sortOrder: item.sortOrder,
     isActive: item.isActive,
     createdAt: item.createdAt.toISOString(),

@@ -3,6 +3,7 @@ import Image from "next/image"
 import { AppLink as Link } from "@/components/AppLink"
 import {
   formatPastoralCouncilDisplayName,
+  getPastoralCouncilPlaceholderImageSrc,
   type PastoralCouncilListItemDto,
   pastoralCouncilRoleLabels,
 } from "@/features/pastoral-council/isomorphic"
@@ -63,22 +64,24 @@ export function PastoralCouncilListView({
             href={`/admin/pastoral-council/${item.id}`}
             className="grid grid-cols-[104px_1fr] gap-4 rounded-md border p-3 hover:bg-neutral-50"
           >
-            {item.imageUrl && !failedImageIds.has(item.id) ? (
-              <Image
-                src={item.imageUrl}
-                alt={`${item.name} 사진`}
-                unoptimized
-                width={104}
-                height={128}
-                sizes="104px"
-                className="h-[128px] w-[104px] rounded-md border object-cover"
-                onError={() => onImageError(item.id)}
-              />
-            ) : (
-              <div className="flex h-[128px] w-[104px] items-center justify-center rounded-md border bg-neutral-100 text-xs text-neutral-500">
-                사진
-              </div>
-            )}
+            <Image
+              src={
+                item.imageUrl && !failedImageIds.has(item.id)
+                  ? item.imageUrl
+                  : getPastoralCouncilPlaceholderImageSrc(
+                      item.placeholderImageType,
+                    )
+              }
+              alt={`${item.name} 사진`}
+              unoptimized
+              width={104}
+              height={128}
+              sizes="104px"
+              className="h-[128px] w-[104px] rounded-md border object-cover"
+              onError={() => {
+                if (item.imageUrl) onImageError(item.id)
+              }}
+            />
             <div className="space-y-2">
               <p className="text-base font-medium leading-tight">
                 {formatPastoralCouncilDisplayName(item)}

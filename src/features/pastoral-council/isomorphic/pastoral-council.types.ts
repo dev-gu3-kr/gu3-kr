@@ -30,6 +30,19 @@ export const pastoralCouncilRoleValues = [
 
 export type PastoralCouncilRoleDto = (typeof pastoralCouncilRoleValues)[number]
 
+export const pastoralCouncilPlaceholderImageTypeValues = [
+  "WOMAN",
+  "MAN",
+  "NUN",
+  "PRIEST",
+] as const
+
+export type PastoralCouncilPlaceholderImageTypeDto =
+  (typeof pastoralCouncilPlaceholderImageTypeValues)[number]
+
+export const pastoralCouncilDefaultPlaceholderImageType =
+  "PRIEST" as const satisfies PastoralCouncilPlaceholderImageTypeDto
+
 export const pastoralCouncilRoleLabels: Record<PastoralCouncilRoleDto, string> =
   {
     PARISH_PRIEST: "주임신부",
@@ -60,6 +73,26 @@ export const pastoralCouncilRoleLabels: Record<PastoralCouncilRoleDto, string> =
     MALE_DISTRICT_5: "남성 5지역장",
     FEMALE_DISTRICT_5: "여성 5지역장",
   }
+
+export const pastoralCouncilPlaceholderImageTypeLabels: Record<
+  PastoralCouncilPlaceholderImageTypeDto,
+  string
+> = {
+  WOMAN: "여자 이미지",
+  MAN: "남자 이미지",
+  NUN: "수녀 이미지",
+  PRIEST: "신부 이미지",
+}
+
+export const pastoralCouncilPlaceholderImageSrcByType: Record<
+  PastoralCouncilPlaceholderImageTypeDto,
+  string
+> = {
+  WOMAN: "/images/placeholders/profile-placeholder-woman.webp",
+  MAN: "/images/placeholders/profile-placeholder-man.webp",
+  NUN: "/images/placeholders/nun-profile-placeholder.webp",
+  PRIEST: "/images/placeholders/priest-profile-placeholder.webp",
+}
 
 export const pastoralCouncilRoleSortOrder: Record<
   PastoralCouncilRoleDto,
@@ -151,12 +184,21 @@ export function formatPastoralCouncilDisplayName(params: {
     : params.name
 }
 
+export function getPastoralCouncilPlaceholderImageSrc(
+  type?: PastoralCouncilPlaceholderImageTypeDto,
+) {
+  return pastoralCouncilPlaceholderImageSrcByType[
+    type ?? pastoralCouncilDefaultPlaceholderImageType
+  ]
+}
+
 export type UpsertPastoralCouncilInputDto = {
   role: PastoralCouncilRoleDto // 직책 enum(필수, 중복 불가)
   name: string // 이름 또는 공석 표시명
   baptismalName?: string // 세례명(미입력 가능)
   phone?: string // 연락처(미입력 가능)
   imageUrl?: string // 프로필 이미지 URL(미입력 가능)
+  placeholderImageType?: PastoralCouncilPlaceholderImageTypeDto // 이미지 없을 때 쓸 대체 이미지 유형(미입력 시 신부 이미지)
   sortOrder?: number // 노출 정렬 순서(미입력 시 역할 기본값 사용)
   isActive?: boolean // 공개 활성 상태(미입력 시 true)
 }
@@ -168,6 +210,7 @@ export type PastoralCouncilListItemDto = {
   baptismalName: string | null // 세례명(없으면 null)
   phone: string | null // 연락처(없으면 null)
   imageUrl: string | null // 이미지 URL(없으면 null)
+  placeholderImageType: PastoralCouncilPlaceholderImageTypeDto // 이미지 없을 때 쓸 대체 이미지 유형
   sortOrder: number // 노출 정렬 순서
   isActive: boolean // 공개 활성 상태
   createdAt: string // 생성 시각(ISO datetime)

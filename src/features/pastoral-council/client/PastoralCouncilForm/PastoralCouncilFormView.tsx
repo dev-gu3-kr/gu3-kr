@@ -14,7 +14,11 @@ import {
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import {
+  type PastoralCouncilPlaceholderImageTypeDto,
   type PastoralCouncilRoleDto,
+  pastoralCouncilDefaultPlaceholderImageType,
+  pastoralCouncilPlaceholderImageTypeLabels,
+  pastoralCouncilPlaceholderImageTypeValues,
   pastoralCouncilRoleLabels,
   pastoralCouncilRoleValues,
   type UpsertPastoralCouncilInputDto,
@@ -56,18 +60,22 @@ export function PastoralCouncilFormView({
     setValue,
     formState: { errors },
   } = useForm<UpsertPastoralCouncilInputDto>({
-    defaultValues: initialValues ?? {
+    defaultValues: {
       role: pastoralCouncilRoleValues[0],
       name: "",
       baptismalName: "",
       phone: "",
       imageUrl: "",
+      placeholderImageType: pastoralCouncilDefaultPlaceholderImageType,
       isActive: true,
+      ...initialValues,
     },
     mode: "onSubmit",
   })
 
   const imageUrl = watch("imageUrl")
+  const placeholderImageType =
+    watch("placeholderImageType") ?? pastoralCouncilDefaultPlaceholderImageType
   const selectedRole = watch("role")
   const resolvedSelectedRole =
     selectedRole && roleOptions.includes(selectedRole)
@@ -159,19 +167,52 @@ export function PastoralCouncilFormView({
           </label>
           <Input id="phone" {...register("phone")} />
         </div>
-
-        <div className="flex items-center gap-2 pt-7 text-sm">
-          <Switch
-            id="is-active"
-            checked={Boolean(watch("isActive"))}
-            onCheckedChange={(checked: boolean) =>
-              setValue("isActive", checked, { shouldDirty: true })
-            }
-          />
-          <label htmlFor="is-active" className="cursor-pointer">
-            활성 상태
+        <div className="space-y-1">
+          <label htmlFor="placeholderImageType" className="text-sm">
+            대체 이미지 <span className="text-red-500">*</span>
           </label>
+          <Select
+            value={placeholderImageType}
+            disabled={isLoading}
+            onValueChange={(value) =>
+              setValue(
+                "placeholderImageType",
+                value as PastoralCouncilPlaceholderImageTypeDto,
+                {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                },
+              )
+            }
+          >
+            <SelectTrigger id="placeholderImageType">
+              <SelectValue placeholder="대체 이미지를 선택해 주세요." />
+            </SelectTrigger>
+            <SelectContent>
+              {pastoralCouncilPlaceholderImageTypeValues.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {pastoralCouncilPlaceholderImageTypeLabels[type]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-neutral-500">
+            프로필 이미지가 없을 때 사용자 화면에 표시됩니다.
+          </p>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 text-sm">
+        <Switch
+          id="is-active"
+          checked={Boolean(watch("isActive"))}
+          onCheckedChange={(checked: boolean) =>
+            setValue("isActive", checked, { shouldDirty: true })
+          }
+        />
+        <label htmlFor="is-active" className="cursor-pointer">
+          활성 상태
+        </label>
       </div>
 
       <ImageCropUploadField

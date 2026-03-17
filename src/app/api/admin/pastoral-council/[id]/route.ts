@@ -28,6 +28,7 @@ function mapItem(
     baptismalName: item.baptismalName,
     phone: item.phone,
     imageUrl: item.imageUrl,
+    placeholderImageType: item.placeholderImageType,
     sortOrder: item.sortOrder,
     isActive: item.isActive,
     createdAt: item.createdAt.toISOString(),
@@ -92,6 +93,7 @@ export async function PATCH(
       baptismalName: item.baptismalName ?? undefined,
       phone: item.phone ?? undefined,
       imageUrl: (json as { imageUrl: string }).imageUrl,
+      placeholderImageType: item.placeholderImageType,
       isActive: item.isActive,
       sortOrder: item.sortOrder,
     })

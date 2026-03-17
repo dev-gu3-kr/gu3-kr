@@ -55,6 +55,13 @@ enum PastoralCouncilRole {
   FEMALE_DISTRICT_5
 }
 
+enum PastoralCouncilPlaceholderImageType {
+  WOMAN
+  MAN
+  NUN
+  PRIEST
+}
+
 enum InquiryStatus {
   RECEIVED     // 접수됨(아직 답변/처리 전)
   IN_PROGRESS  // 담당자 확인/처리 중
@@ -194,16 +201,17 @@ model ClergyProfile {
 }
 
 model PastoralCouncilMember {
-  id            String              @id @default(cuid())  // 고유 식별자
-  role          PastoralCouncilRole @unique               // 직책 enum(필수, 중복 불가)
-  name          String                                     // 이름 또는 공석 표시명
-  baptismalName String?                                    // 세례명(선택)
-  phone         String?                                    // 연락처(선택)
-  imageUrl      String?                                    // 프로필 이미지 URL(선택)
-  sortOrder     Int                 @default(0)            // 노출 정렬 순서
-  isActive      Boolean             @default(true)         // 공개 활성 상태
-  createdAt     DateTime            @default(now())        // 생성 시각
-  updatedAt     DateTime            @updatedAt             // 수정 시각
+  id                   String                              @id @default(cuid())  // 고유 식별자
+  role                 PastoralCouncilRole                @unique               // 직책 enum(필수, 중복 불가)
+  name                 String                                                     // 이름 또는 공석 표시명
+  baptismalName        String?                                                    // 세례명(선택)
+  phone                String?                                                    // 연락처(선택)
+  imageUrl             String?                                                    // 프로필 이미지 URL(선택)
+  placeholderImageType PastoralCouncilPlaceholderImageType @default(PRIEST)      // 이미지 없을 때 사용할 대체 이미지 유형
+  sortOrder            Int                                 @default(0)           // 노출 정렬 순서
+  isActive             Boolean                             @default(true)        // 공개 활성 상태
+  createdAt            DateTime                            @default(now())       // 생성 시각
+  updatedAt            DateTime                            @updatedAt            // 수정 시각
 
   @@index([isActive, sortOrder])
 }

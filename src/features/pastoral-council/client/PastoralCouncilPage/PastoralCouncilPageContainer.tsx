@@ -2,7 +2,9 @@
 
 import {
   formatPastoralCouncilDisplayName,
+  getPastoralCouncilPlaceholderImageSrc,
   type PastoralCouncilListItemDto,
+  pastoralCouncilDefaultPlaceholderImageType,
   pastoralCouncilDepartmentRoles,
   pastoralCouncilDistrictRoles,
   pastoralCouncilExecutiveRoleMap,
@@ -15,6 +17,7 @@ type CouncilLeader = {
   readonly role: string
   readonly name: string
   readonly imageUrl?: string
+  readonly fallbackImageUrl: string
 }
 
 type CouncilBranch = {
@@ -30,6 +33,7 @@ function createVacantItem(role: keyof typeof pastoralCouncilRoleLabels) {
     baptismalName: null,
     phone: null,
     imageUrl: null,
+    placeholderImageType: pastoralCouncilDefaultPlaceholderImageType,
     sortOrder: 0,
     isActive: true,
     createdAt: new Date(0).toISOString(),
@@ -41,6 +45,9 @@ function toLeader(item: PastoralCouncilListItemDto): CouncilLeader {
     role: pastoralCouncilRoleLabels[item.role],
     name: formatPastoralCouncilDisplayName(item),
     imageUrl: item.imageUrl ?? undefined,
+    fallbackImageUrl: getPastoralCouncilPlaceholderImageSrc(
+      item.placeholderImageType,
+    ),
   }
 }
 

@@ -8,6 +8,7 @@ import {
   getAvailablePastoralCouncilRoles,
   type PastoralCouncilDetailDto,
   type PastoralCouncilListItemDto,
+  pastoralCouncilDefaultPlaceholderImageType,
   pastoralCouncilQueryKeys,
   pastoralCouncilRoleSortOrder,
   publicPastoralCouncilQueryKeys,
@@ -36,6 +37,8 @@ function normalizeInput(
     baptismalName: values.baptismalName?.trim() || undefined,
     phone: values.phone?.trim() || undefined,
     imageUrl: values.imageUrl?.trim() || undefined,
+    placeholderImageType:
+      values.placeholderImageType ?? pastoralCouncilDefaultPlaceholderImageType,
     sortOrder: normalizeNumber(values.sortOrder),
   }
 }
@@ -80,6 +83,8 @@ function createCachedPastoralCouncilItem(params: {
     baptismalName: normalizeNullableString(values.baptismalName),
     phone: normalizeNullableString(values.phone),
     imageUrl: normalizeNullableString(values.imageUrl),
+    placeholderImageType:
+      values.placeholderImageType ?? pastoralCouncilDefaultPlaceholderImageType,
     sortOrder: values.sortOrder ?? pastoralCouncilRoleSortOrder[values.role],
     isActive: values.isActive ?? true,
     createdAt,
@@ -114,6 +119,7 @@ export function PastoralCouncilFormContainer({
               baptismalName: detailQuery.data.baptismalName ?? undefined,
               phone: detailQuery.data.phone ?? undefined,
               imageUrl: detailQuery.data.imageUrl ?? undefined,
+              placeholderImageType: detailQuery.data.placeholderImageType,
               isActive: detailQuery.data.isActive,
               sortOrder: detailQuery.data.sortOrder,
             }

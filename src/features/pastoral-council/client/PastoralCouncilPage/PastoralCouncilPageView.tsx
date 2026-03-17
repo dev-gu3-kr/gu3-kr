@@ -11,6 +11,7 @@ type CouncilLeader = {
   readonly name: string
   readonly note?: string
   readonly imageUrl?: string
+  readonly fallbackImageUrl: string
 }
 
 type CouncilBranch = {
@@ -408,10 +409,7 @@ function CouncilNode({
             )}
           >
             <Image
-              src={
-                leader.imageUrl ??
-                "/images/placeholders/priest-profile-placeholder.webp"
-              }
+              src={leader.imageUrl ?? leader.fallbackImageUrl}
               alt={`${leader.name} 프로필 사진`}
               fill
               sizes={compact ? "52px" : "78px"}

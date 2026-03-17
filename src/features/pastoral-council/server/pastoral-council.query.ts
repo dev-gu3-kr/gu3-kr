@@ -1,4 +1,7 @@
-import type { PastoralCouncilRole } from "@prisma/client"
+import type {
+  PastoralCouncilPlaceholderImageType,
+  PastoralCouncilRole,
+} from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 type PastoralCouncilMutationData = {
@@ -7,6 +10,7 @@ type PastoralCouncilMutationData = {
   baptismalName?: string
   phone: string | null
   imageUrl: string | null
+  placeholderImageType: PastoralCouncilPlaceholderImageType
   isActive: boolean
   sortOrder: number
 }

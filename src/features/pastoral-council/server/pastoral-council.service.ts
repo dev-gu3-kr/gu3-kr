@@ -1,5 +1,8 @@
 import type { UpsertPastoralCouncilInputDto } from "@/features/pastoral-council/isomorphic"
-import { pastoralCouncilRoleSortOrder } from "@/features/pastoral-council/isomorphic"
+import {
+  pastoralCouncilDefaultPlaceholderImageType,
+  pastoralCouncilRoleSortOrder,
+} from "@/features/pastoral-council/isomorphic"
 import {
   createPastoralCouncil,
   deletePastoralCouncil,
@@ -21,6 +24,8 @@ function toMutationData(input: UpsertPastoralCouncilInputDto) {
     baptismalName: normalizeNullableString(input.baptismalName) ?? undefined,
     phone: normalizeNullableString(input.phone),
     imageUrl: normalizeNullableString(input.imageUrl),
+    placeholderImageType:
+      input.placeholderImageType ?? pastoralCouncilDefaultPlaceholderImageType,
     isActive: input.isActive ?? true,
     sortOrder: input.sortOrder ?? pastoralCouncilRoleSortOrder[input.role],
   }

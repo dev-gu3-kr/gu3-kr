@@ -1,12 +1,14 @@
 "use client"
 
-import { BadgeCheck, BriefcaseBusiness, Phone } from "lucide-react"
+import { BadgeCheck, BriefcaseBusiness, ImageIcon, Phone } from "lucide-react"
 import Image from "next/image"
 import { useParams } from "next/navigation"
 import { AppLink as Link } from "@/components/AppLink"
 import { PastoralCouncilDeleteButton } from "@/features/pastoral-council/client"
 import {
   formatPastoralCouncilDisplayName,
+  getPastoralCouncilPlaceholderImageSrc,
+  pastoralCouncilPlaceholderImageTypeLabels,
   pastoralCouncilRoleLabels,
   usePastoralCouncilDetailQuery,
 } from "@/features/pastoral-council/isomorphic"
@@ -64,6 +66,9 @@ export default function AdminPastoralCouncilViewPage() {
 
   const item = data
   const displayName = formatPastoralCouncilDisplayName(item)
+  const previewImageSrc =
+    item.imageUrl ??
+    getPastoralCouncilPlaceholderImageSrc(item.placeholderImageType)
 
   return (
     <main className="space-y-6">
@@ -76,21 +81,15 @@ export default function AdminPastoralCouncilViewPage() {
         </Link>
 
         <div className="mx-auto mt-2 flex w-full max-w-3xl flex-col items-center gap-5 sm:mt-0">
-          {item.imageUrl ? (
-            <Image
-              src={item.imageUrl}
-              alt={`${item.name} 프로필`}
-              unoptimized
-              width={260}
-              height={320}
-              sizes="260px"
-              className="h-[320px] w-[260px] rounded-xl object-cover shadow-sm"
-            />
-          ) : (
-            <div className="flex h-[320px] w-[260px] items-center justify-center rounded-xl bg-neutral-100 text-sm text-neutral-400">
-              이미지 없음
-            </div>
-          )}
+          <Image
+            src={previewImageSrc}
+            alt={`${item.name} 프로필`}
+            unoptimized
+            width={260}
+            height={320}
+            sizes="260px"
+            className="h-[320px] w-[260px] rounded-xl object-cover shadow-sm"
+          />
 
           <h1 className="text-center text-3xl font-normal">{displayName}</h1>
 
@@ -108,6 +107,17 @@ export default function AdminPastoralCouncilViewPage() {
                 <p className="text-sm text-neutral-500">연락처</p>
                 <p className="text-lg font-normal text-neutral-900">
                   {item.phone || "미입력"}
+                </p>
+              </div>
+              <div className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3">
+                <ImageIcon className="h-5 w-5 text-primary" />
+                <p className="text-sm text-neutral-500">대체 이미지</p>
+                <p className="text-lg font-normal text-neutral-900">
+                  {
+                    pastoralCouncilPlaceholderImageTypeLabels[
+                      item.placeholderImageType
+                    ]
+                  }
                 </p>
               </div>
               <div className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3">
