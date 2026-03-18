@@ -40,7 +40,6 @@ type PastoralCouncilPageViewProps = {
 type MobileTreeNode = {
   readonly id: string
   readonly kind: "leader" | "branch"
-  readonly accent?: "rose" | "amber" | "stone"
   readonly leader?: CouncilLeader
   readonly branch?: CouncilBranch
   readonly showImage?: boolean
@@ -48,7 +47,11 @@ type MobileTreeNode = {
 }
 
 type MobileTreeLineLayout = {
-  readonly childYs: readonly number[]
+  readonly childAnchors: readonly {
+    readonly x: number
+    readonly y: number
+  }[]
+  readonly lineX: number
   readonly parentY: number
   readonly stemBottomY: number
 }
@@ -79,6 +82,25 @@ type CouncilBoardNodeRect = {
   readonly left: number
   readonly right: number
   readonly top: number
+}
+
+function getStackBottom(params: {
+  readonly top: number
+  readonly cardHeight: number
+  readonly gap: number
+  readonly count: number
+  readonly bottomPadding: number
+}) {
+  if (params.count === 0) {
+    return 0
+  }
+
+  return (
+    params.top +
+    params.count * params.cardHeight +
+    Math.max(0, params.count - 1) * params.gap +
+    params.bottomPadding
+  )
 }
 
 function toBoardNodeRect(
@@ -345,60 +367,32 @@ function CouncilBoardLines({
 
 function CouncilNode({
   leader,
-  accent = "rose",
   compact = false,
+  fixedImageSize = false,
   showIcon = true,
   showImage = false,
   className,
 }: {
   readonly leader: CouncilLeader
-  readonly accent?: "rose" | "amber" | "stone"
   readonly compact?: boolean
+  readonly fixedImageSize?: boolean
   readonly showIcon?: boolean
   readonly showImage?: boolean
   readonly className?: string
 }) {
-  const accentStyles = {
-    rose: {
-      halo: "from-primary/18 via-primary/6 to-transparent",
-      chip: "bg-primary/10 text-primary",
-      icon: "bg-primary/10 text-primary",
-      title: "text-primary",
-    },
-    amber: {
-      halo: "from-chart-1/20 via-chart-1/8 to-transparent",
-      chip: "bg-chart-1/12 text-chart-1",
-      icon: "bg-chart-1/12 text-chart-1",
-      title: "text-foreground",
-    },
-    stone: {
-      halo: "from-muted via-background to-transparent",
-      chip: "bg-secondary text-muted-foreground",
-      icon: "bg-secondary text-muted-foreground",
-      title: "text-foreground",
-    },
-  } as const
-
-  const palette = accentStyles[accent]
-
   return (
     <article
+      data-tree-surface
       className={cn(
-        "relative overflow-hidden rounded-3xl border border-border/70 bg-card shadow-[0_18px_50px_-30px_rgba(15,23,42,0.45)]",
-        compact && "rounded-2xl shadow-[0_14px_34px_-24px_rgba(15,23,42,0.38)]",
+        "relative h-[156px] overflow-hidden rounded-3xl border border-border/70 bg-card shadow-[0_18px_50px_-30px_rgba(15,23,42,0.45)]",
+        compact &&
+          "h-[128px] rounded-2xl shadow-[0_14px_34px_-24px_rgba(15,23,42,0.38)]",
         className,
       )}
     >
       <div
         className={cn(
-          "absolute inset-x-4 top-0 h-16 rounded-b-full bg-linear-to-b",
-          compact && "inset-x-3 h-10",
-          palette.halo,
-        )}
-      />
-      <div
-        className={cn(
-          "relative flex items-start gap-4 p-5",
+          "relative flex h-full items-center gap-4 p-5",
           compact && "gap-3 p-3.5",
           !showIcon && !showImage && "justify-center",
         )}
@@ -407,14 +401,14 @@ function CouncilNode({
           <div
             className={cn(
               "relative h-[96px] w-[78px] shrink-0 overflow-hidden rounded-[12px] border border-border/70 bg-secondary",
-              compact && "h-[64px] w-[52px] rounded-[10px]",
+              compact && !fixedImageSize && "h-[64px] w-[52px] rounded-[10px]",
             )}
           >
             <Image
               src={leader.imageUrl ?? leader.fallbackImageUrl}
               alt={`${leader.name} 프로필 사진`}
               fill
-              sizes={compact ? "52px" : "78px"}
+              sizes={compact && !fixedImageSize ? "52px" : "78px"}
               className="object-cover"
             />
           </div>
@@ -424,7 +418,7 @@ function CouncilNode({
             className={cn(
               "flex size-14 shrink-0 items-center justify-center rounded-2xl border border-border/70 shadow-inner",
               compact && "size-10 rounded-xl",
-              palette.icon,
+              "bg-secondary text-muted-foreground",
             )}
           >
             <UsersRound className={cn("size-6", compact && "size-[18px]")} />
@@ -442,7 +436,7 @@ function CouncilNode({
               "inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em]",
               compact && "px-2 py-0.5 text-[10px]",
               !showIcon && !showImage ? "self-center" : "self-start",
-              palette.chip,
+              "bg-secondary text-muted-foreground",
             )}
           >
             {leader.role}
@@ -457,7 +451,7 @@ function CouncilNode({
               className={cn(
                 "text-lg font-semibold tracking-[-0.02em]",
                 compact && "text-sm leading-5",
-                palette.title,
+                "text-foreground",
               )}
             >
               {leader.name}
@@ -472,37 +466,40 @@ function CouncilNode({
 function BranchNode({
   branch,
   compact = false,
+  fixedImageSize = false,
 }: {
   readonly branch: CouncilBranch
   readonly compact?: boolean
+  readonly fixedImageSize?: boolean
 }) {
   return (
     <article
+      data-tree-surface
       className={cn(
-        "rounded-2xl border border-border/70 bg-card px-5 py-4 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.38)]",
+        "h-[156px] rounded-2xl border border-border/70 bg-card px-5 py-4 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.38)]",
         compact &&
-          "rounded-xl px-3.5 py-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]",
+          "h-[128px] rounded-xl px-3.5 py-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]",
       )}
     >
-      <div className={cn("flex items-start gap-4", compact && "gap-3")}>
+      <div className={cn("flex h-full items-center gap-4", compact && "gap-3")}>
         <div
           className={cn(
-            "relative aspect-[13/16] w-[52px] shrink-0 overflow-hidden rounded-xl border border-border/70 bg-secondary",
-            compact && "w-11 rounded-lg",
+            "relative h-[96px] w-[78px] shrink-0 overflow-hidden rounded-[12px] border border-border/70 bg-secondary",
+            compact && !fixedImageSize && "h-[64px] w-[52px] rounded-[10px]",
           )}
         >
           <Image
             src={branch.imageUrl ?? branch.fallbackImageUrl}
             alt={`${branch.role} ${branch.name} 프로필 사진`}
             fill
-            sizes={compact ? "44px" : "52px"}
+            sizes={compact && !fixedImageSize ? "52px" : "78px"}
             className="object-cover"
           />
         </div>
         <div className="min-w-0 flex-1">
           <p
             className={cn(
-              "text-[15px] font-semibold tracking-[-0.02em] text-primary",
+              "text-[15px] font-semibold tracking-[-0.02em] text-muted-foreground",
               compact && "text-[13px] leading-5",
             )}
           >
@@ -510,7 +507,7 @@ function BranchNode({
           </p>
           <p
             className={cn(
-              "mt-1 text-sm leading-6 text-muted-foreground",
+              "mt-1 text-sm leading-6 text-foreground",
               compact && "text-[13px] leading-5",
             )}
           >
@@ -536,11 +533,14 @@ function MobileSectionTitle({ title }: { readonly title: string }) {
 function MobileTreeItem({
   node,
   isRoot = false,
+  depth = 1,
 }: {
   readonly node: MobileTreeNode
   readonly isRoot?: boolean
+  readonly depth?: number
 }) {
   const children = node.children ?? []
+  const isThirdDepthOrDeeper = depth >= 3
   const containerRef = useRef<HTMLDivElement | null>(null)
   const cardRef = useRef<HTMLDivElement | null>(null)
   const childItemRefs = useRef<Array<HTMLDivElement | null>>([])
@@ -554,6 +554,9 @@ function MobileTreeItem({
       return
     }
 
+    const childIndentX = 17
+    const nestedStemInsetX = 12
+
     const measure = () => {
       const container = containerRef.current
       const card = cardRef.current
@@ -564,15 +567,19 @@ function MobileTreeItem({
 
       const containerRect = container.getBoundingClientRect()
       const cardRect = card.getBoundingClientRect()
+      const lineX = isRoot ? childIndentX : childIndentX + nestedStemInsetX
       const parentY = Math.round(
-        cardRect.top - containerRect.top + cardRect.height / 2,
+        isRoot
+          ? cardRect.top - containerRect.top + cardRect.height / 2
+          : cardRect.bottom - containerRect.top,
       )
 
-      const childYs = childItemRefs.current
+      const childAnchors = childItemRefs.current
         .slice(0, children.length)
         .map((childItem) => {
-          const childCard =
-            childItem?.querySelector<HTMLElement>("[data-tree-card]")
+          const childCard = childItem?.querySelector<HTMLElement>(
+            "[data-tree-surface]",
+          )
 
           if (!childCard) {
             return null
@@ -580,30 +587,45 @@ function MobileTreeItem({
 
           const childRect = childCard.getBoundingClientRect()
 
-          return Math.round(
-            childRect.top - containerRect.top + childRect.height / 2,
-          )
+          return {
+            x: Math.round(childRect.left - containerRect.left),
+            y: Math.round(
+              childRect.top - containerRect.top + childRect.height / 2,
+            ),
+          }
         })
-        .filter((value): value is number => value !== null)
+        .filter(
+          (
+            value,
+          ): value is {
+            readonly x: number
+            readonly y: number
+          } => value !== null,
+        )
 
-      if (childYs.length !== children.length) {
+      if (childAnchors.length !== children.length) {
         return
       }
 
       const nextLayout = {
-        childYs,
+        childAnchors,
+        lineX,
         parentY,
-        stemBottomY: childYs[childYs.length - 1],
+        stemBottomY: childAnchors[childAnchors.length - 1].y,
       } satisfies MobileTreeLineLayout
 
       setLineLayout((previousLayout) => {
         if (
           previousLayout &&
+          previousLayout.lineX === nextLayout.lineX &&
           previousLayout.parentY === nextLayout.parentY &&
           previousLayout.stemBottomY === nextLayout.stemBottomY &&
-          previousLayout.childYs.length === nextLayout.childYs.length &&
-          previousLayout.childYs.every(
-            (value, index) => value === nextLayout.childYs[index],
+          previousLayout.childAnchors.length ===
+            nextLayout.childAnchors.length &&
+          previousLayout.childAnchors.every(
+            (value, index) =>
+              value.x === nextLayout.childAnchors[index]?.x &&
+              value.y === nextLayout.childAnchors[index]?.y,
           )
         ) {
           return previousLayout
@@ -639,7 +661,7 @@ function MobileTreeItem({
       resizeObserver.disconnect()
       window.removeEventListener("resize", measure)
     }
-  }, [children.length])
+  }, [children.length, isRoot])
 
   return (
     <div ref={containerRef} className="relative">
@@ -649,17 +671,17 @@ function MobileTreeItem({
           className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible"
         >
           <path
-            d={`M17 ${lineLayout.parentY} V ${lineLayout.stemBottomY}`}
+            d={`M${lineLayout.lineX} ${lineLayout.parentY} V ${lineLayout.stemBottomY}`}
             fill="none"
             stroke="currentColor"
             strokeWidth="1"
             className="text-border/70"
           />
 
-          {lineLayout.childYs.map((childY, index) => (
+          {lineLayout.childAnchors.map((childAnchor, index) => (
             <path
-              key={`${node.id}-${index}-${childY}`}
-              d={`M17 ${childY} H 34`}
+              key={`${node.id}-${index}-${childAnchor.x}-${childAnchor.y}`}
+              d={`M${lineLayout.lineX} ${childAnchor.y} H ${childAnchor.x}`}
               fill="none"
               stroke="currentColor"
               strokeWidth="1"
@@ -677,16 +699,25 @@ function MobileTreeItem({
         {node.kind === "leader" && node.leader ? (
           <CouncilNode
             leader={node.leader}
-            accent={node.accent}
             compact={!isRoot}
+            fixedImageSize
             showIcon={!node.showImage}
             showImage={node.showImage}
-            className="w-full"
+            className={cn(
+              "w-full",
+              isThirdDepthOrDeeper && "ml-auto w-[calc(100%-17px)]",
+            )}
           />
         ) : null}
 
         {node.kind === "branch" && node.branch ? (
-          <BranchNode branch={node.branch} compact />
+          <div
+            className={cn(
+              isThirdDepthOrDeeper && "ml-auto w-[calc(100%-17px)]",
+            )}
+          >
+            <BranchNode branch={node.branch} compact fixedImageSize />
+          </div>
         ) : null}
       </div>
 
@@ -700,7 +731,7 @@ function MobileTreeItem({
               }}
               className="relative"
             >
-              <MobileTreeItem node={child} />
+              <MobileTreeItem node={child} depth={depth + 1} />
             </div>
           ))}
         </div>
@@ -714,6 +745,42 @@ export function PastoralCouncilPageView({
   departmentBranches,
   districtBranches,
 }: PastoralCouncilPageViewProps) {
+  const desktopMinHeight = Math.max(
+    1640,
+    getStackBottom({
+      top: 560,
+      cardHeight: 156,
+      gap: 16,
+      count: departmentBranches.length,
+      bottomPadding: 48,
+    }),
+    getStackBottom({
+      top: 560,
+      cardHeight: 156,
+      gap: 16,
+      count: districtBranches.length,
+      bottomPadding: 48,
+    }),
+    940 + 156 + 48,
+  )
+  const tabletMinHeight = Math.max(
+    1560,
+    getStackBottom({
+      top: 452,
+      cardHeight: 128,
+      gap: 12,
+      count: departmentBranches.length,
+      bottomPadding: 48,
+    }),
+    getStackBottom({
+      top: 452,
+      cardHeight: 128,
+      gap: 12,
+      count: districtBranches.length,
+      bottomPadding: 48,
+    }),
+    720 + 128 + 48,
+  )
   const desktopBoard = useCouncilBoardLines({
     departmentCount: departmentBranches.length,
     districtCount: districtBranches.length,
@@ -727,42 +794,36 @@ export function PastoralCouncilPageView({
     id: "parish-priest",
     kind: "leader",
     leader: executiveLeaders.parishPriest,
-    accent: "amber",
     showImage: true,
     children: [
       {
         id: "assistant-priest",
         kind: "leader",
         leader: executiveLeaders.leftWing,
-        accent: "stone",
         showImage: true,
       },
       {
         id: "religious",
         kind: "leader",
         leader: executiveLeaders.rightWing,
-        accent: "stone",
         showImage: true,
       },
       {
         id: "chair",
         kind: "leader",
         leader: executiveLeaders.chair,
-        accent: "rose",
         showImage: true,
         children: [
           {
             id: "vice-chair",
             kind: "leader",
             leader: executiveLeaders.viceChair,
-            accent: "rose",
             showImage: true,
           },
           {
             id: "secretary",
             kind: "leader",
             leader: executiveLeaders.secretary,
-            accent: "rose",
             showImage: true,
           },
         ],
@@ -773,7 +834,6 @@ export function PastoralCouncilPageView({
     id: "district-chief",
     kind: "leader",
     leader: executiveLeaders.districtChief,
-    accent: "stone",
     showImage: true,
     children: districtBranches.map((branch) => ({
       id: `district-${branch.role}`,
@@ -786,16 +846,19 @@ export function PastoralCouncilPageView({
     <section className="mx-auto w-full max-w-[1200px] px-5 pb-10 md:px-8 md:pb-14">
       <div className="space-y-10">
         <div className="hidden xl:block">
-          <div ref={desktopBoard.boardRef} className="relative min-h-[1640px]">
+          <div
+            ref={desktopBoard.boardRef}
+            className="relative"
+            style={{ minHeight: `${desktopMinHeight}px` }}
+          >
             <CouncilBoardLines lines={desktopBoard.lines} />
 
             <div
               ref={desktopBoard.registerNode("parishPriest")}
-              className="absolute left-1/2 top-0 w-[340px] -translate-x-1/2"
+              className="absolute left-1/2 top-0 w-[280px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.parishPriest}
-                accent="amber"
                 showIcon={false}
                 showImage
               />
@@ -807,7 +870,6 @@ export function PastoralCouncilPageView({
             >
               <CouncilNode
                 leader={executiveLeaders.leftWing}
-                accent="stone"
                 showIcon={false}
                 showImage
               />
@@ -815,11 +877,10 @@ export function PastoralCouncilPageView({
 
             <div
               ref={desktopBoard.registerNode("chair")}
-              className="absolute left-1/2 top-[258px] w-[320px] -translate-x-1/2"
+              className="absolute left-1/2 top-[258px] w-[280px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.chair}
-                accent="rose"
                 showIcon={false}
                 showImage
               />
@@ -831,7 +892,6 @@ export function PastoralCouncilPageView({
             >
               <CouncilNode
                 leader={executiveLeaders.rightWing}
-                accent="stone"
                 showIcon={false}
                 showImage
               />
@@ -839,11 +899,10 @@ export function PastoralCouncilPageView({
 
             <div
               ref={desktopBoard.registerNode("viceChair")}
-              className="absolute left-[88px] top-[376px] w-[300px]"
+              className="absolute left-[88px] top-[376px] w-[280px]"
             >
               <CouncilNode
                 leader={executiveLeaders.viceChair}
-                accent="rose"
                 showIcon={false}
                 showImage
               />
@@ -851,17 +910,16 @@ export function PastoralCouncilPageView({
 
             <div
               ref={desktopBoard.registerNode("secretary")}
-              className="absolute right-[88px] top-[376px] w-[300px]"
+              className="absolute right-[88px] top-[376px] w-[280px]"
             >
               <CouncilNode
                 leader={executiveLeaders.secretary}
-                accent="rose"
                 showIcon={false}
                 showImage
               />
             </div>
 
-            <div className="absolute left-0 top-[530px] w-[240px] space-y-4">
+            <div className="absolute left-0 top-[560px] w-[280px] space-y-4">
               {departmentBranches.map((branch, index) => (
                 <div
                   key={branch.role}
@@ -874,17 +932,16 @@ export function PastoralCouncilPageView({
 
             <div
               ref={desktopBoard.registerNode("districtChief")}
-              className="absolute left-[58%] top-[940px] w-[340px] -translate-x-1/2"
+              className="absolute left-[57%] top-[940px] w-[280px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.districtChief}
-                accent="stone"
                 showIcon={false}
                 showImage
               />
             </div>
 
-            <div className="absolute right-0 top-[530px] w-[240px] space-y-4">
+            <div className="absolute right-0 top-[560px] w-[280px] space-y-4">
               {districtBranches.map((branch, index) => (
                 <div
                   key={branch.role}
@@ -898,16 +955,19 @@ export function PastoralCouncilPageView({
         </div>
 
         <div className="hidden md:block xl:hidden">
-          <div ref={tabletBoard.boardRef} className="relative min-h-[1560px]">
+          <div
+            ref={tabletBoard.boardRef}
+            className="relative"
+            style={{ minHeight: `${tabletMinHeight}px` }}
+          >
             <CouncilBoardLines lines={tabletBoard.lines} />
 
             <div
               ref={tabletBoard.registerNode("parishPriest")}
-              className="absolute left-1/2 top-0 w-[260px] -translate-x-1/2"
+              className="absolute left-1/2 top-0 w-[192px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.parishPriest}
-                accent="amber"
                 compact
                 showIcon={false}
                 showImage
@@ -920,7 +980,6 @@ export function PastoralCouncilPageView({
             >
               <CouncilNode
                 leader={executiveLeaders.leftWing}
-                accent="stone"
                 compact
                 showIcon={false}
                 showImage
@@ -929,11 +988,10 @@ export function PastoralCouncilPageView({
 
             <div
               ref={tabletBoard.registerNode("chair")}
-              className="absolute left-1/2 top-[210px] w-[236px] -translate-x-1/2"
+              className="absolute left-1/2 top-[210px] w-[192px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.chair}
-                accent="rose"
                 compact
                 showIcon={false}
                 showImage
@@ -946,7 +1004,6 @@ export function PastoralCouncilPageView({
             >
               <CouncilNode
                 leader={executiveLeaders.rightWing}
-                accent="stone"
                 compact
                 showIcon={false}
                 showImage
@@ -955,11 +1012,10 @@ export function PastoralCouncilPageView({
 
             <div
               ref={tabletBoard.registerNode("viceChair")}
-              className="absolute left-[16px] top-[296px] w-[224px]"
+              className="absolute left-[16px] top-[296px] w-[192px]"
             >
               <CouncilNode
                 leader={executiveLeaders.viceChair}
-                accent="rose"
                 compact
                 showIcon={false}
                 showImage
@@ -968,18 +1024,17 @@ export function PastoralCouncilPageView({
 
             <div
               ref={tabletBoard.registerNode("secretary")}
-              className="absolute right-[16px] top-[296px] w-[224px]"
+              className="absolute right-[16px] top-[296px] w-[192px]"
             >
               <CouncilNode
                 leader={executiveLeaders.secretary}
-                accent="rose"
                 compact
                 showIcon={false}
                 showImage
               />
             </div>
 
-            <div className="absolute left-0 top-[422px] w-[176px] space-y-3">
+            <div className="absolute left-0 top-[452px] w-[192px] space-y-3">
               {departmentBranches.map((branch, index) => (
                 <div
                   key={branch.role}
@@ -992,18 +1047,17 @@ export function PastoralCouncilPageView({
 
             <div
               ref={tabletBoard.registerNode("districtChief")}
-              className="absolute left-[56%] top-[720px] w-[248px] -translate-x-1/2"
+              className="absolute left-[55%] top-[720px] w-[192px] -translate-x-1/2"
             >
               <CouncilNode
                 leader={executiveLeaders.districtChief}
-                accent="stone"
                 compact
                 showIcon={false}
                 showImage
               />
             </div>
 
-            <div className="absolute right-0 top-[422px] w-[176px] space-y-3">
+            <div className="absolute right-0 top-[452px] w-[192px] space-y-3">
               {districtBranches.map((branch, index) => (
                 <div
                   key={branch.role}
