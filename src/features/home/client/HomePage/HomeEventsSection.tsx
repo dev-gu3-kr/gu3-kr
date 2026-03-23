@@ -108,10 +108,13 @@ function EventCardTile({ card, compact = false }: EventCardTileProps) {
 }
 
 export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
-  const mobileCardGroups = React.useMemo(() => chunkCards(cards, 4), [cards])
+  const groupedCardSlides = React.useMemo(() => chunkCards(cards, 4), [cards])
   const [mobileApi, setMobileApi] = React.useState<CarouselApi>()
   const [mobileSelectedIndex, setMobileSelectedIndex] = React.useState(0)
   const [mobileSnapCount, setMobileSnapCount] = React.useState(0)
+  const [tabletApi, setTabletApi] = React.useState<CarouselApi>()
+  const [tabletSelectedIndex, setTabletSelectedIndex] = React.useState(0)
+  const [tabletSnapCount, setTabletSnapCount] = React.useState(0)
   const [desktopApi, setDesktopApi] = React.useState<CarouselApi>()
   const [desktopSelectedIndex, setDesktopSelectedIndex] = React.useState(0)
   const [desktopSnapCount, setDesktopSnapCount] = React.useState(0)
@@ -135,6 +138,26 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
       mobileApi.off("reInit", syncState)
     }
   }, [mobileApi])
+
+  React.useEffect(() => {
+    if (!tabletApi) {
+      return
+    }
+
+    const syncState = () => {
+      setTabletSelectedIndex(tabletApi.selectedScrollSnap())
+      setTabletSnapCount(tabletApi.scrollSnapList().length)
+    }
+
+    syncState()
+    tabletApi.on("select", syncState)
+    tabletApi.on("reInit", syncState)
+
+    return () => {
+      tabletApi.off("select", syncState)
+      tabletApi.off("reInit", syncState)
+    }
+  }, [tabletApi])
 
   React.useEffect(() => {
     if (!desktopApi) {
@@ -178,7 +201,7 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
             className="w-full"
           >
             <CarouselContent className="-ml-4">
-              {mobileCardGroups.map((group) => (
+              {groupedCardSlides.map((group) => (
                 <CarouselItem
                   key={group.map((card) => card.title).join("|")}
                   className="basis-full pl-4"
@@ -216,7 +239,65 @@ export function HomeEventsSection({ cards }: HomeEventsSectionProps) {
           ) : null}
         </div>
 
-        <div className="hidden md:block">
+        <div className="hidden md:block lg:hidden">
+          <Carousel
+            setApi={setTabletApi}
+            opts={{
+              align: "start",
+              containScroll: "trimSnaps",
+            }}
+            className="w-full"
+          >
+            <div className="flex items-center gap-4">
+              <CarouselPrevious className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full bg-[#eaebef] text-[#7f848c] transition-colors hover:bg-[#dfe2e8] disabled:cursor-not-allowed md:flex">
+                <ChevronLeft className="size-5" />
+              </CarouselPrevious>
+
+              <div className="min-w-0 flex-1">
+                <CarouselContent className="-ml-6">
+                  {groupedCardSlides.map((group) => (
+                    <CarouselItem
+                      key={`tablet-${group.map((card) => card.title).join("|")}`}
+                      className="basis-full pl-6"
+                    >
+                      <div className="grid grid-cols-2 gap-6">
+                        {group.map((card) => (
+                          <EventCardTile key={card.title} card={card} />
+                        ))}
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </div>
+
+              <CarouselNext className="static hidden size-11 shrink-0 translate-y-0 cursor-pointer rounded-full border-0 bg-[#252629] text-white transition-colors hover:bg-[#111317] disabled:cursor-not-allowed md:flex">
+                <ChevronRight className="size-5" />
+              </CarouselNext>
+            </div>
+          </Carousel>
+
+          <div className="mt-8 flex justify-center gap-3">
+            {Array.from(
+              { length: tabletSnapCount || 1 },
+              (_, index) => `tablet-snap-${index}`,
+            ).map((snapId, index) => (
+              <button
+                key={snapId}
+                type="button"
+                className={cn(
+                  "rounded-full transition-all",
+                  index === tabletSelectedIndex
+                    ? "h-3 w-10 bg-[#bd2125]"
+                    : "size-3 bg-[#d9d9d9]",
+                )}
+                onClick={() => tabletApi?.scrollTo(index)}
+                aria-label={`Go to tablet event slide ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="hidden lg:block">
           <Carousel
             setApi={setDesktopApi}
             opts={{

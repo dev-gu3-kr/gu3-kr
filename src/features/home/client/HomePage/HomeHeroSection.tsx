@@ -74,19 +74,19 @@ export function HomeHeroSection({ quickLinks }: HomeHeroSectionProps) {
             </div>
           </div>
 
-          <div className="mx-auto hidden max-w-[792px] md:grid md:grid-cols-3 md:gap-x-4 md:gap-y-3 xl:grid-cols-6 xl:gap-x-7 xl:gap-y-0">
+          <div className="mx-auto hidden md:flex md:flex-nowrap md:items-stretch md:justify-between md:gap-2 xl:gap-7">
             {quickLinks.map((item) => {
               const Icon = item.icon
 
               const className =
-                "group flex min-h-[92px] flex-col items-center justify-center rounded-xl bg-transparent text-center transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/14 xl:min-h-[120px] xl:min-w-[112px]"
+                "group flex min-h-[92px] min-w-0 flex-1 flex-col items-center justify-center rounded-xl bg-transparent px-2 text-center transition-[transform,background-color] hover:-translate-y-0.5 hover:bg-white/14 xl:min-h-[120px] xl:min-w-[112px] xl:px-0"
 
               const content = (
                 <>
-                  <div className="mb-2 flex size-12 items-center justify-center rounded-xl bg-transparent transition-colors group-hover:bg-white/6 xl:size-[60px]">
-                    <Icon className="size-10 shrink-0 transition-opacity group-hover:opacity-90" />
+                  <div className="mb-2 flex size-11 items-center justify-center rounded-xl bg-transparent transition-colors group-hover:bg-white/6 xl:size-[60px]">
+                    <Icon className="size-9 shrink-0 transition-opacity group-hover:opacity-90 xl:size-10" />
                   </div>
-                  <span className="text-sm font-medium tracking-[-0.02em] text-white">
+                  <span className="text-[13px] font-medium leading-tight tracking-[-0.02em] text-white xl:text-sm">
                     {item.label}
                   </span>
                 </>

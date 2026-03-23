@@ -35,7 +35,7 @@ function ShortcutCardTile({
     "group relative overflow-hidden rounded-xl bg-gradient-to-br text-left text-white",
     mobileCentered
       ? "flex h-[87px] w-[130px] shrink-0 basis-[130px]"
-      : "flex min-h-[120px] p-5",
+      : "flex h-[96px] min-w-0 flex-1 p-2.5 xl:min-h-[120px] xl:p-5",
     card.accentClassName,
   )
 
@@ -49,7 +49,7 @@ function ShortcutCardTile({
           sizes={
             mobileCentered
               ? "(max-width: 767px) 282px, 100vw"
-              : "(min-width: 1280px) 180px, (min-width: 640px) 50vw, 100vw"
+              : "(min-width: 1280px) 180px, (min-width: 768px) 16vw, 100vw"
           }
           className="object-cover"
         />
@@ -67,7 +67,7 @@ function ShortcutCardTile({
           "relative h-full",
           mobileCentered
             ? "flex w-full items-center justify-center p-3 text-center"
-            : "p-5 text-left",
+            : "flex items-center p-2.5 text-left xl:p-5",
         )}
       >
         <div className={mobileCentered ? "w-full" : undefined}>
@@ -76,16 +76,11 @@ function ShortcutCardTile({
               "font-semibold whitespace-normal break-keep",
               mobileCentered
                 ? "mx-auto max-w-[92px] text-center text-[14px] leading-[1.2]"
-                : "text-lg",
+                : "text-[13px] leading-[1.2] xl:text-lg xl:leading-[1.25]",
             )}
           >
             {card.title}
           </p>
-          {mobileCentered ? null : (
-            <p className="mt-2 text-xs leading-5 text-white/82">
-              {card.subtitle}
-            </p>
-          )}
         </div>
       </div>
     </>
@@ -293,10 +288,14 @@ export function HomeBoardsSection({
           </div>
         </div>
 
-        <div className="mt-12 hidden gap-4 sm:grid-cols-2 md:grid xl:mt-14 xl:grid-cols-6">
-          {shortcutCards.map((card) => (
-            <ShortcutCardTile key={card.title} card={card} />
-          ))}
+        <div className="mt-12 hidden md:block xl:mt-14">
+          <div>
+            <div className="md:flex md:flex-nowrap md:gap-2 xl:grid xl:grid-cols-6 xl:gap-4">
+              {shortcutCards.map((card) => (
+                <ShortcutCardTile key={card.title} card={card} />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     </section>
