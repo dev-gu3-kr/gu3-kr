@@ -111,7 +111,7 @@ export default function Page() {
     <>
       <SubLanding title="" sectionLabel="본당알림" currentLabel="미사 시간" />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#252629] md:text-3xl">
           미사 시간
         </h2>

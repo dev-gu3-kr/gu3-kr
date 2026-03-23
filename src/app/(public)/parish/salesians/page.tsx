@@ -46,7 +46,7 @@ export default async function SalesiansPage() {
         currentLabel="살레시오회"
       />
 
-      <section className="mx-auto w-full max-w-[1220px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1220px] px-5 py-5 md:px-8 md:py-14">
         <div className="space-y-16">
           <article className="space-y-7">
             <header className="space-y-2">

@@ -28,7 +28,7 @@ export default async function MarriagePage() {
     <>
       <SubLanding title="" sectionLabel="본당업무" currentLabel="혼인성사" />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629]">
           혼인성사
         </h2>

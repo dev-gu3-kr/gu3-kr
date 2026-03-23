@@ -23,7 +23,7 @@ export default async function FuneralGuidePage() {
     <>
       <SubLanding title="" sectionLabel="본당업무" currentLabel="선종안내" />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629]">
           선종안내
         </h2>

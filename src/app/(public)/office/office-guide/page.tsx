@@ -5,7 +5,7 @@ export default async function Page() {
     <>
       <SubLanding title="" sectionLabel="본당업무" currentLabel="사무실 안내" />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#252629] md:text-3xl">
           사무실 안내
         </h2>

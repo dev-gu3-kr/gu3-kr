@@ -6,7 +6,7 @@ import { getQueryClient } from "@/lib/react-query"
 
 function CouncilOrganizationTitleBar() {
   return (
-    <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+    <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
       <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629] md:text-[30px]">
         사목협의회
       </h2>

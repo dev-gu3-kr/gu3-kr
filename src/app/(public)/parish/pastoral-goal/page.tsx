@@ -69,7 +69,7 @@ export default async function PastoralGoalPage() {
         currentLabel="사목 목표"
       />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629]">
           사목 목표
         </h2>

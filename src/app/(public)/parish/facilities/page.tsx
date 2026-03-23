@@ -48,7 +48,7 @@ export default async function FacilitiesPage() {
         currentLabel="부속 시설"
       />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629]">
           부속 시설
         </h2>
