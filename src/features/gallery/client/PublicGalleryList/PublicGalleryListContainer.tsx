@@ -27,7 +27,7 @@ export function PublicGalleryListContainer() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         로딩 중...
       </section>
     )
@@ -35,7 +35,7 @@ export function PublicGalleryListContainer() {
 
   if (isError || !data) {
     return (
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         갤러리 목록을 불러오지 못했습니다.
       </section>
     )

@@ -3,6 +3,7 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import * as React from "react"
+import { AppLink as Link } from "@/components/AppLink"
 import { GalleryYoutubeBadge } from "@/components/GalleryYoutubeBadge"
 import {
   Carousel,
@@ -35,7 +36,7 @@ type EventCardTileProps = {
 }
 
 function EventCardTile({ card, compact = false }: EventCardTileProps) {
-  return (
+  const content = (
     <article
       className={`group overflow-hidden rounded-[20px] bg-gradient-to-br ${card.accentClassName} p-[1px] shadow-[0_16px_28px_rgba(0,0,0,0.12)]`}
     >
@@ -90,6 +91,19 @@ function EventCardTile({ card, compact = false }: EventCardTileProps) {
         </div>
       </div>
     </article>
+  )
+
+  if (!card.href) {
+    return content
+  }
+
+  return (
+    <Link
+      href={card.href}
+      className="block rounded-[20px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#bd2125] focus-visible:ring-offset-2"
+    >
+      {content}
+    </Link>
   )
 }
 

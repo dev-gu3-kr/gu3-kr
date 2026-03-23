@@ -9,6 +9,8 @@ import {
   findGalleryDetailById,
   findGalleryPageRows,
   findGalleryTargetById,
+  findPublishedGalleryById,
+  findPublishedGalleryNavigationList,
   findPublishedGalleryPageByOffset,
   replaceGalleryRecord,
 } from "./gallery.query"
@@ -23,6 +25,49 @@ type GalleryImageRecord = {
   sortOrder: number
 }
 
+type GalleryListRow = {
+  id: string
+  title: string
+  isPublished: boolean
+  createdAt: Date
+  youtubeUrl: string | null
+  galleryImages: Array<{ url: string }>
+}
+
+type GalleryDetailRow = {
+  id: string
+  title: string
+  content: string
+  isPublished: boolean
+  createdAt: Date
+  youtubeUrl: string | null
+  galleryImages: Array<{ id: string; originalName: string; url: string }>
+}
+
+function mapGalleryListItem<T extends GalleryListRow>(item: T) {
+  return {
+    id: item.id,
+    title: item.title,
+    isPublished: item.isPublished,
+    createdAt: item.createdAt,
+    thumbnailUrl: item.galleryImages[0]?.url ?? null,
+    hasYoutube: Boolean(item.youtubeUrl),
+  }
+}
+
+function mapGalleryDetail<T extends GalleryDetailRow>(item: T) {
+  return {
+    id: item.id,
+    title: item.title,
+    content: item.content,
+    isPublished: item.isPublished,
+    createdAt: item.createdAt,
+    galleryImages: item.galleryImages,
+    youtubeUrl: item.youtubeUrl ?? null,
+    hasYoutube: Boolean(item.youtubeUrl),
+  }
+}
+
 export async function getGalleryPage(params: {
   take: number
   cursor?: string
@@ -31,14 +76,9 @@ export async function getGalleryPage(params: {
 }) {
   const rows = await findGalleryPageRows(params)
   const hasMore = rows.length > params.take
-  const items = (hasMore ? rows.slice(0, params.take) : rows).map((item) => ({
-    id: item.id,
-    title: item.title,
-    isPublished: item.isPublished,
-    createdAt: item.createdAt,
-    thumbnailUrl: item.galleryImages[0]?.url ?? null,
-    hasYoutube: Boolean(item.youtubeUrl),
-  }))
+  const items = (hasMore ? rows.slice(0, params.take) : rows).map(
+    mapGalleryListItem,
+  )
 
   return {
     items,
@@ -50,7 +90,8 @@ export async function getGalleryPage(params: {
 }
 
 export async function getGalleryById(id: string) {
-  return findGalleryDetailById(id)
+  const row = await findGalleryDetailById(id)
+  return row ? mapGalleryDetail(row) : null
 }
 
 export async function createGallery(input: {
@@ -127,12 +168,37 @@ export async function getPublicGalleryPageByOffset(params: {
 }) {
   const rows = await findPublishedGalleryPageByOffset(params)
 
-  return rows.map((item) => ({
-    id: item.id,
-    title: item.title,
-    isPublished: item.isPublished,
-    createdAt: item.createdAt,
-    thumbnailUrl: item.galleryImages[0]?.url ?? null,
-    hasYoutube: Boolean(item.youtubeUrl),
-  }))
+  return rows.map(mapGalleryListItem)
+}
+
+export async function getPublishedGalleryById(id: string) {
+  const row = await findPublishedGalleryById(id)
+  return row ? mapGalleryDetail(row) : null
+}
+
+export async function getPublishedGalleryDetailWithNavigation(id: string) {
+  const item = await getPublishedGalleryById(id)
+  if (!item) return null
+
+  const ordered = await findPublishedGalleryNavigationList()
+  const currentIndex = ordered.findIndex((row) => row.id === id)
+
+  const navigation = {
+    prev:
+      currentIndex >= 0 && currentIndex < ordered.length - 1
+        ? {
+            id: ordered[currentIndex + 1].id,
+            title: ordered[currentIndex + 1].title,
+          }
+        : null,
+    next:
+      currentIndex > 0
+        ? {
+            id: ordered[currentIndex - 1].id,
+            title: ordered[currentIndex - 1].title,
+          }
+        : null,
+  }
+
+  return { item, navigation }
 }

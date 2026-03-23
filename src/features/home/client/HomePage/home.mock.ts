@@ -94,24 +94,28 @@ export const homePageMock: HomePageViewModel = {
     {
       title: "성당 공동체 미사",
       description: "전례와 환영의 시간을 담은 행사 스케치",
+      href: "/notice/gallery",
       accentClassName:
         "from-[#ccb28c] via-[#8c5b34] to-[#3a2419] dark:from-[#6a543e] dark:to-[#24160f]",
     },
     {
       title: "첫영성체 기념",
       description: "축복과 기쁨이 모인 순간",
+      href: "/notice/gallery",
       accentClassName:
         "from-[#d8d4cf] via-[#8d735b] to-[#463328] dark:from-[#70655c] dark:to-[#2b2018]",
     },
     {
       title: "청년 공동체",
       description: "함께 모여 웃고 기도하는 자리",
+      href: "/notice/gallery",
       accentClassName:
         "from-[#d7c7c2] via-[#90737a] to-[#3c2c33] dark:from-[#7a6768] dark:to-[#241b20]",
     },
     {
       title: "복사단 나들이",
       description: "밝은 리듬으로 살아 있는 현장 기록",
+      href: "/notice/gallery",
       accentClassName:
         "from-[#c0c7d8] via-[#6b7ca0] to-[#27324d] dark:from-[#58627d] dark:to-[#171d2e]",
     },

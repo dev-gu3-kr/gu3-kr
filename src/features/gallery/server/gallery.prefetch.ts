@@ -2,6 +2,8 @@ import type { QueryClient } from "@tanstack/react-query"
 
 import type {
   ApiResponseDto,
+  GalleryDetailDto,
+  GalleryNavigationDto,
   GalleryPublicPageDto,
 } from "@/features/gallery/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
@@ -27,6 +29,28 @@ async function fetchPublicGalleryPage(params: { page: number; query: string }) {
   return json
 }
 
+async function fetchPublicGalleryDetail(id: string) {
+  const response = await serverApiFetch.get(`/api/gallery/${id}`).send()
+
+  if (!response.ok) {
+    throw new Error("갤러리 상세를 불러오지 못했습니다.")
+  }
+
+  const json = (await response.json().catch(() => null)) as ApiResponseDto<{
+    item: GalleryDetailDto
+    navigation: GalleryNavigationDto
+  }> | null
+
+  if (!json?.ok || !json.item) {
+    throw new Error("갤러리 상세를 불러오지 못했습니다.")
+  }
+
+  return {
+    item: json.item,
+    navigation: json.navigation ?? { prev: null, next: null },
+  }
+}
+
 export async function prefetchPublicGalleryList(
   queryClient: QueryClient,
   params: { page: number; query: string },
@@ -34,5 +58,15 @@ export async function prefetchPublicGalleryList(
   await queryClient.prefetchQuery({
     queryKey: ["public", "gallery", "list", params] as const,
     queryFn: () => fetchPublicGalleryPage(params),
+  })
+}
+
+export async function prefetchPublicGalleryDetail(
+  queryClient: QueryClient,
+  id: string,
+) {
+  await queryClient.prefetchQuery({
+    queryKey: ["public", "gallery", "detail", "v1", id] as const,
+    queryFn: () => fetchPublicGalleryDetail(id),
   })
 }

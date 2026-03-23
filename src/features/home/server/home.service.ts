@@ -144,6 +144,7 @@ function mapBoardColumn(
 
 function mapEventCards(
   items: Array<{
+    id: string
     title: string
     createdAt: Date
     content?: string | null
@@ -157,6 +158,7 @@ function mapEventCards(
       item.content?.trim().slice(0, 40) ||
       "본당의 다양한 행사 소식을 준비하고 있습니다.",
     accentClassName: EVENT_CARD_ACCENTS[index % EVENT_CARD_ACCENTS.length],
+    href: `/notice/gallery/${item.id}`,
     thumbnailUrl: item.thumbnailUrl ?? null,
     hasYoutube: Boolean(item.hasYoutube),
   }))

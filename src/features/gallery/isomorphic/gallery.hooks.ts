@@ -8,7 +8,9 @@ import {
 import { apiFetch } from "@/lib/api"
 import type {
   ApiResponseDto,
+  GalleryDetailDto,
   GalleryListItemDto,
+  GalleryNavigationDto,
   GalleryPublicPageDto,
 } from "./gallery.types"
 
@@ -18,17 +20,6 @@ type GalleryInfinitePageDto = {
   items: GalleryListItemDto[]
   hasMore: boolean
   nextCursor: string | null
-}
-
-type GalleryDetailDto = {
-  id: string
-  title: string
-  content: string
-  isPublished: boolean
-  createdAt: string
-  galleryImages: Array<{ id: string; originalName: string; url: string }>
-  youtubeUrl?: string | null
-  hasYoutube?: boolean
 }
 
 export const galleryQueryKeys = {
@@ -41,6 +32,7 @@ export const galleryQueryKeys = {
 export const publicGalleryQueryKeys = {
   list: (params: { page: number; query: string }) =>
     ["public", "gallery", "list", params] as const,
+  detail: (id: string) => ["public", "gallery", "detail", "v1", id] as const,
 } as const
 
 type GalleryListResponseDto = {
@@ -48,6 +40,15 @@ type GalleryListResponseDto = {
   items?: GalleryListItemDto[]
   pageInfo?: { hasMore?: boolean; nextCursor?: string | null }
 }
+
+type GalleryDetailResponseDto = ApiResponseDto<{
+  item: GalleryDetailDto
+}>
+
+type PublicGalleryDetailResponseDto = ApiResponseDto<{
+  item: GalleryDetailDto
+  navigation: GalleryNavigationDto
+}>
 
 async function fetchGalleryPage(params: {
   cursor?: string | null
@@ -87,10 +88,9 @@ async function fetchGalleryDetail(id: string) {
     .send()
   if (!response.ok) throw new Error("갤러리 상세를 불러오지 못했습니다.")
 
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean
-    item?: GalleryDetailDto
-  } | null
+  const json = (await response
+    .json()
+    .catch(() => null)) as GalleryDetailResponseDto | null
 
   if (!json?.ok || !json.item)
     throw new Error("갤러리 상세를 불러오지 못했습니다.")
@@ -113,6 +113,24 @@ async function fetchPublicGalleryPage(params: { page: number; query: string }) {
   if (!json?.ok) throw new Error("갤러리 목록을 불러오지 못했습니다.")
 
   return json
+}
+
+async function fetchPublicGalleryDetail(id: string) {
+  const response = await apiFetch.get(`/api/gallery/${id}`).send()
+
+  if (!response.ok) throw new Error("갤러리 상세를 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicGalleryDetailResponseDto | null
+
+  if (!json?.ok || !json.item)
+    throw new Error("갤러리 상세를 불러오지 못했습니다.")
+
+  return {
+    item: json.item,
+    navigation: json.navigation ?? { prev: null, next: null },
+  }
 }
 
 export function useGalleryListInfinite(params: {
@@ -149,11 +167,23 @@ export function useGalleryDetailQuery(id: string) {
           const matched = page.items.find((item) => item.id === id)
           if (matched) {
             return {
-              ...matched,
+              id: matched.id,
+              title: matched.title,
               content: "",
-              createdAt: String(matched.createdAt),
-              galleryImages: [],
-            } as GalleryDetailDto
+              isPublished: matched.isPublished,
+              createdAt: new Date(matched.createdAt).toISOString(),
+              galleryImages: matched.thumbnailUrl
+                ? [
+                    {
+                      id: `prefetched-${matched.id}`,
+                      originalName: matched.title,
+                      url: matched.thumbnailUrl,
+                    },
+                  ]
+                : [],
+              youtubeUrl: null,
+              hasYoutube: matched.hasYoutube,
+            } satisfies GalleryDetailDto
           }
         }
       }
@@ -172,6 +202,15 @@ export function usePublicGalleryPageQuery(params: {
   return useQuery({
     queryKey: publicGalleryQueryKeys.list(params),
     queryFn: () => fetchPublicGalleryPage(params),
+    staleTime: 10_000,
+  })
+}
+
+export function usePublicGalleryDetailQuery(id: string) {
+  return useQuery({
+    queryKey: publicGalleryQueryKeys.detail(id),
+    enabled: id.length > 0,
+    queryFn: () => fetchPublicGalleryDetail(id),
     staleTime: 10_000,
   })
 }

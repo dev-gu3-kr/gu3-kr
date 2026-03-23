@@ -208,10 +208,10 @@ export function GalleryWriteFormView({
               shouldValidate: true,
             })
           }
-          cropAspectRatio={16 / 9}
+          cropAspectRatio={4 / 3}
           outputWidth={1600}
-          outputHeight={900}
-          previewClassName="h-28 w-48 rounded-md border object-cover"
+          outputHeight={1200}
+          previewClassName="h-36 w-48 rounded-md border object-cover"
           allowRemove={requireThumbnail}
           disabled={isLoading}
         />
@@ -226,7 +226,7 @@ export function GalleryWriteFormView({
           value={thumbnailUrl}
         />
         <p className="text-xs text-neutral-500">
-          썸네일은 랜드스케이프 비율(16:9)로 크롭 후 업로드됩니다.
+          썸네일은 랜드스케이프 비율(4:3)로 크롭 후 업로드됩니다.
         </p>
       </div>
 

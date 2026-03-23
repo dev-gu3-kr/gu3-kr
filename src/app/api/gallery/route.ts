@@ -6,7 +6,7 @@ import type {
 } from "@/features/gallery/isomorphic"
 import { galleryService } from "@/features/gallery/server"
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 10
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)

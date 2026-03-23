@@ -31,6 +31,7 @@ export type HomeEventCard = {
   readonly title: string
   readonly description: string
   readonly accentClassName: string
+  readonly href?: string
   readonly thumbnailUrl?: string | null
   readonly hasYoutube?: boolean
 }

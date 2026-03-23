@@ -208,3 +208,44 @@ export async function findPublishedGalleryPageByOffset(params: {
     },
   })
 }
+
+export async function findPublishedGalleryById(id: string) {
+  return prisma.post.findFirst({
+    where: {
+      id,
+      category: "GALLERY",
+      isPublished: true,
+    },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      isPublished: true,
+      createdAt: true,
+      youtubeUrl: true,
+      galleryImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { id: true, originalName: true, url: true },
+      },
+    },
+  })
+}
+
+export async function findPublishedGalleryNavigationList() {
+  return prisma.post.findMany({
+    where: {
+      category: "GALLERY",
+      isPublished: true,
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    select: {
+      id: true,
+      title: true,
+    },
+  })
+}
