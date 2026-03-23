@@ -32,44 +32,48 @@ export function PublicNoticeListView({
     currentPage < totalPages ? buildPageHref(currentPage + 1, query) : null
 
   return (
-    <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+    <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
       <h2 className="text-[30px] font-semibold tracking-[-0.02em] text-[#252629]">
         공지사항
       </h2>
 
-      <div className="mt-4 space-y-2 md:hidden">
+      <div className="mt-8 md:hidden">
         {items.length === 0 ? (
-          <div className="rounded-md border border-[#ececec] py-10 text-center text-sm text-neutral-500">
+          <div className="border-y border-[#ececec] py-10 text-center text-sm text-neutral-500">
             등록된 공지사항이 없습니다.
           </div>
         ) : (
-          items.map((item, index) => {
-            const rowNo = totalCount - (currentPage - 1) * 10 - index
+          <div>
+            {items.map((item, index) => {
+              const rowNo = totalCount - (currentPage - 1) * 10 - index
 
-            return (
-              <article
-                key={item.id}
-                className="rounded-md border border-[#ececec] px-4 py-3"
-              >
-                <div className="min-w-0">
+              return (
+                <article
+                  key={item.id}
+                  className="border-b border-[#ececec] text-[#252629]"
+                >
                   <Link
                     href={`/notice/notices/${item.id}`}
-                    className="line-clamp-2 text-[15px] font-medium text-[#2f2f2f]"
+                    className="flex min-w-0 items-center gap-4 py-6"
                   >
-                    <span className="mr-1.5 text-xs font-semibold text-[#666]">
-                      [{item.isPinned ? "공지" : rowNo}]
-                    </span>
-                    <span>{item.title}</span>
-                  </Link>
-                </div>
+                    {item.isPinned ? (
+                      <span className="inline-flex h-[44px] shrink-0 items-center justify-center rounded-[10px] bg-[#f3f4f6] px-3 text-[16px] font-semibold tracking-[-0.02em]">
+                        공지
+                      </span>
+                    ) : (
+                      <span className="inline-flex h-[44px] w-[44px] shrink-0 items-center justify-center text-[18px] font-medium tracking-[-0.02em] text-[#252629]">
+                        {rowNo}
+                      </span>
+                    )}
 
-                <p className="mt-2 text-xs text-[#666]">
-                  관리자 <span className="mx-1 text-[#c0c0c0]">·</span>
-                  {new Date(item.createdAt).toLocaleDateString("ko-KR")}
-                </p>
-              </article>
-            )
-          })
+                    <span className="min-w-0 flex-1 truncate text-[17px] font-medium tracking-[-0.02em] text-[#252629]">
+                      {item.title}
+                    </span>
+                  </Link>
+                </article>
+              )
+            })}
+          </div>
         )}
       </div>
 
@@ -120,7 +124,7 @@ export function PublicNoticeListView({
                     </td>
 
                     <td className="py-3 text-center text-xs text-[#444]">
-                      관리자
+                      {item.authorName}
                     </td>
 
                     <td className="py-3 text-center text-xs text-[#666]">
@@ -134,19 +138,19 @@ export function PublicNoticeListView({
         </table>
       </div>
 
-      <div className="mt-8 space-y-3 md:relative md:h-10 md:space-y-0">
-        <div className="flex items-center justify-center gap-2">
+      <div className="mt-8 space-y-6 md:relative md:h-10 md:space-y-0">
+        <div className="flex items-center justify-center gap-4 md:gap-2">
           {prevHref ? (
             <Link
               href={prevHref}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#888] hover:bg-[#ececec]"
+              className="inline-flex size-[56px] items-center justify-center rounded-full text-[#252629] transition-colors hover:bg-[#f5f5f5] md:h-7 md:w-7 md:bg-[#f5f5f5] md:text-[#888] md:hover:bg-[#ececec]"
               aria-label="이전 페이지"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-7 w-7 md:h-4 md:w-4" />
             </Link>
           ) : (
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0]">
-              <ChevronLeft className="h-4 w-4" />
+            <span className="inline-flex size-[56px] items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0] md:h-7 md:w-7">
+              <ChevronLeft className="h-7 w-7 md:h-4 md:w-4" />
             </span>
           )}
 
@@ -159,8 +163,8 @@ export function PublicNoticeListView({
                 href={buildPageHref(pageNo, query)}
                 className={
                   isActive
-                    ? "inline-flex h-7 w-7 items-center justify-center text-sm font-semibold text-[#8b1e1e]"
-                    : "inline-flex h-7 w-7 items-center justify-center text-sm text-[#666] hover:text-[#222]"
+                    ? "inline-flex h-8 min-w-8 items-center justify-center px-1 text-[18px] font-semibold text-[#bd2125] md:h-7 md:w-7 md:px-0 md:text-sm md:text-[#8b1e1e]"
+                    : "inline-flex h-8 min-w-8 items-center justify-center px-1 text-[18px] font-medium text-[#7f8590] hover:text-[#222] md:h-7 md:w-7 md:px-0 md:text-sm md:text-[#666]"
                 }
               >
                 {pageNo}
@@ -171,30 +175,36 @@ export function PublicNoticeListView({
           {nextHref ? (
             <Link
               href={nextHref}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#888] hover:bg-[#ececec]"
+              className="inline-flex size-[56px] items-center justify-center text-[#252629] transition-colors hover:bg-[#f5f5f5] md:h-7 md:w-7 md:rounded-full md:bg-[#f5f5f5] md:text-[#888] md:hover:bg-[#ececec]"
               aria-label="다음 페이지"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-7 w-7 md:h-4 md:w-4" />
             </Link>
           ) : (
-            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0]">
-              <ChevronRight className="h-4 w-4" />
+            <span className="inline-flex size-[56px] items-center justify-center rounded-full bg-[#f5f5f5] text-[#d0d0d0] md:h-7 md:w-7">
+              <ChevronRight className="h-7 w-7 md:h-4 md:w-4" />
             </span>
           )}
         </div>
 
         <form
           action="/notice/notices"
-          className="relative mx-auto w-full max-w-[260px] md:absolute md:right-0 md:top-0 md:mx-0 md:max-w-[200px] lg:max-w-[260px]"
+          className="relative mx-auto w-full md:absolute md:right-0 md:top-0 md:mx-0 md:max-w-[200px] lg:max-w-[260px]"
         >
           <input type="hidden" name="page" value="1" />
           <input
             name="q"
             defaultValue={query}
             placeholder="검색어 입력시"
-            className="h-9 w-full rounded bg-[#efefef] px-3 pr-9 text-sm text-[#444] outline-none"
+            className="h-[68px] w-full rounded-[12px] bg-[#f5f6f8] px-5 pr-14 text-[16px] text-[#444] outline-none placeholder:text-[#6d6f74] md:h-9 md:rounded md:bg-[#efefef] md:px-3 md:pr-9 md:text-sm"
           />
-          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8d8d8d]" />
+          <button
+            type="submit"
+            aria-label="공지사항 검색"
+            className="absolute right-4 top-1/2 inline-flex -translate-y-1/2 items-center justify-center text-[#252629] md:right-3 md:text-[#8d8d8d]"
+          >
+            <Search className="h-7 w-7 md:h-4 md:w-4" />
+          </button>
         </form>
       </div>
     </section>

@@ -18,6 +18,7 @@ export type NoticeListItemDto = {
   content: string // 본문 HTML
   isPublished: boolean // 공개 여부
   isPinned: boolean // 상단 고정 여부
+  authorName: string // 작성자 디스플레이 이름
   createdAt: string | Date // 생성 시각(ISO 문자열 또는 Date 객체)
 }
 

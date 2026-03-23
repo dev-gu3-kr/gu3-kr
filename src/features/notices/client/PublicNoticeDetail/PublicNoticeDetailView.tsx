@@ -19,28 +19,23 @@ export function PublicNoticeDetailView({
 }: PublicNoticeDetailViewProps) {
   return (
     <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
-      <h2 className="text-[30px] font-semibold tracking-[-0.02em] text-[#252629]">
+      <h2 className="hidden text-[30px] font-semibold tracking-[-0.02em] text-[#252629] md:block">
         공지사항
       </h2>
 
-      {/* Mobile: card-like header (no border, gray background) */}
-      <div className="mt-4 rounded-xl bg-[#efefef] px-4 py-4 md:hidden">
-        <p className="break-keep text-[17px] font-medium leading-7 text-[#2f2f2f]">
-          {detail.isPinned ? (
-            <Badge
-              variant="outline"
-              className="mr-2 border-transparent bg-white px-3 py-[3px] text-[11px] font-semibold leading-none text-[#1f1f1f]"
-            >
-              공지
-            </Badge>
-          ) : null}
-          {detail.title}
-        </p>
+      <div className="md:hidden">
+        {detail.isPinned ? (
+          <Badge
+            variant="outline"
+            className="border-transparent bg-[#f3f4f6] px-3 py-2 text-[16px] font-semibold leading-none text-[#252629]"
+          >
+            공지
+          </Badge>
+        ) : null}
 
-        <p className="mt-3 text-xs text-[#666]">
-          {detail.authorName} <span className="mx-1 text-[#b8b8b8]">·</span>
-          {new Date(detail.createdAt).toLocaleDateString("ko-KR")}
-        </p>
+        <h3 className="mt-6 break-keep text-[28px] font-semibold leading-[1.45] tracking-[-0.03em] text-[#2f2f2f]">
+          {detail.title}
+        </h3>
       </div>
 
       {/* Desktop: existing row layout */}
