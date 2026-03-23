@@ -58,6 +58,10 @@ export type HomeShortcutCard = {
 export type HomeFooterMassTime = {
   readonly title: string
   readonly lines: readonly string[]
+  readonly drawerGroups?: readonly {
+    readonly label: string
+    readonly lines: readonly string[]
+  }[]
 }
 
 export type HomePageViewModel = {

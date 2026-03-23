@@ -173,6 +173,8 @@ function isPathActive(pathname: string, targetUrl: string) {
 }
 
 export function HomeHeader({ navItems }: HomeHeaderProps) {
+  const mobileSheetContentClassName =
+    "w-[min(300px,calc(100vw-60px))] overflow-y-auto border-l border-neutral-200 bg-white px-0 sm:max-w-[300px]"
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDesktopSubMenuOpen, setIsDesktopSubMenuOpen] = useState(false)
@@ -445,9 +447,10 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
             <SheetContent
               side="right"
               showCloseButton={false}
-              className="w-[92%] max-w-[340px] overflow-y-auto border-l border-neutral-200 bg-white px-0"
+              aria-describedby={undefined}
+              className={mobileSheetContentClassName}
             >
-              <SheetHeader className="px-6 pb-5 pt-6 text-left">
+              <SheetHeader className="gap-0 px-[13px] pb-0 pt-4 text-left">
                 <div className="flex items-center justify-end">
                   <SheetTitle className="sr-only">모바일 메뉴</SheetTitle>
                   <SheetClose asChild>
@@ -468,7 +471,6 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                   collapsible
                   value={mobileAccordionValue}
                   onValueChange={setMobileAccordionValue}
-                  className="border-y border-neutral-200"
                 >
                   {navItems.map((item) => {
                     const menuKey = MENU_KEY_BY_LABEL[item.label]
@@ -479,15 +481,16 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                       <AccordionItem
                         key={`mobile-${item.label}`}
                         value={accordionValue}
+                        className="border-0"
                       >
-                        <AccordionTrigger className="px-6 py-5 hover:no-underline [&>svg]:hidden">
+                        <AccordionTrigger className="h-[50px] items-center px-[30px] py-0 hover:no-underline [&>svg]:hidden">
                           <span className="text-[20px] font-semibold leading-none tracking-[-0.01em] text-neutral-900">
                             {item.label}
                           </span>
-                          <span className="grid size-8 place-items-center rounded-full border border-neutral-300 text-neutral-900">
+                          <span className="grid size-[26px] place-items-center rounded-full border border-neutral-300 text-neutral-900">
                             <svg
                               aria-hidden="true"
-                              className="size-4 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                              className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180"
                               viewBox="0 0 24 24"
                               fill="none"
                               xmlns="http://www.w3.org/2000/svg"
@@ -503,7 +506,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                           </span>
                         </AccordionTrigger>
 
-                        <AccordionContent className="bg-[#f4f4f6] px-6 py-4">
+                        <AccordionContent className="bg-[#f9f9fb] px-[30px] py-5">
                           {subMenus.length > 0 ? (
                             <ul>
                               {subMenus.map((subMenu) => {
@@ -519,7 +522,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                                     <SheetClose asChild>
                                       <Link
                                         href={subMenu.url}
-                                        className={`block py-2 text-[16px] leading-none tracking-[-0.01em] ${active ? "font-semibold text-neutral-900" : "font-medium text-neutral-800"}`}
+                                        className={`block py-2.5 text-[16px] leading-none tracking-[-0.01em] ${active ? "font-semibold text-neutral-900" : "font-medium text-neutral-800"}`}
                                       >
                                         {subMenu.label}
                                       </Link>
@@ -535,31 +538,6 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                   })}
                 </Accordion>
               </nav>
-
-              <section className="bg-[#f4f4f6] px-6 py-6 text-neutral-900">
-                <h3 className="text-xl font-semibold">미사 안내</h3>
-                <div className="mt-5 space-y-4 text-[16px] leading-[1.5]">
-                  <div>
-                    <p className="font-semibold">주일 미사</p>
-                    <p className="mt-1">
-                      오전 : 6시 30분 (새벽), 10시 30분 (교중)
-                    </p>
-                    <p>
-                      오후 : 12시 (중고등부), 3시 (유초등부), 6시 (청년부), 9시
-                      (밤)
-                    </p>
-                    <p>토요일 : 오후 7시(토요주일)</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">평일 미사</p>
-                    <p className="mt-1">
-                      월/화/수/금요일 : 오전 6시 30분, 오후 7시
-                    </p>
-                    <p>목요일 : 오전 6시 30분, 오전 10시, 오후 7시</p>
-                    <p>토요일 : 오전 6시 30분</p>
-                  </div>
-                </div>
-              </section>
             </SheetContent>
           </Sheet>
         </div>
