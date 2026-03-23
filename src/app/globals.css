@@ -131,6 +131,17 @@
   }
 }
 
+@layer utilities {
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+}
+
 /* iOS Safari pull-to-refresh에서 드러나는 루트 배경을 홈 비주얼 톤과 맞춘다. */
 @media (hover: none) and (pointer: coarse) {
   html,
