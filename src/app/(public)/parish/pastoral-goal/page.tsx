@@ -70,20 +70,28 @@ export default async function PastoralGoalPage() {
       />
 
       <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
-        <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629]">
+        <h2 className="text-[28px] font-bold tracking-[-0.03em] break-keep [text-wrap:balance] text-[#252629]">
           사목 목표
         </h2>
 
-        <article className="relative mt-6 h-[160px] overflow-hidden rounded-2xl border border-[#d8e8f8] md:h-[180px]">
+        <article className="relative mt-6 aspect-[320/210] w-full overflow-hidden rounded-2xl border border-[#d8e8f8] md:max-w-none md:aspect-auto md:h-[180px]">
+          <Image
+            src="/images/parish/pastoral-goal-banner-mobile.webp"
+            alt="사목 목표 소개 이미지"
+            fill
+            sizes="(max-width: 767px) 100vw, 1220px"
+            className="object-cover md:hidden"
+            priority
+          />
           <Image
             src="/images/parish/pastoral-goal-banner.webp"
             alt="사목 목표 소개 이미지"
             fill
-            sizes="(max-width: 1280px) 100vw, 1220px"
-            className="object-cover"
+            sizes="(min-width: 768px) 1220px, 100vw"
+            className="hidden object-cover md:block"
             priority
           />
-          <p className="relative z-10 flex h-full items-center justify-center px-6 text-center text-xl font-extrabold tracking-[-0.02em] bg-[linear-gradient(90deg,#1D7FFF_0%,#1D7FFF_35%,#FF4C58_65%,#FF4C58_100%)] bg-clip-text text-transparent drop-shadow-[0_1px_2px_rgba(255,255,255,0.25)] md:text-3xl">
+          <p className="relative z-10 mx-auto flex h-full max-w-[288px] items-center justify-center px-6 text-center text-[28px] leading-[1.18] font-extrabold tracking-[-0.03em] break-keep [text-wrap:balance] bg-[linear-gradient(90deg,#1D7FFF_0%,#1D7FFF_35%,#FF4C58_65%,#FF4C58_100%)] bg-clip-text text-transparent drop-shadow-[0_1px_2px_rgba(255,255,255,0.25)] md:max-w-none md:px-6 md:text-3xl md:leading-normal">
             "시노드 교회 안에 함께 걸어가는 공동체"
           </p>
         </article>
