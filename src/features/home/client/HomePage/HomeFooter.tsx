@@ -1,10 +1,9 @@
 "use client"
 
-import { Plus } from "lucide-react"
+import Image from "next/image"
 import { useState } from "react"
-
+import { MassTimesCrossIcon } from "@/components/svgs"
 import type { HomeFooterMassTime } from "@/features/home/isomorphic"
-
 import { HomeMassTimesDrawer } from "./HomeMassTimesDrawer"
 
 type HomeFooterProps = {
@@ -18,8 +17,14 @@ export function HomeFooter({ massTimes }: HomeFooterProps) {
     <footer className="bg-[#252629] px-5 py-12 text-white md:px-8">
       <div className="mx-auto grid max-w-[1220px] gap-10 md:grid-cols-[1.1fr_1.3fr]">
         <section>
-          <h2 className="text-xl font-semibold">
-            천주교 서울대교구 구로3동성당
+          <h2 className="w-fit">
+            <Image
+              src="/images/footer-parish-title.png"
+              alt="천주교 서울대교구 구로3동성당"
+              width={224}
+              height={16}
+              className="h-auto w-[224px] max-w-full"
+            />
           </h2>
           <div className="mt-5 space-y-2 text-sm text-[#b6b9c2]">
             <p>전화번호 02-857-8541</p>
@@ -38,13 +43,13 @@ export function HomeFooter({ massTimes }: HomeFooterProps) {
                   aria-label="유튜브"
                   target="_blank"
                   rel="noreferrer"
-                  className="grid size-14 place-items-center rounded-full bg-[#3f4043] text-white/90 transition-colors hover:bg-[#55575d] md:size-[30px]"
+                  className="grid size-[40px] place-items-center rounded-full bg-[#3f4043] text-white/90 transition-colors hover:bg-[#55575d] md:size-[30px]"
                 >
                   <span className="sr-only">유튜브</span>
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="size-6 md:size-4"
+                    className="size-5 md:size-4"
                     role="img"
                     aria-labelledby="footer-youtube-icon-title"
                   >
@@ -56,13 +61,13 @@ export function HomeFooter({ massTimes }: HomeFooterProps) {
                 <a
                   href="mailto:contact@gu3.kr"
                   aria-label="이메일"
-                  className="grid size-14 place-items-center rounded-full bg-[#3f4043] text-white/90 transition-colors hover:bg-[#55575d] md:size-[30px]"
+                  className="grid size-[40px] place-items-center rounded-full bg-[#3f4043] text-white/90 transition-colors hover:bg-[#55575d] md:size-[30px]"
                 >
                   <span className="sr-only">이메일</span>
                   <svg
                     viewBox="0 0 24 24"
                     fill="currentColor"
-                    className="size-6 md:size-4"
+                    className="size-5 md:size-4"
                     role="img"
                     aria-labelledby="footer-mail-icon-title"
                   >
@@ -75,10 +80,10 @@ export function HomeFooter({ massTimes }: HomeFooterProps) {
               <button
                 type="button"
                 onClick={() => setIsMassDrawerOpen(true)}
-                className="inline-flex min-h-[52px] items-center gap-3 rounded-[12px] border border-white/20 px-6 text-[18px] font-medium tracking-[-0.01em] text-white transition-colors hover:border-white/35 hover:bg-white/5 md:hidden"
+                className="inline-flex min-h-[42px] items-center gap-2 rounded-[11px] border border-white/20 px-4 text-[15px] font-medium tracking-[-0.01em] text-white transition-colors hover:border-white/35 hover:bg-white/5 md:hidden"
                 aria-label="미사시간 안내 열기"
               >
-                <Plus className="size-6 shrink-0" strokeWidth={2.2} />
+                <MassTimesCrossIcon className="size-4.5 shrink-0" />
                 <span>미사시간 안내</span>
               </button>
             </div>
