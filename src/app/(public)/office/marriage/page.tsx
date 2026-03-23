@@ -35,17 +35,24 @@ export default async function MarriagePage() {
 
         <div className="mt-6 grid gap-5 md:grid-cols-[230px_minmax(0,1fr)] md:gap-8">
           <div className="space-y-5">
-            <div className="relative mx-auto aspect-square w-full max-w-[230px] overflow-hidden rounded-[14px] bg-[#f3f3f3] md:mx-0">
+            <div className="relative mx-auto aspect-[320/210] w-full overflow-hidden rounded-[20px] bg-[#f3f3f3] md:mx-0 md:aspect-square md:max-w-[230px] md:rounded-[14px]">
+              <Image
+                src="/images/office/office-marriage-main-mobile.webp"
+                alt="혼인성사 안내 이미지"
+                fill
+                sizes="(max-width: 767px) 100vw, 230px"
+                className="object-cover md:hidden"
+              />
               <Image
                 src="/images/office/office-marriage-main.webp"
                 alt="혼인성사 안내 이미지"
                 fill
-                sizes="(max-width: 768px) 100vw, 230px"
-                className="object-cover"
+                sizes="(min-width: 768px) 230px, 100vw"
+                className="hidden object-cover md:block"
               />
             </div>
 
-            <div className="relative mx-auto aspect-square w-full max-w-[230px] overflow-hidden rounded-[14px] bg-[#f3f3f3] md:mx-0">
+            <div className="relative mx-auto hidden aspect-square w-full max-w-[230px] overflow-hidden rounded-[14px] bg-[#f3f3f3] md:mx-0 md:block">
               <Image
                 src="/images/office/office-marriage-sub.webp"
                 alt="혼인성사 준비 이미지"
