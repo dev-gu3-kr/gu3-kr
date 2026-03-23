@@ -1,13 +1,17 @@
 import { createTimestampSlug } from "@/lib/admin/slug"
 import { extractFirstYoutubeUrl } from "@/lib/youtube"
 import {
+  countBulletins,
   createBulletinRecord,
   deleteAttachmentById,
   deleteBulletinById,
   findBulletinById,
   findBulletinDeleteTargetById,
+  findBulletinPageByOffset,
   findBulletinPageRows,
   findBulletinTargetById,
+  findPublishedBulletinById,
+  findPublishedBulletinNavigationList,
   updateBulletinRecord,
 } from "./bulletin.query"
 
@@ -17,6 +21,21 @@ type AttachmentRecord = {
   mimeType: string
   sizeBytes: number
   url: string
+}
+
+type BulletinPublicRow = {
+  id: string
+  title: string
+  createdAt: Date
+  author?: { displayName: string } | null
+  attachments: Array<{ originalName: string; url: string }>
+}
+
+function mapBulletinPublicItem<T extends BulletinPublicRow>(item: T) {
+  return {
+    ...item,
+    authorName: item.author?.displayName ?? "관리자",
+  }
 }
 
 export async function getBulletinPage(params: {
@@ -41,6 +60,55 @@ export async function getBulletinPage(params: {
 
 export async function getBulletinById(id: string) {
   return findBulletinById(id)
+}
+
+export async function getBulletinCount(params: {
+  query?: string
+  isPublished?: boolean
+}) {
+  return countBulletins(params)
+}
+
+export async function getBulletinPageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+  isPublished?: boolean
+}) {
+  const rows = await findBulletinPageByOffset(params)
+  return rows.map(mapBulletinPublicItem)
+}
+
+export async function getPublishedBulletinById(id: string) {
+  const row = await findPublishedBulletinById(id)
+  return row ? mapBulletinPublicItem(row) : null
+}
+
+export async function getPublishedBulletinDetailWithNavigation(id: string) {
+  const item = await getPublishedBulletinById(id)
+  if (!item) return null
+
+  const ordered = await findPublishedBulletinNavigationList()
+  const currentIndex = ordered.findIndex((row) => row.id === id)
+
+  const navigation = {
+    prev:
+      currentIndex >= 0 && currentIndex < ordered.length - 1
+        ? {
+            id: ordered[currentIndex + 1].id,
+            title: ordered[currentIndex + 1].title,
+          }
+        : null,
+    next:
+      currentIndex > 0
+        ? {
+            id: ordered[currentIndex - 1].id,
+            title: ordered[currentIndex - 1].title,
+          }
+        : null,
+  }
+
+  return { item, navigation }
 }
 
 export async function createBulletin(input: {

@@ -6,36 +6,19 @@ import {
   useQueryClient,
 } from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
+import type {
+  ApiResponseDto,
+  BulletinDetailDto,
+  BulletinListItemDto,
+  BulletinNavigationDto,
+  BulletinPageDto,
+  BulletinPublicDetailDto,
+  BulletinPublicPageDto,
+  BulletinPublishFilterDto,
+} from "./bulletin.types"
 
-export type BulletinPublishFilterDto = "all" | "published" | "draft"
-
-export type BulletinListItemDto = {
-  id: string
-  title: string
-  isPublished: boolean
-  createdAt: string
-  attachments: Array<{ url: string; originalName: string }>
-}
-
-export type BulletinDetailDto = {
-  id: string
-  title: string
-  content: string
-  isPublished: boolean
-  createdAt: string
-  attachments: Array<{ id?: string; originalName: string; url: string }>
-}
-
-type BulletinListResponseDto = {
-  ok?: boolean
-  items?: BulletinListItemDto[]
-  pageInfo?: { hasMore?: boolean; nextCursor?: string | null }
-}
-
-type BulletinInfinitePageDto = {
+type BulletinInfinitePageDto = BulletinPageDto["pageInfo"] & {
   items: BulletinListItemDto[]
-  hasMore: boolean
-  nextCursor: string | null
 }
 
 export const bulletinQueryKeys = {
@@ -63,15 +46,16 @@ async function fetchBulletinPage(params: {
 
   const json = (await response
     .json()
-    .catch(() => null)) as BulletinListResponseDto | null
+    .catch(() => null)) as ApiResponseDto<BulletinPageDto> | null
   if (!json?.ok || !Array.isArray(json.items)) {
-    return { items: [], hasMore: false, nextCursor: null }
+    return { items: [], hasMore: false, nextCursor: null, take: 20 }
   }
 
   return {
     items: json.items,
     hasMore: Boolean(json.pageInfo?.hasMore),
     nextCursor: json.pageInfo?.nextCursor ?? null,
+    take: json.pageInfo?.take ?? 20,
   }
 }
 
@@ -94,10 +78,9 @@ async function fetchBulletinDetail(id: string) {
   const response = await apiFetch.get(`/api/admin/bulletins/${id}`).send()
   if (!response.ok) throw new Error("주보 상세를 불러오지 못했습니다.")
 
-  const json = (await response.json().catch(() => null)) as {
-    ok?: boolean
+  const json = (await response.json().catch(() => null)) as ApiResponseDto<{
     item?: BulletinDetailDto
-  } | null
+  }> | null
 
   if (!json?.ok || !json.item)
     throw new Error("주보 상세를 불러오지 못했습니다.")
@@ -131,5 +114,66 @@ export function useBulletinDetailQuery(id: string) {
       return undefined
     },
     initialDataUpdatedAt: 0,
+  })
+}
+
+type PublicBulletinPageResponse = ApiResponseDto<BulletinPublicPageDto>
+type PublicBulletinDetailResponse = ApiResponseDto<{
+  item: BulletinPublicDetailDto
+  navigation: BulletinNavigationDto
+}>
+
+async function fetchPublicBulletinPage(params: {
+  page: number
+  query: string
+}) {
+  const response = await apiFetch
+    .get("/api/bulletins")
+    .query({ page: params.page, q: params.query || undefined })
+    .send()
+
+  if (!response.ok) throw new Error("본당주보 목록을 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicBulletinPageResponse | null
+  if (!json?.ok) throw new Error("본당주보 목록을 불러오지 못했습니다.")
+
+  return json
+}
+
+async function fetchPublicBulletinDetail(id: string) {
+  const response = await apiFetch.get(`/api/bulletins/${id}`).send()
+  if (!response.ok) throw new Error("본당주보 상세를 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicBulletinDetailResponse | null
+  if (!json?.ok || !json.item)
+    throw new Error("본당주보 상세를 불러오지 못했습니다.")
+
+  return {
+    item: json.item,
+    navigation: json.navigation ?? { prev: null, next: null },
+  }
+}
+
+export function usePublicBulletinPageQuery(params: {
+  page: number
+  query: string
+}) {
+  return useQuery({
+    queryKey: ["public", "bulletins", "list", params] as const,
+    queryFn: () => fetchPublicBulletinPage(params),
+    staleTime: 10_000,
+  })
+}
+
+export function usePublicBulletinDetailQuery(id: string) {
+  return useQuery({
+    queryKey: ["public", "bulletins", "detail", "v1", id] as const,
+    enabled: id.length > 0,
+    queryFn: () => fetchPublicBulletinDetail(id),
+    staleTime: 10_000,
   })
 }

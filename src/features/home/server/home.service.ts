@@ -129,6 +129,7 @@ function mapBoardColumn(
 
   const itemHrefByTitle: Partial<Record<string, (id: string) => string>> = {
     공지사항: (id) => `/notice/notices/${id}`,
+    "본당 주보": (id) => `/notice/weekly-bulletin/${id}`,
   }
 
   return {

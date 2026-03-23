@@ -4,3 +4,5 @@ export {
   BulletinEditFormContainer,
   BulletinWriteFormContainer,
 } from "./BulletinWriteForm"
+export { PublicBulletinDetailContainer } from "./PublicBulletinDetail"
+export { PublicBulletinListContainer } from "./PublicBulletinList"

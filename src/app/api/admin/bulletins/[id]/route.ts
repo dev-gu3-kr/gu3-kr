@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
+import { createBulletinSchema } from "@/features/bulletins/isomorphic"
 import { bulletinService } from "@/features/bulletins/server"
 import { assertAdminSession } from "@/lib/admin/session"
 import { getMinioS3Client } from "@/lib/admin/storage"
@@ -59,9 +60,15 @@ export async function PATCH(
   const isPublished = String(formData.get("isPublished") || "true") === "true"
   const file = formData.get("file")
 
-  if (!title) {
+  const parsed = createBulletinSchema.safeParse({
+    title,
+    content,
+    isPublished,
+  })
+
+  if (!parsed.success) {
     return NextResponse.json(
-      { ok: false, message: "제목은 필수입니다." },
+      { ok: false, message: "입력값을 확인해주세요." },
       { status: 400 },
     )
   }
@@ -130,9 +137,9 @@ export async function PATCH(
 
   const updated = await bulletinService.updateBulletin({
     id,
-    title,
-    content,
-    isPublished,
+    title: parsed.data.title,
+    content: parsed.data.content,
+    isPublished: parsed.data.isPublished ?? true,
     ...(newAttachment ? { newAttachment } : {}),
   })
 

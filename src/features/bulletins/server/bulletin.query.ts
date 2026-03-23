@@ -41,6 +41,66 @@ export async function findBulletinPageRows(params: {
   })
 }
 
+export async function countBulletins(params: {
+  query?: string
+  isPublished?: boolean
+}) {
+  return prisma.post.count({
+    where: {
+      category: "BULLETIN",
+      ...(typeof params.isPublished === "boolean"
+        ? { isPublished: params.isPublished }
+        : {}),
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
+    },
+  })
+}
+
+export async function findBulletinPageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+  isPublished?: boolean
+}) {
+  return prisma.post.findMany({
+    where: {
+      category: "BULLETIN",
+      ...(typeof params.isPublished === "boolean"
+        ? { isPublished: params.isPublished }
+        : {}),
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: params.take,
+    skip: params.skip,
+    select: {
+      id: true,
+      title: true,
+      createdAt: true,
+      author: { select: { displayName: true } },
+      attachments: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { originalName: true, url: true },
+      },
+    },
+  })
+}
+
 export async function findBulletinById(id: string) {
   return prisma.post.findFirst({
     where: { id, category: "BULLETIN" },
@@ -55,6 +115,42 @@ export async function findBulletinById(id: string) {
         take: 1,
         select: { id: true, originalName: true, url: true },
       },
+    },
+  })
+}
+
+export async function findPublishedBulletinById(id: string) {
+  return prisma.post.findFirst({
+    where: {
+      id,
+      category: "BULLETIN",
+      isPublished: true,
+    },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      createdAt: true,
+      author: { select: { displayName: true } },
+      attachments: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { originalName: true, url: true },
+      },
+    },
+  })
+}
+
+export async function findPublishedBulletinNavigationList() {
+  return prisma.post.findMany({
+    where: {
+      category: "BULLETIN",
+      isPublished: true,
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    select: {
+      id: true,
+      title: true,
     },
   })
 }
