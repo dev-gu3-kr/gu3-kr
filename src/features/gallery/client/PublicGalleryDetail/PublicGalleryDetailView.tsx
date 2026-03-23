@@ -1,8 +1,6 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
-import Image from "next/image"
 
 import { AppLink as Link } from "@/components/AppLink"
-import { GalleryYoutubeBadge } from "@/components/GalleryYoutubeBadge"
 import { GalleryContentViewer } from "@/features/gallery/client"
 import type {
   GalleryDetailDto,
@@ -19,7 +17,6 @@ export function PublicGalleryDetailView({
   navigation,
 }: PublicGalleryDetailViewProps) {
   const createdAtLabel = new Date(detail.createdAt).toLocaleDateString("ko-KR")
-  const coverImage = detail.galleryImages[0]
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
@@ -48,24 +45,6 @@ export function PublicGalleryDetailView({
           </p>
         </div>
       </div>
-
-      {coverImage ? (
-        <div className="mt-8 overflow-hidden rounded-[24px] border border-[#f1f1f1]">
-          <div className="relative aspect-[4/3] bg-[#f4f4f5]">
-            <Image
-              src={coverImage.url}
-              alt={detail.title}
-              fill
-              sizes="(min-width: 768px) 1200px, 100vw"
-              className="object-cover"
-            />
-
-            {detail.hasYoutube ? (
-              <GalleryYoutubeBadge className="absolute bottom-3 right-3" />
-            ) : null}
-          </div>
-        </div>
-      ) : null}
 
       <article className="mt-8 border-b border-[#e5e5e5] px-2 py-6 text-[15px] leading-7 text-[#2f2f2f] [&_.toastui-editor-contents]:text-[16px] [&_.toastui-editor-contents]:leading-8">
         <GalleryContentViewer content={detail.content} />
