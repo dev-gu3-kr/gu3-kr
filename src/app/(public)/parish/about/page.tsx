@@ -61,19 +61,26 @@ export default async function AboutPage() {
         currentLabel="본당 소개"
       />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
+      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
         <h2 className="text-[28px] font-bold tracking-[-0.02em] text-[#252629]">
           본당 소개
         </h2>
 
         <div className="mt-6 grid gap-5 md:grid-cols-[230px_minmax(0,1fr)] md:gap-8">
-          <div className="relative mx-auto aspect-[206/302] w-full max-w-[230px] overflow-hidden rounded-md border border-[#e6e6e6] bg-[#f4f4f4] md:mx-0">
+          <div className="relative mx-auto aspect-[320/210] w-full overflow-hidden rounded-[20px] border border-[#e6e6e6] bg-[#f4f4f4] md:mx-0 md:aspect-[206/302] md:max-w-[230px] md:rounded-md">
+            <Image
+              src="/images/parish/parish-about-intro-mobile.webp"
+              alt="구로3동 성당 본당 소개 이미지"
+              fill
+              sizes="(max-width: 767px) 100vw, 230px"
+              className="object-cover md:hidden"
+            />
             <Image
               src="/images/parish/parish-about-intro.webp"
               alt="구로3동 성당 본당 소개 이미지"
               fill
-              sizes="(max-width: 768px) 100vw, 230px"
-              className="object-cover"
+              sizes="(min-width: 768px) 230px, 100vw"
+              className="hidden object-cover md:block"
             />
           </div>
 
