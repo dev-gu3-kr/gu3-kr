@@ -29,13 +29,20 @@ export default async function FuneralGuidePage() {
         </h2>
 
         <div className="mt-6 grid gap-5 md:grid-cols-[230px_minmax(0,1fr)] md:gap-8">
-          <div className="relative mx-auto aspect-square w-full max-w-[230px] overflow-hidden rounded-[14px] bg-[#f3f3f3] md:mx-0">
+          <div className="relative mx-auto aspect-[320/210] w-full overflow-hidden rounded-[20px] bg-[#f3f3f3] md:mx-0 md:aspect-square md:max-w-[230px] md:rounded-[14px]">
+            <Image
+              src="/images/office/office-funeral-guide-mobile.webp"
+              alt="선종 안내 이미지"
+              fill
+              sizes="(max-width: 767px) 100vw, 230px"
+              className="object-cover md:hidden"
+            />
             <Image
               src="/images/office/office-funeral-guide.webp"
               alt="선종 안내 이미지"
               fill
-              sizes="(max-width: 768px) 100vw, 230px"
-              className="object-cover"
+              sizes="(min-width: 768px) 230px, 100vw"
+              className="hidden object-cover md:block"
             />
           </div>
 
