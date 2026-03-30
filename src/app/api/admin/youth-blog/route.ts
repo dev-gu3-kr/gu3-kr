@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     isPublished,
   })
 
-  const response: ApiResponseDto<YouthBlogPageDto> = { ok: true, ...page }
+  const response = { ok: true, ...page }
   return NextResponse.json(response)
 }
 
