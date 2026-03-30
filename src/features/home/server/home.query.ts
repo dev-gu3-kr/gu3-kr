@@ -20,7 +20,7 @@ export async function findPublishedGalleriesForHome(take: number) {
       content: true,
       createdAt: true,
       youtubeUrl: true,
-      galleryImages: {
+      postImages: {
         orderBy: [
           { isCover: "desc" },
           { sortOrder: "asc" },

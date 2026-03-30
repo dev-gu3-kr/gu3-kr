@@ -207,7 +207,7 @@ export async function getHomePage(monthParam: string | null) {
     eventCards: mapEventCards(
       galleryRows.map((row) => ({
         ...row,
-        thumbnailUrl: row.galleryImages[0]?.url ?? null,
+        thumbnailUrl: row.postImages[0]?.url ?? null,
         hasYoutube: Boolean(row.youtubeUrl),
       })),
     ),

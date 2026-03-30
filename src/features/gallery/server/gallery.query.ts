@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma"
 
-type GalleryImageRecord = {
+type PostImageRecord = {
   fileName: string
   originalName: string
   mimeType: string
@@ -35,7 +35,7 @@ export async function findGalleryPageRows(params: {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      galleryImages: {
+      postImages: {
         orderBy: [
           { isCover: "desc" },
           { sortOrder: "asc" },
@@ -58,7 +58,7 @@ export async function findGalleryDetailById(id: string) {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      galleryImages: {
+      postImages: {
         orderBy: [
           { isCover: "desc" },
           { sortOrder: "asc" },
@@ -76,7 +76,7 @@ export async function findGalleryTargetById(id: string) {
     where: { id, category: "GALLERY" },
     select: {
       id: true,
-      galleryImages: {
+      postImages: {
         orderBy: [
           { isCover: "desc" },
           { sortOrder: "asc" },
@@ -96,7 +96,7 @@ export async function createGalleryRecord(params: {
   youtubeUrl: string | null
   isPublished: boolean
   authorId: string
-  imageRecord: GalleryImageRecord
+  imageRecord: PostImageRecord
 }) {
   return prisma.post.create({
     data: {
@@ -108,7 +108,7 @@ export async function createGalleryRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
-      galleryImages: { create: params.imageRecord },
+      postImages: { create: params.imageRecord },
     },
     select: { id: true },
   })
@@ -120,7 +120,7 @@ export async function replaceGalleryRecord(params: {
   content: string
   youtubeUrl: string | null
   isPublished: boolean
-  replaceImage?: GalleryImageRecord
+  replaceImage?: PostImageRecord
 }) {
   return prisma.post.update({
     where: { id: params.id },
@@ -131,20 +131,20 @@ export async function replaceGalleryRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       ...(params.replaceImage
-        ? { galleryImages: { create: params.replaceImage } }
+        ? { postImages: { create: params.replaceImage } }
         : {}),
     },
   })
 }
 
-export async function deleteGalleryImageById(id: string) {
-  return prisma.galleryImage.delete({ where: { id } })
+export async function deletePostImageById(id: string) {
+  return prisma.postImage.delete({ where: { id } })
 }
 
 export async function findGalleryDeleteTargetById(id: string) {
   return prisma.post.findFirst({
     where: { id, category: "GALLERY" },
-    select: { id: true, galleryImages: { select: { url: true } } },
+    select: { id: true, postImages: { select: { url: true } } },
   })
 }
 
@@ -196,7 +196,7 @@ export async function findPublishedGalleryPageByOffset(params: {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      galleryImages: {
+      postImages: {
         orderBy: [
           { isCover: "desc" },
           { sortOrder: "asc" },
@@ -223,7 +223,7 @@ export async function findPublishedGalleryById(id: string) {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      galleryImages: {
+      postImages: {
         orderBy: [
           { isCover: "desc" },
           { sortOrder: "asc" },

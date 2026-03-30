@@ -4,7 +4,7 @@ import {
   countPublishedGalleries,
   createGalleryRecord,
   deleteGalleryById,
-  deleteGalleryImageById,
+  deletePostImageById,
   findGalleryDeleteTargetById,
   findGalleryDetailById,
   findGalleryPageRows,
@@ -15,7 +15,7 @@ import {
   replaceGalleryRecord,
 } from "./gallery.query"
 
-type GalleryImageRecord = {
+type PostImageRecord = {
   fileName: string
   originalName: string
   mimeType: string
@@ -31,7 +31,7 @@ type GalleryListRow = {
   isPublished: boolean
   createdAt: Date
   youtubeUrl: string | null
-  galleryImages: Array<{ url: string }>
+  postImages: Array<{ url: string }>
 }
 
 type GalleryDetailRow = {
@@ -41,7 +41,7 @@ type GalleryDetailRow = {
   isPublished: boolean
   createdAt: Date
   youtubeUrl: string | null
-  galleryImages: Array<{ id: string; originalName: string; url: string }>
+  postImages: Array<{ id: string; originalName: string; url: string }>
 }
 
 function mapGalleryListItem<T extends GalleryListRow>(item: T) {
@@ -50,7 +50,7 @@ function mapGalleryListItem<T extends GalleryListRow>(item: T) {
     title: item.title,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
-    thumbnailUrl: item.galleryImages[0]?.url ?? null,
+    thumbnailUrl: item.postImages[0]?.url ?? null,
     hasYoutube: Boolean(item.youtubeUrl),
   }
 }
@@ -62,7 +62,7 @@ function mapGalleryDetail<T extends GalleryDetailRow>(item: T) {
     content: item.content,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
-    galleryImages: item.galleryImages,
+    galleryImages: item.postImages,
     youtubeUrl: item.youtubeUrl ?? null,
     hasYoutube: Boolean(item.youtubeUrl),
   }
@@ -99,7 +99,7 @@ export async function createGallery(input: {
   content: string
   isPublished: boolean
   authorId: string
-  imageRecord: GalleryImageRecord
+  imageRecord: PostImageRecord
 }) {
   const normalizedTitle = input.title.trim()
   const normalizedContent = input.content.trim()
@@ -120,14 +120,14 @@ export async function updateGallery(input: {
   title: string
   content: string
   isPublished: boolean
-  replaceImage?: GalleryImageRecord
+  replaceImage?: PostImageRecord
 }) {
   const target = await findGalleryTargetById(input.id)
   if (!target) return null
 
-  const old = target.galleryImages[0]
+  const old = target.postImages[0]
   if (input.replaceImage && old) {
-    await deleteGalleryImageById(old.id)
+    await deletePostImageById(old.id)
   }
 
   const normalizedContent = input.content.trim()
@@ -153,7 +153,7 @@ export async function removeGallery(id: string) {
   await deleteGalleryById(id)
 
   return {
-    imageUrls: target.galleryImages.map((image) => image.url),
+    imageUrls: target.postImages.map((image) => image.url),
   }
 }
 

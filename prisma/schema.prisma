@@ -113,7 +113,7 @@ model Post {
 
   author        User          @relation(fields: [authorId], references: [id])  // 작성자(User) 관계
   attachments   Attachment[]                                                   // 첨부파일 목록
-  galleryImages GalleryImage[]                                                 // 갤러리 이미지 목록
+  postImages    PostImage[]                                                    // 게시글 이미지 목록(대표 이미지 포함)
 
   @@index([category, isPublished, publishedAt])
   @@index([createdAt])
@@ -134,7 +134,7 @@ model Attachment {
   @@index([postId])
 }
 
-model GalleryImage {
+model PostImage {
   id           String   @id @default(cuid())                                              // 고유 식별자
   postId       String                                                                     // 게시글(Post) FK
   fileName     String                                                                     // 저장 파일명
