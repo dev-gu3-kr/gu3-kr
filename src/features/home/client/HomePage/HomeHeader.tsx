@@ -385,7 +385,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
     ? "opacity-100"
     : "opacity-0"
   const desktopHoverActiveMenuTextClassName = canApplyDesktopHover
-    ? "lg:group-hover:text-[#8b1c21]"
+    ? "lg:group-hover:text-[#BD2125]"
     : ""
   const desktopHoverActiveMenuIndicatorClassName = canApplyDesktopHover
     ? "lg:group-hover:opacity-100"
@@ -576,7 +576,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                       {item.label}
                     </span>
                     <span
-                      className={`pointer-events-none absolute bottom-0 left-0 h-[2px] w-full bg-[#8b1c21] opacity-0 transition-opacity duration-150 ${active ? desktopHoverActiveMenuIndicatorClassName : ""}`}
+                      className={`pointer-events-none absolute bottom-0 left-0 h-[2px] w-full bg-[#BD2125] opacity-0 transition-opacity duration-150 ${active ? desktopHoverActiveMenuIndicatorClassName : ""}`}
                     />
                   </span>
                 </span>
@@ -638,7 +638,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                               href={subMenu.url}
                               onClick={handleDesktopSubMenuLinkClick}
                               aria-current={active ? "page" : undefined}
-                              className={`block whitespace-nowrap py-0 text-left text-sm font-semibold leading-[1.35] transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#8b1c21]" : "text-neutral-600"}`}
+                              className={`block whitespace-nowrap py-0 text-left text-sm font-semibold leading-[1.35] transition-colors duration-150 hover:text-[#8b1c21] ${active ? "text-[#BD2125]" : "text-neutral-600"}`}
                             >
                               {subMenu.label}
                             </Link>

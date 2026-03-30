@@ -1,11 +1,7 @@
 // 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { NextResponse } from "next/server"
 import { authService } from "@/features/auth/server"
-import type {
-  ApiResponseDto,
-  YouthBlogPageDto,
-  YouthBlogPublishFilterDto,
-} from "@/features/youth-blog/isomorphic"
+import type { YouthBlogPublishFilterDto } from "@/features/youth-blog/isomorphic"
 import { createYouthBlogSchema } from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
 import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"

@@ -1,8 +1,4 @@
 import { NextResponse } from "next/server"
-import type {
-  ApiResponseDto,
-  YouthBlogPublicPageDto,
-} from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
 
 const PAGE_SIZE = 10

@@ -1,9 +1,4 @@
 import { NextResponse } from "next/server"
-
-import type {
-  ApiResponseDto,
-  GalleryPublicPageDto,
-} from "@/features/gallery/isomorphic"
 import { galleryService } from "@/features/gallery/server"
 
 const PAGE_SIZE = 10
