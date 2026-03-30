@@ -25,8 +25,8 @@ export const youthBlogQueryKeys = {
 } as const
 
 export const publicYouthBlogQueryKeys = {
-  list: (params: { page: number; query: string }) =>
-    ["public", "youth-blog", "list", params] as const,
+  list: (params: { query: string }) =>
+    ["public", "youth-blog", "list", "infinite", params] as const,
   detail: (id: string) => ["public", "youth-blog", "detail", "v1", id] as const,
 } as const
 
@@ -238,13 +238,16 @@ async function fetchPublicYouthBlogDetail(id: string) {
   }
 }
 
-export function usePublicYouthBlogPageQuery(params: {
-  page: number
-  query: string
-}) {
-  return useQuery({
+export function usePublicYouthBlogListInfinite(params: { query: string }) {
+  return useInfiniteQuery({
     queryKey: publicYouthBlogQueryKeys.list(params),
-    queryFn: () => fetchPublicYouthBlogPage(params),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchPublicYouthBlogPage({ page: pageParam, query: params.query }),
+    getNextPageParam: (lastPage) =>
+      lastPage.currentPage < lastPage.totalPages
+        ? lastPage.currentPage + 1
+        : undefined,
     staleTime: 10_000,
   })
 }

@@ -6,7 +6,6 @@ import { getQueryClient } from "@/lib/react-query"
 
 type PageProps = {
   searchParams?: Promise<{
-    page?: string
     q?: string
   }>
 }
@@ -14,11 +13,9 @@ type PageProps = {
 export default async function Page({ searchParams }: PageProps) {
   const resolvedSearchParams = (await searchParams) ?? {}
   const query = (resolvedSearchParams.q || "").trim()
-  const page = Math.max(1, Number(resolvedSearchParams.page || "1") || 1)
 
   const queryClient = getQueryClient()
   await youthBlogPrefetch.prefetchPublicYouthBlogList(queryClient, {
-    page,
     query,
   })
 

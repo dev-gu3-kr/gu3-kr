@@ -55,11 +55,14 @@ async function fetchPublicYouthBlogDetail(id: string) {
 
 export async function prefetchPublicYouthBlogList(
   queryClient: QueryClient,
-  params: { page: number; query: string },
+  params: { query: string },
 ) {
-  await queryClient.prefetchQuery({
-    queryKey: ["public", "youth-blog", "list", params] as const,
-    queryFn: () => fetchPublicYouthBlogPage(params),
+  await queryClient.prefetchInfiniteQuery({
+    queryKey: ["public", "youth-blog", "list", "infinite", params] as const,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      fetchPublicYouthBlogPage({ page: pageParam, query: params.query }),
+    staleTime: 10_000,
   })
 }
 

@@ -122,11 +122,9 @@ export function YouthBlogListView({
               key={key}
               className="animate-pulse overflow-hidden rounded-md border"
             >
-              <div className="space-y-3 p-4 pb-3">
-                <div className="h-5 w-3/5 rounded bg-neutral-200" />
-              </div>
               <div className="aspect-video bg-neutral-200" />
-              <div className="space-y-2 p-4 pt-3">
+              <div className="space-y-3 p-4">
+                <div className="h-5 w-3/5 rounded bg-neutral-200" />
                 <div className="h-4 w-full rounded bg-neutral-200" />
                 <div className="h-4 w-5/6 rounded bg-neutral-200" />
                 <div className="h-3 w-32 rounded bg-neutral-200" />
@@ -163,11 +161,6 @@ export function YouthBlogListView({
                 className="overflow-hidden rounded-md border transition-colors hover:bg-neutral-50"
               >
                 <Link href={`/admin/youth-blog/${notice.id}`} className="block">
-                  <div className="p-4 pb-3">
-                    <p className="line-clamp-2 text-base font-medium">
-                      {notice.title}
-                    </p>
-                  </div>
                   <div className="relative aspect-video bg-neutral-100">
                     {notice.thumbnailUrl && !failedImageIds.has(notice.id) ? (
                       <>
@@ -195,7 +188,10 @@ export function YouthBlogListView({
                       </div>
                     )}
                   </div>
-                  <div className="space-y-2 p-4 pt-3">
+                  <div className="space-y-2 p-4">
+                    <p className="line-clamp-2 text-base font-medium">
+                      {notice.title}
+                    </p>
                     <p className="line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-neutral-600">
                       {preview || "본문 미리보기가 없습니다."}
                     </p>
