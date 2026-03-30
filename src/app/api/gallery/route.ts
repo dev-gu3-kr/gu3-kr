@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     query,
   })
 
-  const response: ApiResponseDto<GalleryPublicPageDto> = {
+  const response = {
     ok: true,
     items,
     totalCount,
