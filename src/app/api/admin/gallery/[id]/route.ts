@@ -211,7 +211,7 @@ export async function DELETE(
   if (bucket && removed.imageUrls.length > 0) {
     const client = getMinioS3Client()
     await Promise.all(
-      removed.imageUrls.map((url) =>
+      removed.imageUrls.map((url: string) =>
         client.send(
           new DeleteObjectCommand({
             Bucket: bucket,
