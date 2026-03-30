@@ -8,8 +8,11 @@ import {
 import { apiFetch } from "@/lib/api"
 import type {
   ApiResponseDto,
+  YouthBlogDetailDto,
   YouthBlogListItemDto,
+  YouthBlogNavigationDto,
   YouthBlogPageDto,
+  YouthBlogPublicPageDto,
   YouthBlogPublishFilterDto,
 } from "./youth-blog.types"
 
@@ -21,10 +24,14 @@ export const youthBlogQueryKeys = {
   detail: (id: string) => [...youthBlogQueryKeys.all, "detail", id] as const,
 } as const
 
+export const publicYouthBlogQueryKeys = {
+  list: (params: { page: number; query: string }) =>
+    ["public", "youth-blog", "list", params] as const,
+  detail: (id: string) => ["public", "youth-blog", "detail", "v1", id] as const,
+} as const
+
 type YouthBlogPageResponse = ApiResponseDto<YouthBlogPageDto>
-type YouthBlogDetailResponse = ApiResponseDto<{
-  item: YouthBlogListItemDto & { createdAt: string }
-}>
+type YouthBlogDetailResponse = ApiResponseDto<{ item: YouthBlogDetailDto }>
 
 type YouthBlogListFilters = {
   query: string
@@ -183,5 +190,70 @@ export function useYouthBlogDetailQuery(id: string) {
       return undefined
     },
     initialDataUpdatedAt: 0,
+  })
+}
+
+type PublicYouthBlogPageResponse = ApiResponseDto<YouthBlogPublicPageDto>
+type PublicYouthBlogDetailResponse = ApiResponseDto<{
+  item: YouthBlogDetailDto
+  navigation: YouthBlogNavigationDto
+}>
+
+async function fetchPublicYouthBlogPage(params: {
+  page: number
+  query: string
+}) {
+  const response = await apiFetch
+    .get("/api/youth-blog")
+    .query({ page: params.page, q: params.query || undefined })
+    .send()
+
+  if (!response.ok) throw new Error("청소년 블로그 목록을 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicYouthBlogPageResponse | null
+
+  if (!json?.ok) throw new Error("청소년 블로그 목록을 불러오지 못했습니다.")
+
+  return json
+}
+
+async function fetchPublicYouthBlogDetail(id: string) {
+  const response = await apiFetch.get(`/api/youth-blog/${id}`).send()
+
+  if (!response.ok) throw new Error("청소년 블로그 상세를 불러오지 못했습니다.")
+
+  const json = (await response
+    .json()
+    .catch(() => null)) as PublicYouthBlogDetailResponse | null
+
+  if (!json?.ok || !json.item) {
+    throw new Error("청소년 블로그 상세를 불러오지 못했습니다.")
+  }
+
+  return {
+    item: json.item,
+    navigation: json.navigation ?? { prev: null, next: null },
+  }
+}
+
+export function usePublicYouthBlogPageQuery(params: {
+  page: number
+  query: string
+}) {
+  return useQuery({
+    queryKey: publicYouthBlogQueryKeys.list(params),
+    queryFn: () => fetchPublicYouthBlogPage(params),
+    staleTime: 10_000,
+  })
+}
+
+export function usePublicYouthBlogDetailQuery(id: string) {
+  return useQuery({
+    queryKey: publicYouthBlogQueryKeys.detail(id),
+    enabled: id.length > 0,
+    queryFn: () => fetchPublicYouthBlogDetail(id),
+    staleTime: 10_000,
   })
 }

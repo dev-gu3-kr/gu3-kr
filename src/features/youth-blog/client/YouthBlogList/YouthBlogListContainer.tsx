@@ -50,9 +50,42 @@ export function YouthBlogListContainer({
     [data?.pages],
   )
 
+  const [loadedImageIds, setLoadedImageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(
+    () => new Set(),
+  )
+
+  useEffect(() => {
+    setLoadedImageIds((prev) => {
+      const next = new Set<string>()
+      for (const item of items) {
+        if (prev.has(item.id)) next.add(item.id)
+      }
+      return next
+    })
+
+    setFailedImageIds((prev) => {
+      const next = new Set<string>()
+      for (const item of items) {
+        if (prev.has(item.id)) next.add(item.id)
+      }
+      return next
+    })
+  }, [items])
+
   const handleLoadMore = useCallback(async () => {
     await fetchNextPage()
   }, [fetchNextPage])
+
+  const handleImageLoad = useCallback((id: string) => {
+    setLoadedImageIds((prev) => new Set(prev).add(id))
+  }, [])
+
+  const handleImageError = useCallback((id: string) => {
+    setFailedImageIds((prev) => new Set(prev).add(id))
+  }, [])
 
   return (
     <YouthBlogListView
@@ -64,9 +97,13 @@ export function YouthBlogListContainer({
       isFilterFetching={isFilterFetching}
       isFetchingNextPage={isFetchingNextPage}
       hasNextPage={Boolean(hasNextPage)}
+      loadedImageIds={loadedImageIds}
+      failedImageIds={failedImageIds}
       onQueryInputChange={setQueryInput}
       onStatusChange={setStatus}
       onLoadMore={handleLoadMore}
+      onImageLoad={handleImageLoad}
+      onImageError={handleImageError}
     />
   )
 }

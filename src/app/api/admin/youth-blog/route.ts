@@ -10,9 +10,22 @@ import { createYouthBlogSchema } from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
 import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
 
+function toImageRecordFromUrl(url: string) {
+  const fileName = url.split("/").pop() || `${Date.now()}.webp`
+  return {
+    fileName,
+    originalName: fileName,
+    mimeType: "image/webp",
+    sizeBytes: 0,
+    url,
+    isCover: true,
+    sortOrder: 0,
+  }
+}
+
 // 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 
-// 목록/상세 조회 요청을 처리한다.
+// 목록 조회 요청을 처리한다.
 export async function GET(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -57,8 +70,7 @@ export async function GET(request: Request) {
   return NextResponse.json(response)
 }
 
-// 생성 요청을 처리한다.
-// 이미지 업로드를 받아 공용 버킷에 저장하고 URL을 반환한다.
+// 새 청소년 블로그 생성 요청을 처리한다.
 export async function POST(request: Request) {
   const cookieHeader = request.headers.get("cookie") || ""
   const authorId = getAuthorIdFromCookieHeader(cookieHeader)
@@ -90,8 +102,11 @@ export async function POST(request: Request) {
   }
 
   const created = await noticeService.createYouthBlog({
-    ...parsed.data,
     authorId,
+    title: parsed.data.title,
+    content: parsed.data.content,
+    isPublished: parsed.data.isPublished,
+    imageRecord: toImageRecordFromUrl(parsed.data.thumbnailUrl),
   })
 
   return NextResponse.json({ ok: true, id: created.id })

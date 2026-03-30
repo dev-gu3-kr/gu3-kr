@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from "date-fns"
 import { ko } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
+import Image from "next/image"
 import { AppLink as Link } from "@/components/AppLink"
 import { InfiniteSentinel } from "@/components/InfiniteSentinel"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
@@ -18,9 +19,28 @@ type YouthBlogListViewProps = {
   isFilterFetching: boolean
   isFetchingNextPage: boolean
   hasNextPage: boolean
+  loadedImageIds: Set<string>
+  failedImageIds: Set<string>
   onQueryInputChange: (value: string) => void
   onStatusChange: (value: YouthBlogPublishFilterDto) => void
   onLoadMore: () => Promise<void>
+  onImageLoad: (id: string) => void
+  onImageError: (id: string) => void
+}
+
+function getContentPreview(content: string) {
+  return content
+    .replace(/!\[[^\]]*]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/```[\s\S]*?```/g, " ")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*([-*+]|\d+\.)\s+/gm, "")
+    .replace(/[>*_~|]/g, " ")
+    .replace(/\n+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
 }
 
 export function YouthBlogListView({
@@ -32,9 +52,13 @@ export function YouthBlogListView({
   isFilterFetching,
   isFetchingNextPage,
   hasNextPage,
+  loadedImageIds,
+  failedImageIds,
   onQueryInputChange,
   onStatusChange,
   onLoadMore,
+  onImageLoad,
+  onImageError,
 }: YouthBlogListViewProps) {
   return (
     <div className="space-y-3">
@@ -92,62 +116,109 @@ export function YouthBlogListView({
       </section>
 
       {isLoading && items.length === 0 ? (
-        <div className="space-y-2">
-          {["sk-1", "sk-2", "sk-3", "sk-4"].map((key) => (
-            <div key={key} className="animate-pulse rounded-md border p-4">
-              <div className="h-5 w-3/5 rounded bg-neutral-200" />
-              <div className="mt-2 h-4 w-4/5 rounded bg-neutral-200" />
-              <div className="mt-2 h-3 w-32 rounded bg-neutral-200" />
-            </div>
+        <ul className="grid grid-cols-1 gap-3">
+          {["yb-sk-1", "yb-sk-2", "yb-sk-3", "yb-sk-4"].map((key) => (
+            <li
+              key={key}
+              className="animate-pulse overflow-hidden rounded-md border"
+            >
+              <div className="space-y-3 p-4 pb-3">
+                <div className="h-5 w-3/5 rounded bg-neutral-200" />
+              </div>
+              <div className="aspect-video bg-neutral-200" />
+              <div className="space-y-2 p-4 pt-3">
+                <div className="h-4 w-full rounded bg-neutral-200" />
+                <div className="h-4 w-5/6 rounded bg-neutral-200" />
+                <div className="h-3 w-32 rounded bg-neutral-200" />
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       ) : null}
 
       {isError && items.length === 0 ? (
-        <p className="text-sm text-red-600">공지 목록을 불러오지 못했습니다.</p>
+        <p className="text-sm text-red-600">
+          청소년 블로그 목록을 불러오지 못했습니다.
+        </p>
       ) : null}
 
-      <div
-        className={
-          isFilterFetching
-            ? "pointer-events-none relative space-y-2 opacity-60"
-            : "relative space-y-2"
-        }
-      >
-        {items.length === 0 ? (
-          <div className="rounded-md border p-4 text-sm text-neutral-500">
-            검색 결과가 없습니다.
-          </div>
-        ) : (
-          items.map((notice) => (
-            <Link
-              key={notice.id}
-              href={`/admin/youth-blog/${notice.id}`}
-              className="block rounded-md border p-4 transition-colors hover:bg-neutral-50"
-            >
-              <p className="font-medium">{notice.title}</p>
-              {notice.summary?.trim() ? (
-                <p className="mt-1 text-sm text-neutral-600">
-                  {notice.summary.trim()}
-                </p>
-              ) : null}
-              <p className="mt-2 text-xs text-neutral-500">
-                {notice.isPublished ? "공개" : "비공개"} ·{" "}
-                {formatDistanceToNow(new Date(notice.createdAt), {
-                  addSuffix: true,
-                  locale: ko,
-                })}
-              </p>
-            </Link>
-          ))
-        )}
+      {items.length === 0 ? (
+        <div className="rounded-md border p-4 text-sm text-neutral-500">
+          검색 결과가 없습니다.
+        </div>
+      ) : (
+        <ul
+          className={
+            isFilterFetching
+              ? "pointer-events-none grid grid-cols-1 gap-3 opacity-60"
+              : "grid grid-cols-1 gap-3"
+          }
+        >
+          {items.map((notice, index) => {
+            const preview = getContentPreview(notice.content)
 
-        <InfiniteSentinel
-          hasMore={Boolean(hasNextPage)}
-          onLoadMore={onLoadMore}
-          disabled={isFetchingNextPage}
-        />
-      </div>
+            return (
+              <li
+                key={notice.id}
+                className="overflow-hidden rounded-md border transition-colors hover:bg-neutral-50"
+              >
+                <Link href={`/admin/youth-blog/${notice.id}`} className="block">
+                  <div className="p-4 pb-3">
+                    <p className="line-clamp-2 text-base font-medium">
+                      {notice.title}
+                    </p>
+                  </div>
+                  <div className="relative aspect-video bg-neutral-100">
+                    {notice.thumbnailUrl && !failedImageIds.has(notice.id) ? (
+                      <>
+                        {!loadedImageIds.has(notice.id) ? (
+                          <div className="absolute inset-0 animate-pulse bg-neutral-200" />
+                        ) : null}
+                        <Image
+                          src={notice.thumbnailUrl}
+                          alt=""
+                          fill
+                          priority={index < 2}
+                          sizes="100vw"
+                          className={
+                            loadedImageIds.has(notice.id)
+                              ? "object-cover opacity-100 transition-opacity duration-200"
+                              : "object-cover opacity-0 transition-opacity duration-200"
+                          }
+                          onLoad={() => onImageLoad(notice.id)}
+                          onError={() => onImageError(notice.id)}
+                        />
+                      </>
+                    ) : (
+                      <div className="flex h-full items-center justify-center text-xs text-neutral-400">
+                        썸네일 없음
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-2 p-4 pt-3">
+                    <p className="line-clamp-3 min-h-[4.5rem] text-sm leading-6 text-neutral-600">
+                      {preview || "본문 미리보기가 없습니다."}
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      {notice.isPublished ? "공개" : "비공개"} ·{" "}
+                      {formatDistanceToNow(new Date(notice.createdAt), {
+                        addSuffix: true,
+                        locale: ko,
+                      })}
+                    </p>
+                  </div>
+                </Link>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+      <InfiniteSentinel
+        hasMore={Boolean(hasNextPage)}
+        onLoadMore={onLoadMore}
+        disabled={isFetchingNextPage}
+      />
     </div>
   )
 }

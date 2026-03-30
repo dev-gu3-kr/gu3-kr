@@ -1,27 +1,38 @@
 import { prisma } from "@/lib/prisma"
 
+type PostImageRecord = {
+  fileName: string
+  originalName: string
+  mimeType: string
+  sizeBytes: number
+  url: string
+  isCover: boolean
+  sortOrder: number
+}
+
 export async function createYouthBlogRecord(params: {
   title: string
   slug: string
-  summary?: string
   content: string
   youtubeUrl: string | null
   isPublished: boolean
   authorId: string
+  imageRecord: PostImageRecord
 }) {
-  // 공지 게시글 레코드를 생성한다.
+  // 청소년 블로그 레코드를 생성한다.
   return prisma.post.create({
     data: {
       category: "YOUTH_BLOG",
       title: params.title,
       slug: params.slug,
-      summary: params.summary,
       content: params.content,
       youtubeUrl: params.youtubeUrl,
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
+      postImages: { create: params.imageRecord },
     },
+    select: { id: true },
   })
 }
 
@@ -31,7 +42,7 @@ export async function findYouthBlogPage(params: {
   query?: string
   isPublished?: boolean
 }) {
-  // 공지 목록 페이지를 최신순으로 조회한다(cursor 기반 페이지네이션).
+  // 청소년 블로그 목록 페이지를 최신순으로 조회한다.
   return prisma.post.findMany({
     where: {
       category: "YOUTH_BLOG",
@@ -50,7 +61,7 @@ export async function findYouthBlogPage(params: {
     orderBy: {
       createdAt: "desc",
     },
-    take: params.take,
+    take: params.take + 1,
     ...(params.cursor
       ? {
           cursor: { id: params.cursor },
@@ -60,16 +71,24 @@ export async function findYouthBlogPage(params: {
     select: {
       id: true,
       title: true,
-      summary: true,
       content: true,
       isPublished: true,
       createdAt: true,
+      postImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { url: true },
+      },
     },
   })
 }
 
 export async function findYouthBlogById(id: string) {
-  // 공지 상세를 ID로 조회한다.
+  // 청소년 블로그 상세를 ID로 조회한다.
   return prisma.post.findFirst({
     where: {
       id,
@@ -78,42 +97,174 @@ export async function findYouthBlogById(id: string) {
     select: {
       id: true,
       title: true,
-      summary: true,
       content: true,
       isPublished: true,
       createdAt: true,
-      updatedAt: true,
+      postImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { id: true, originalName: true, url: true },
+      },
     },
   })
 }
 
-export async function updateYouthBlogById(
-  id: string,
-  params: {
-    title: string
-    summary?: string | null
-    content: string
-    youtubeUrl: string | null
-    isPublished: boolean
-  },
-) {
-  // 공지 ID 기준으로 게시글을 수정한다.
+export async function findYouthBlogTargetById(id: string) {
+  return prisma.post.findFirst({
+    where: { id, category: "YOUTH_BLOG" },
+    select: {
+      id: true,
+      postImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { id: true, url: true },
+      },
+    },
+  })
+}
+
+export async function replaceYouthBlogRecord(params: {
+  id: string
+  title: string
+  content: string
+  youtubeUrl: string | null
+  isPublished: boolean
+  replaceImage?: PostImageRecord
+}) {
   return prisma.post.update({
-    where: { id },
+    where: { id: params.id },
     data: {
       title: params.title,
-      summary: params.summary,
       content: params.content,
       youtubeUrl: params.youtubeUrl,
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
+      ...(params.replaceImage
+        ? { postImages: { create: params.replaceImage } }
+        : {}),
     },
   })
 }
 
+export async function deletePostImageById(id: string) {
+  return prisma.postImage.delete({ where: { id } })
+}
+
+export async function findYouthBlogDeleteTargetById(id: string) {
+  return prisma.post.findFirst({
+    where: { id, category: "YOUTH_BLOG" },
+    select: { id: true, postImages: { select: { url: true } } },
+  })
+}
+
 export async function deleteYouthBlogById(id: string) {
-  // 공지 ID 기준으로 게시글을 삭제한다.
+  // 청소년 블로그를 ID 기준으로 삭제한다.
   return prisma.post.delete({
     where: { id },
+  })
+}
+
+export async function countPublishedYouthBlogs(query?: string) {
+  return prisma.post.count({
+    where: {
+      category: "YOUTH_BLOG",
+      isPublished: true,
+      ...(query
+        ? {
+            OR: [
+              { title: { contains: query } },
+              { content: { contains: query } },
+            ],
+          }
+        : {}),
+    },
+  })
+}
+
+export async function findPublishedYouthBlogPageByOffset(params: {
+  take: number
+  skip: number
+  query?: string
+}) {
+  return prisma.post.findMany({
+    where: {
+      category: "YOUTH_BLOG",
+      isPublished: true,
+      ...(params.query
+        ? {
+            OR: [
+              { title: { contains: params.query } },
+              { content: { contains: params.query } },
+            ],
+          }
+        : {}),
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    take: params.take,
+    skip: params.skip,
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      isPublished: true,
+      createdAt: true,
+      postImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { url: true },
+      },
+    },
+  })
+}
+
+export async function findPublishedYouthBlogById(id: string) {
+  return prisma.post.findFirst({
+    where: {
+      id,
+      category: "YOUTH_BLOG",
+      isPublished: true,
+    },
+    select: {
+      id: true,
+      title: true,
+      content: true,
+      isPublished: true,
+      createdAt: true,
+      postImages: {
+        orderBy: [
+          { isCover: "desc" },
+          { sortOrder: "asc" },
+          { createdAt: "asc" },
+        ],
+        take: 1,
+        select: { id: true, originalName: true, url: true },
+      },
+    },
+  })
+}
+
+export async function findPublishedYouthBlogNavigationList() {
+  return prisma.post.findMany({
+    where: {
+      category: "YOUTH_BLOG",
+      isPublished: true,
+    },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    select: {
+      id: true,
+      title: true,
+    },
   })
 }

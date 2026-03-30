@@ -1,4 +1,4 @@
-// 공지 작성 컨테이너: 저장 API 연동 + 에디터 이미지 업로드
+// 청소년 블로그 작성 컨테이너: 저장 API 연동과 이미지 업로드를 담당한다.
 "use client"
 
 import { useRouter } from "next/navigation"
@@ -8,20 +8,18 @@ import type { CreateYouthBlogInputDto } from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { YouthBlogWriteFormView } from "./YouthBlogWriteFormView"
 
-// 공지 작성 컨테이너: 생성 API 호출/성공 이동/에러 메시지 상태를 담당한다.
 export function YouthBlogWriteFormContainer() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
 
-  // 본문 이미지 업로드: formData 전송 후 삽입 가능한 이미지 URL을 반환한다.
   async function uploadYouthBlogImage(file: File) {
     const formData = new FormData()
     formData.append("file", file)
 
     const response = await apiFetch
-      .post("/api/admin/uploads/notice-image")
+      .post("/api/admin/uploads/youth-blog-image")
       .init({ body: formData })
       .send()
 
@@ -57,11 +55,11 @@ export function YouthBlogWriteFormContainer() {
       } | null
 
       if (!response.ok || !json?.ok) {
-        throw new Error(json?.message ?? "공지 저장에 실패했습니다.")
+        throw new Error(json?.message ?? "청소년 블로그 저장에 실패했습니다.")
       }
 
-      setMessage("공지사항이 저장되었습니다.")
-      toast.success("공지사항이 저장되었습니다.")
+      setMessage("청소년 블로그가 저장되었습니다.")
+      toast.success("청소년 블로그가 저장되었습니다.")
 
       if (json.id) {
         router.push(`/admin/youth-blog/${json.id}`)
@@ -73,7 +71,9 @@ export function YouthBlogWriteFormContainer() {
     } catch (error) {
       setIsError(true)
       setMessage(
-        error instanceof Error ? error.message : "공지 저장에 실패했습니다.",
+        error instanceof Error
+          ? error.message
+          : "청소년 블로그 저장에 실패했습니다.",
       )
     } finally {
       setIsLoading(false)
@@ -87,6 +87,7 @@ export function YouthBlogWriteFormContainer() {
       message={message}
       isError={isError}
       onUploadImageAction={uploadYouthBlogImage}
+      onUploadThumbnailAction={uploadYouthBlogImage}
     />
   )
 }

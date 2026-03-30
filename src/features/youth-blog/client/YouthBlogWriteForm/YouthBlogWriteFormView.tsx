@@ -1,8 +1,9 @@
-// 공지 작성/수정 폼 UI: RHF + Toast UI Editor 동기화/이미지 업로드 훅
+// 청소년 블로그 작성/수정 폼 UI: RHF, 썸네일 업로드, Toast UI 에디터를 연결한다.
 "use client"
 
 import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
+import { ImageCropUploadField } from "@/components/ImageCropUploadField"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -14,11 +15,12 @@ type YouthBlogWriteFormViewProps = {
   message: string | null
   isError: boolean
   initialTitle?: string
-  initialSummary?: string
+  currentThumbnailUrl?: string
   initialContent?: string
   initialIsPublished?: boolean
   submitLabel?: string
   onUploadImageAction: (file: File) => Promise<string>
+  onUploadThumbnailAction: (file: File, previousUrl?: string) => Promise<string>
 }
 
 type ToastEditorLike = {
@@ -43,18 +45,19 @@ type ToastEditorConstructor = new (options: {
   }
 }) => ToastEditorLike
 
-// 공지 폼 렌더러: RHF 상태와 Toast UI 에디터 상태를 동기화한다.
+// 청소년 블로그 폼 렌더러: RHF 상태와 썸네일/에디터 상태를 동기화한다.
 export function YouthBlogWriteFormView({
   onSubmitAction,
   isLoading,
   message,
   isError,
   initialTitle,
-  initialSummary,
+  currentThumbnailUrl,
   initialContent,
   initialIsPublished,
-  submitLabel = "공지 저장",
+  submitLabel = "청소년 블로그 저장",
   onUploadImageAction,
+  onUploadThumbnailAction,
 }: YouthBlogWriteFormViewProps) {
   const {
     register,
@@ -65,7 +68,7 @@ export function YouthBlogWriteFormView({
   } = useForm<CreateYouthBlogInputDto>({
     defaultValues: {
       title: initialTitle ?? "",
-      summary: initialSummary ?? "",
+      thumbnailUrl: currentThumbnailUrl ?? "",
       content: initialContent ?? "",
       isPublished: initialIsPublished ?? false,
     },
@@ -73,6 +76,7 @@ export function YouthBlogWriteFormView({
   })
 
   const content = watch("content")
+  const thumbnailUrl = watch("thumbnailUrl")
   const mountRef = useRef<HTMLDivElement | null>(null)
   const editorRef = useRef<ToastEditorLike | null>(null)
   const isUploadingImageRef = useRef(false)
@@ -102,10 +106,11 @@ export function YouthBlogWriteFormView({
       if (disposed || !mountRef.current || editorRef.current) return
 
       const Editor = module.default as ToastEditorConstructor
+      const editorViewportHeight = window.innerWidth < 640 ? "320px" : "520px"
       const editor = new Editor({
         el: mountRef.current,
-        height: "auto",
-        minHeight: window.innerWidth < 640 ? "320px" : "520px",
+        height: editorViewportHeight,
+        minHeight: editorViewportHeight,
         initialValue: initialContent ?? "",
         initialEditType: "wysiwyg",
         previewStyle: "vertical",
@@ -124,7 +129,7 @@ export function YouthBlogWriteFormView({
               const file =
                 blob instanceof File
                   ? blob
-                  : new File([blob], "notice-image.png", {
+                  : new File([blob], "youth-blog-image.png", {
                       type: blob.type || "image/png",
                     })
 
@@ -193,19 +198,39 @@ export function YouthBlogWriteFormView({
       </div>
 
       <div className="space-y-1">
-        <label htmlFor="summary" className="text-sm">
-          요약
-        </label>
-        <Input
-          id="summary"
-          {...register("summary")}
-          className="w-full rounded-md border px-3 py-2"
+        <ImageCropUploadField
+          label="썸네일 이미지 *"
+          value={thumbnailUrl || undefined}
+          onUploadAction={onUploadThumbnailAction}
+          onChangeAction={(nextUrl) =>
+            setValue("thumbnailUrl", nextUrl, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
+          }
+          cropAspectRatio={16 / 9}
+          outputWidth={1600}
+          outputHeight={900}
+          previewClassName="h-36 w-64 rounded-md border object-cover"
+          allowRemove={false}
+          disabled={isLoading}
         />
+        <input
+          type="hidden"
+          {...register("thumbnailUrl", {
+            validate: (value) =>
+              value.trim().length > 0 || "썸네일 이미지는 필수 입력입니다.",
+          })}
+          value={thumbnailUrl}
+        />
+        <p className="text-xs text-neutral-500">
+          썸네일은 가로형 비율(16:9)로 크롭 후 업로드됩니다.
+        </p>
       </div>
 
       <div className="space-y-1">
         <label htmlFor="content" className="text-sm">
-          본문 <span className="text-red-500">*</span>
+          내용 <span className="text-red-500">*</span>
         </label>
         <div
           ref={mountRef}
@@ -220,7 +245,7 @@ export function YouthBlogWriteFormView({
           type="hidden"
           {...register("content", {
             validate: (value) =>
-              value.trim().length > 0 || "본문은 필수 입력입니다.",
+              value.trim().length > 0 || "내용은 필수 입력입니다.",
           })}
           value={content}
         />
@@ -234,7 +259,7 @@ export function YouthBlogWriteFormView({
               />
             </div>
             <p className="text-xs text-neutral-500">
-              이미지 업로드 중... {imageUploadProgress}%
+              이미지 업로드 중... {imageUploadProgress}%
             </p>
           </div>
         ) : null}
@@ -248,7 +273,7 @@ export function YouthBlogWriteFormView({
             setValue("isPublished", Boolean(checked), { shouldDirty: true })
           }
         />
-        작성 후 바로 공개
+        작성 후 바로 공개
       </label>
 
       {message ? (
@@ -266,7 +291,7 @@ export function YouthBlogWriteFormView({
         disabled={isLoading}
         className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60 sm:w-auto"
       >
-        {isLoading ? "저장 중..." : submitLabel}
+        {isLoading ? "저장 중..." : submitLabel}
       </Button>
     </form>
   )

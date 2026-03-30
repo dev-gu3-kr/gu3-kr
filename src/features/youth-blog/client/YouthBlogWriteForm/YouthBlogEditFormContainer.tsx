@@ -1,11 +1,13 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
   type CreateYouthBlogInputDto,
   useYouthBlogDetailQuery,
+  youthBlogQueryKeys,
 } from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { YouthBlogWriteFormView } from "./YouthBlogWriteFormView"
@@ -15,6 +17,7 @@ export function YouthBlogEditFormContainer({ noticeId }: { noticeId: string }) {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const {
     data,
     isLoading: isDetailLoading,
@@ -25,7 +28,7 @@ export function YouthBlogEditFormContainer({ noticeId }: { noticeId: string }) {
     const formData = new FormData()
     formData.append("file", file)
     const response = await apiFetch
-      .post("/api/admin/uploads/notice-image")
+      .post("/api/admin/uploads/youth-blog-image")
       .init({ body: formData })
       .send()
     const json = (await response.json().catch(() => null)) as {
@@ -52,15 +55,25 @@ export function YouthBlogEditFormContainer({ noticeId }: { noticeId: string }) {
         message?: string
       } | null
       if (!response.ok || !json?.ok)
-        throw new Error(json?.message ?? "공지 수정에 실패했습니다.")
-      setMessage("공지사항이 수정되었습니다.")
-      toast.success("공지사항이 수정되었습니다.")
+        throw new Error(json?.message ?? "청소년 블로그 수정에 실패했습니다.")
+
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: youthBlogQueryKeys.detail(noticeId),
+        }),
+        queryClient.invalidateQueries({ queryKey: youthBlogQueryKeys.all }),
+      ])
+
+      setMessage("청소년 블로그가 수정되었습니다.")
+      toast.success("청소년 블로그가 수정되었습니다.")
       router.push(`/admin/youth-blog/${noticeId}`)
       router.refresh()
     } catch (error) {
       setIsError(true)
       setMessage(
-        error instanceof Error ? error.message : "공지 수정에 실패했습니다.",
+        error instanceof Error
+          ? error.message
+          : "청소년 블로그 수정에 실패했습니다.",
       )
     } finally {
       setIsLoading(false)
@@ -85,11 +98,12 @@ export function YouthBlogEditFormContainer({ noticeId }: { noticeId: string }) {
       message={message}
       isError={isError}
       initialTitle={data.title}
-      initialSummary={data.summary ?? undefined}
+      currentThumbnailUrl={data.thumbnailUrl ?? undefined}
       initialContent={data.content}
       initialIsPublished={data.isPublished}
-      submitLabel="수정 저장"
+      submitLabel="수정 저장"
       onUploadImageAction={uploadYouthBlogImage}
+      onUploadThumbnailAction={uploadYouthBlogImage}
     />
   )
 }

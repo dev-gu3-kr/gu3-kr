@@ -1,6 +1,27 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { SubLanding } from "@/components/SubLanding"
+import { PublicYouthBlogListContainer } from "@/features/youth-blog/client"
+import { youthBlogPrefetch } from "@/features/youth-blog/server"
+import { getQueryClient } from "@/lib/react-query"
 
-export default async function Page() {
+type PageProps = {
+  searchParams?: Promise<{
+    page?: string
+    q?: string
+  }>
+}
+
+export default async function Page({ searchParams }: PageProps) {
+  const resolvedSearchParams = (await searchParams) ?? {}
+  const query = (resolvedSearchParams.q || "").trim()
+  const page = Math.max(1, Number(resolvedSearchParams.page || "1") || 1)
+
+  const queryClient = getQueryClient()
+  await youthBlogPrefetch.prefetchPublicYouthBlogList(queryClient, {
+    page,
+    query,
+  })
+
   return (
     <>
       <SubLanding
@@ -9,11 +30,9 @@ export default async function Page() {
         currentLabel="청소년 블로그"
       />
 
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#252629] md:text-3xl">
-          청소년 블로그
-        </h2>
-      </section>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <PublicYouthBlogListContainer />
+      </HydrationBoundary>
     </>
   )
 }

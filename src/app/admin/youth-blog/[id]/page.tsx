@@ -24,7 +24,6 @@ export default function AdminYouthBlogViewPage() {
           <div className="h-3 w-28 animate-pulse rounded bg-neutral-200" />
         </div>
         <div className="h-10 w-2/3 animate-pulse rounded bg-neutral-200" />
-        <div className="h-5 w-1/2 animate-pulse rounded bg-neutral-200" />
         <div className="space-y-2 py-2">
           <div className="h-4 w-full animate-pulse rounded bg-neutral-200" />
           <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-200" />
@@ -67,10 +66,6 @@ export default function AdminYouthBlogViewPage() {
       </div>
 
       <h1 className="text-3xl font-semibold tracking-tight">{post.title}</h1>
-
-      {post.summary ? (
-        <p className="text-base text-neutral-700">{post.summary}</p>
-      ) : null}
 
       <article className="toastui-editor-contents text-[15px] leading-7 text-neutral-900">
         <YouthBlogContentViewer content={post.content} />
