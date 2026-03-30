@@ -116,7 +116,7 @@ export function YouthBlogListView({
       </section>
 
       {isLoading && items.length === 0 ? (
-        <ul className="grid grid-cols-1 gap-3">
+        <ul className="grid grid-cols-1 gap-3 lg:grid-cols-2">
           {["yb-sk-1", "yb-sk-2", "yb-sk-3", "yb-sk-4"].map((key) => (
             <li
               key={key}
@@ -148,8 +148,8 @@ export function YouthBlogListView({
         <ul
           className={
             isFilterFetching
-              ? "pointer-events-none grid grid-cols-1 gap-3 opacity-60"
-              : "grid grid-cols-1 gap-3"
+              ? "pointer-events-none grid grid-cols-1 gap-3 opacity-60 lg:grid-cols-2"
+              : "grid grid-cols-1 gap-3 lg:grid-cols-2"
           }
         >
           {items.map((notice, index) => {
@@ -172,7 +172,7 @@ export function YouthBlogListView({
                           alt=""
                           fill
                           priority={index < 2}
-                          sizes="100vw"
+                          sizes="(min-width: 1024px) 50vw, 100vw"
                           className={
                             loadedImageIds.has(notice.id)
                               ? "object-cover opacity-100 transition-opacity duration-200"
