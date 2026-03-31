@@ -417,7 +417,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       >
         <Link
           href="/"
-          className="col-start-2 row-start-1 flex items-center justify-center gap-3 justify-self-center rounded-md transition-opacity hover:opacity-90 lg:col-start-1 lg:translate-x-0 lg:justify-self-start lg:justify-start"
+          className="row-start-1 flex items-center justify-center gap-3 justify-self-center rounded-md transition-opacity hover:opacity-90 lg:col-start-1 lg:translate-x-0 lg:justify-self-start lg:justify-start"
           aria-label="홈으로 이동"
         >
           <Gu3LogoMarkSvg className="size-11 shrink-0 md:size-12" />
@@ -426,7 +426,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
           />
         </Link>
 
-        <div className="col-start-3 row-start-1 justify-self-end lg:hidden">
+        <div className="row-start-1 justify-self-end lg:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <button
