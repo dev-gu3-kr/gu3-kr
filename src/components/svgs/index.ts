@@ -10,6 +10,7 @@ export { default as HomeQuickYoutubeSvg } from "./home-quick-links/quick-youtube
 export { default as FeastMarkerIcon } from "./icons/feast-marker.svg"
 export { default as GalleryYoutubeBadgeIcon } from "./icons/gallery-youtube-badge.svg"
 export { default as MassTimesCrossIcon } from "./icons/mass-times-cross.svg"
+export { default as MobileMenuAccordionArrowIcon } from "./icons/mobile-menu-accordion-arrow.svg"
 export { default as MobileMenuHamburgerIcon } from "./icons/mobile-menu-hamburger.svg"
 export { default as MobileMenuHamburgerDarkIcon } from "./icons/mobile-menu-hamburger-dark.svg"
 export { default as OfficePhoneIcon } from "./icons/office-phone.svg"

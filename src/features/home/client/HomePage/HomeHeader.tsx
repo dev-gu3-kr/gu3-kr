@@ -9,6 +9,7 @@ import { AppLink as Link } from "@/components/AppLink"
 import {
   Gu3LogoMarkSvg,
   Gu3LogoWordmarkSvg,
+  MobileMenuAccordionArrowIcon,
   MobileMenuHamburgerDarkIcon,
   MobileMenuHamburgerIcon,
 } from "@/components/svgs"
@@ -483,26 +484,15 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
                         value={accordionValue}
                         className="border-0"
                       >
-                        <AccordionTrigger className="h-[50px] items-center px-[30px] py-0 hover:no-underline [&>svg]:hidden">
+                        <AccordionTrigger className="group h-[50px] items-center px-[30px] py-0 hover:no-underline [&>svg]:hidden">
                           <span className="text-[20px] font-semibold leading-none tracking-[-0.01em] text-neutral-900">
                             {item.label}
                           </span>
-                          <span className="grid size-[26px] place-items-center rounded-full border border-neutral-300 text-neutral-900">
-                            <svg
+                          <span className="flex size-[30px] shrink-0 items-center justify-center rounded-full bg-[#f7f7f8] text-[#8d9098] leading-none">
+                            <MobileMenuAccordionArrowIcon
                               aria-hidden="true"
-                              className="size-3.5 transition-transform duration-200 group-data-[state=open]:rotate-180"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <path
-                                d="M6 9L12 15L18 9"
-                                stroke="currentColor"
-                                strokeWidth="2.2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                              />
-                            </svg>
+                              className="block size-6 transition-transform duration-200 group-data-[state=open]:rotate-180"
+                            />
                           </span>
                         </AccordionTrigger>
 
