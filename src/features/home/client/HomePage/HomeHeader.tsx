@@ -413,11 +413,11 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
       ) : null}
 
       <div
-        className={`relative mx-auto flex h-22 w-full max-w-[1380px] items-center justify-center px-5 transition-colors duration-150 md:px-8 lg:grid lg:grid-cols-[300px_1fr] lg:justify-normal ${desktopHoverTextClassName} ${isHeaderLight ? "text-neutral-900" : "text-white"}`}
+        className={`relative mx-auto grid h-22 w-full max-w-[1380px] grid-cols-[minmax(0,1fr)_42px] items-center px-5 transition-colors duration-150 md:px-8 lg:grid-cols-[300px_1fr] ${desktopHoverTextClassName} ${isHeaderLight ? "text-neutral-900" : "text-white"}`}
       >
         <Link
           href="/"
-          className="flex items-center justify-center gap-3 rounded-md transition-opacity hover:opacity-90 lg:justify-start"
+          className="col-start-2 row-start-1 flex items-center justify-center gap-3 justify-self-center rounded-md transition-opacity hover:opacity-90 lg:col-start-1 lg:translate-x-0 lg:justify-self-start lg:justify-start"
           aria-label="홈으로 이동"
         >
           <Gu3LogoMarkSvg className="size-11 shrink-0 md:size-12" />
@@ -426,7 +426,7 @@ export function HomeHeader({ navItems }: HomeHeaderProps) {
           />
         </Link>
 
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 md:right-8 lg:hidden">
+        <div className="col-start-3 row-start-1 justify-self-end lg:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
             <SheetTrigger asChild>
               <button
