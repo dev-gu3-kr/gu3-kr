@@ -108,6 +108,7 @@ model Post {
   isPublished   Boolean       @default(false)                                  // 공개 여부
   publishedAt   DateTime?                                                      // 공개 시각
   isPinned      Boolean       @default(false)                                  // 상단 고정 여부
+  sortOrder     Int           @default(0)                                      // 노출 정렬 순서
   viewCount     Int           @default(0)                                      // 조회수
   authorId      String                                                         // 작성자(User) FK
   createdAt     DateTime      @default(now())                                  // 생성 시각
@@ -118,6 +119,7 @@ model Post {
   postImages    PostImage[]                                                    // 게시글 이미지 목록(대표 이미지 포함)
 
   @@index([category, isPublished, publishedAt])
+  @@index([category, isPublished, sortOrder, createdAt])
   @@index([createdAt])
 }
 

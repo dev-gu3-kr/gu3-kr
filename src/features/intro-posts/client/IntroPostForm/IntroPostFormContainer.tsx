@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
-  buildIntroPostEditPath,
   type CreateIntroPostInputDto,
   getIntroPostSectionConfig,
   type IntroPostSectionKey,
@@ -135,8 +134,9 @@ export function IntroPostFormContainer({
       setMessage(successMessage)
       toast.success(successMessage)
 
-      if (nextId) {
-        router.push(buildIntroPostEditPath(section, nextId))
+      if (!postId && nextId) {
+        router.push(config.adminPath)
+        return
       }
 
       router.refresh()
@@ -177,6 +177,7 @@ export function IntroPostFormContainer({
       initialTitle={detailQuery.data?.title}
       initialImageUrl={detailQuery.data?.imageUrl ?? undefined}
       initialContent={detailQuery.data?.content}
+      initialSortOrder={detailQuery.data?.sortOrder}
       initialIsPublished={detailQuery.data?.isPublished}
       submitLabel={postId ? "수정 저장" : "소개 저장"}
     />

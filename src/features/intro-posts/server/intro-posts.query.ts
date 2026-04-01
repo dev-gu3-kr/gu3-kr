@@ -17,6 +17,7 @@ export async function createIntroPostRecord(params: {
   slug: string
   content: string
   youtubeUrl: string | null
+  sortOrder: number
   isPublished: boolean
   authorId: string
   imageRecord: PostImageRecord
@@ -28,6 +29,7 @@ export async function createIntroPostRecord(params: {
       slug: params.slug,
       content: params.content,
       youtubeUrl: params.youtubeUrl,
+      sortOrder: params.sortOrder,
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
@@ -48,11 +50,12 @@ export async function findIntroPosts(params: {
         ? { isPublished: params.isPublished }
         : {}),
     },
-    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }, { id: "desc" }],
     select: {
       id: true,
       title: true,
       content: true,
+      sortOrder: true,
       isPublished: true,
       createdAt: true,
       postImages: {
@@ -81,6 +84,7 @@ export async function findIntroPostById(params: {
       id: true,
       title: true,
       content: true,
+      sortOrder: true,
       isPublished: true,
       createdAt: true,
       postImages: {
@@ -125,6 +129,7 @@ export async function replaceIntroPostRecord(params: {
   title: string
   content: string
   youtubeUrl: string | null
+  sortOrder: number
   isPublished: boolean
   replaceImage?: PostImageRecord
 }) {
@@ -134,6 +139,7 @@ export async function replaceIntroPostRecord(params: {
       title: params.title,
       content: params.content,
       youtubeUrl: params.youtubeUrl,
+      sortOrder: params.sortOrder,
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       ...(params.replaceImage

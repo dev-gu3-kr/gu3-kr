@@ -78,6 +78,7 @@ export type CreateIntroPostInputDto = {
   title: string // 카드 제목
   imageUrl: string // 대표 이미지 URL
   content: string // 카드 본문(markdown/plain text)
+  sortOrder?: number // 낮을수록 먼저 노출되는 정렬 순서
   isPublished?: boolean // 공개 여부
 }
 
@@ -87,6 +88,7 @@ export type IntroPostListItemDto = {
   title: string // 카드 제목
   imageUrl: string | null // 대표 이미지 URL(없으면 null)
   content: string // 카드 본문(markdown/plain text)
+  sortOrder: number // 낮을수록 먼저 노출되는 정렬 순서
   isPublished: boolean // 공개 여부
   createdAt: string | Date // 생성 시각(ISO datetime 또는 Date)
 }
@@ -97,6 +99,7 @@ export type IntroPostDetailDto = {
   title: string // 카드 제목
   imageUrl: string | null // 대표 이미지 URL(없으면 null)
   content: string // 카드 본문(markdown/plain text)
+  sortOrder: number // 낮을수록 먼저 노출되는 정렬 순서
   isPublished: boolean // 공개 여부
   createdAt: string // 생성 시각(ISO datetime)
 }

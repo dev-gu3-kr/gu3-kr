@@ -143,6 +143,7 @@ export function useIntroPostDetailQuery(
         title: matched.title,
         imageUrl: matched.imageUrl,
         content: matched.content,
+        sortOrder: matched.sortOrder,
         isPublished: matched.isPublished,
         createdAt: new Date(matched.createdAt).toISOString(),
       }

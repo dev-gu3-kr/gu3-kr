@@ -18,6 +18,7 @@ type IntroPostFormViewProps = {
   initialTitle?: string
   initialImageUrl?: string
   initialContent?: string
+  initialSortOrder?: number
   initialIsPublished?: boolean
   submitLabel?: string
 }
@@ -54,6 +55,7 @@ export function IntroPostFormView({
   initialTitle,
   initialImageUrl,
   initialContent,
+  initialSortOrder,
   initialIsPublished,
   submitLabel = "저장",
 }: IntroPostFormViewProps) {
@@ -68,6 +70,7 @@ export function IntroPostFormView({
       title: initialTitle ?? "",
       imageUrl: initialImageUrl ?? "",
       content: initialContent ?? "",
+      sortOrder: initialSortOrder ?? 0,
       isPublished: initialIsPublished ?? false,
     },
     mode: "onSubmit",
@@ -262,16 +265,48 @@ export function IntroPostFormView({
         </p>
       </div>
 
-      <label htmlFor="is-published" className="flex items-center gap-2 text-sm">
-        <Checkbox
-          id="is-published"
-          checked={Boolean(watch("isPublished"))}
-          onCheckedChange={(checked: boolean | "indeterminate") =>
-            setValue("isPublished", Boolean(checked), { shouldDirty: true })
-          }
-        />
-        저장 후 바로 공개
-      </label>
+      <div className="grid gap-4 sm:grid-cols-2 sm:items-end">
+        <div className="space-y-1">
+          <label htmlFor="sortOrder" className="text-sm">
+            정렬순서
+          </label>
+          <Input
+            id="sortOrder"
+            type="number"
+            min={0}
+            {...register("sortOrder", {
+              setValueAs: (value) => (value === "" ? undefined : Number(value)),
+              validate: (value) =>
+                value === undefined ||
+                (Number.isInteger(value) && value >= 0) ||
+                "정렬순서는 0 이상의 정수여야 합니다.",
+            })}
+            className={
+              errors.sortOrder
+                ? "border-red-500 ring-1 ring-red-500"
+                : undefined
+            }
+          />
+          <p className="text-xs text-neutral-500">
+            숫자가 낮을수록 먼저 노출됩니다. 같은 값이면 최신 글이 먼저
+            보입니다.
+          </p>
+        </div>
+
+        <label
+          htmlFor="is-published"
+          className="flex items-center gap-2 text-sm sm:pb-7"
+        >
+          <Checkbox
+            id="is-published"
+            checked={Boolean(watch("isPublished"))}
+            onCheckedChange={(checked: boolean | "indeterminate") =>
+              setValue("isPublished", Boolean(checked), { shouldDirty: true })
+            }
+          />
+          저장 후 바로 공개
+        </label>
+      </div>
 
       {message ? (
         <p

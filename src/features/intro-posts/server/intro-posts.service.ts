@@ -28,6 +28,7 @@ type IntroPostListRow = {
   id: string
   title: string
   content: string
+  sortOrder: number
   isPublished: boolean
   createdAt: Date
   postImages: Array<{ url: string }>
@@ -37,6 +38,7 @@ type IntroPostDetailRow = {
   id: string
   title: string
   content: string
+  sortOrder: number
   isPublished: boolean
   createdAt: Date
   postImages: Array<{ id: string; url: string }>
@@ -48,6 +50,7 @@ function mapIntroPostListItem<T extends IntroPostListRow>(item: T) {
     title: item.title,
     imageUrl: item.postImages[0]?.url ?? null,
     content: item.content,
+    sortOrder: item.sortOrder,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
   }
@@ -59,6 +62,7 @@ function mapIntroPostDetail<T extends IntroPostDetailRow>(item: T) {
     title: item.title,
     imageUrl: item.postImages[0]?.url ?? null,
     content: item.content,
+    sortOrder: item.sortOrder,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
   }
@@ -81,6 +85,7 @@ export async function createIntroPost(input: {
   section: IntroPostSectionKey
   title: string
   content: string
+  sortOrder?: number
   isPublished?: boolean
   authorId: string
   imageRecord: PostImageRecord
@@ -88,6 +93,7 @@ export async function createIntroPost(input: {
   const config = getIntroPostSectionConfig(input.section)
   const normalizedTitle = input.title.trim()
   const normalizedContent = input.content.trim()
+  const normalizedSortOrder = input.sortOrder ?? 0
   const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
 
   return createIntroPostRecord({
@@ -96,6 +102,7 @@ export async function createIntroPost(input: {
     slug: toSlug(input.section, normalizedTitle),
     content: normalizedContent,
     youtubeUrl,
+    sortOrder: normalizedSortOrder,
     isPublished: Boolean(input.isPublished),
     authorId: input.authorId,
     imageRecord: input.imageRecord,
@@ -133,6 +140,7 @@ export async function updateIntroPost(input: {
   id: string
   title: string
   content: string
+  sortOrder?: number
   isPublished?: boolean
   replaceImage?: PostImageRecord
 }) {
@@ -151,6 +159,7 @@ export async function updateIntroPost(input: {
   }
 
   const normalizedContent = input.content.trim()
+  const normalizedSortOrder = input.sortOrder ?? 0
   const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
 
   await replaceIntroPostRecord({
@@ -158,6 +167,7 @@ export async function updateIntroPost(input: {
     title: input.title.trim(),
     content: normalizedContent,
     youtubeUrl,
+    sortOrder: normalizedSortOrder,
     isPublished: Boolean(input.isPublished),
     replaceImage: input.replaceImage,
   })

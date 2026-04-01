@@ -62,6 +62,7 @@ export async function GET(
     title: item.title,
     imageUrl: item.imageUrl,
     content: item.content,
+    sortOrder: item.sortOrder,
     isPublished: item.isPublished,
     createdAt: item.createdAt.toISOString(),
   }
@@ -117,6 +118,7 @@ export async function PATCH(
     id,
     title: parsed.data.title,
     content: parsed.data.content,
+    sortOrder: parsed.data.sortOrder,
     isPublished: parsed.data.isPublished,
     ...(replaceImage ? { replaceImage } : {}),
   })

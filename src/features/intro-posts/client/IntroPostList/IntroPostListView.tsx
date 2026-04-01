@@ -88,6 +88,9 @@ export function IntroPostListView({
 
               <div className="space-y-3 p-4">
                 <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700">
+                    정렬 {item.sortOrder}
+                  </span>
                   <span
                     className={
                       item.isPublished

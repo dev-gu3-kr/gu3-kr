@@ -69,6 +69,7 @@ export async function POST(request: Request) {
     authorId: author.id,
     title: parsed.data.title,
     content: parsed.data.content,
+    sortOrder: parsed.data.sortOrder,
     isPublished: parsed.data.isPublished,
     imageRecord: toImageRecordFromUrl(parsed.data.imageUrl),
   })
