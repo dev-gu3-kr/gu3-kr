@@ -252,8 +252,8 @@ export function ImageCropUploadField({
             <Image
               src={value}
               alt="preview"
-              width={320}
-              height={192}
+              width={outputWidth}
+              height={outputHeight}
               unoptimized
               className={previewClassName}
             />
