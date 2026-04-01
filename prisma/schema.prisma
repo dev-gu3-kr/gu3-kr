@@ -18,6 +18,8 @@ enum PostCategory {
   BULLETIN
   GALLERY
   YOUTH_BLOG
+  COMMUNITY_INTRO
+  YOUTH_INTRO
 }
 
 enum ClergyType {

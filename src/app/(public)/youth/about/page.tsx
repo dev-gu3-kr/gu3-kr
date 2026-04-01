@@ -1,6 +1,15 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query"
 import { SubLanding } from "@/components/SubLanding"
+import { PublicIntroPageContainer } from "@/features/intro-posts/client"
+import { introPostsPrefetch } from "@/features/intro-posts/server"
+import { getQueryClient } from "@/lib/react-query"
 
 export default async function Page() {
+  const queryClient = getQueryClient()
+  await introPostsPrefetch.prefetchPublicIntroPosts(queryClient, {
+    section: "youth",
+  })
+
   return (
     <>
       <SubLanding
@@ -8,12 +17,9 @@ export default async function Page() {
         sectionLabel="청소년 마당"
         currentLabel="청소년 마당 소개"
       />
-
-      <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
-        <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#252629] md:text-3xl">
-          청소년 마당 소개
-        </h2>
-      </section>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <PublicIntroPageContainer section="youth" />
+      </HydrationBoundary>
     </>
   )
 }

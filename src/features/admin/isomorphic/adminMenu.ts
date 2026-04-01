@@ -43,9 +43,19 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     description: "갤러리 게시글과 대표 이미지를 관리한다.",
   },
   {
+    label: "공동체 마당 소개 관리",
+    href: "/admin/community/about",
+    description: "공동체 마당 소개 카드(이미지/제목/내용)를 관리한다.",
+  },
+  {
     label: "사목협의회 관리",
     href: "/admin/pastoral-council",
     description: "사목협의회 구성원 정보(이름/담당/연락처)를 관리한다.",
+  },
+  {
+    label: "청소년 마당 소개 관리",
+    href: "/admin/youth/about",
+    description: "청소년 마당 소개 카드(이미지/제목/내용)를 관리한다.",
   },
   {
     label: "청소년 블로그 관리",
