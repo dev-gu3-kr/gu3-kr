@@ -127,8 +127,10 @@ function mapBoardColumn(
     "본당 주보": "/notice/weekly-bulletin",
   }
 
+  // 홈 알림마당은 게시판 목록뿐 아니라 각 최신 글 상세로도 바로 이동할 수 있어야 한다.
   const itemHrefByTitle: Partial<Record<string, (id: string) => string>> = {
     공지사항: (id) => `/notice/notices/${id}`,
+    "청소년 블로그": (id) => `/youth/blog/${id}`,
     "본당 주보": (id) => `/notice/weekly-bulletin/${id}`,
   }
 
