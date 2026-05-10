@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   }
 
   const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin"
-  const key = `cathedral/youth-blog/${Date.now()}-${randomUUID()}.${ext}`
+  const key = `data/youth-blog/${Date.now()}-${randomUUID()}.${ext}`
 
   const client = getMinioS3Client()
   await client.send(

@@ -39,7 +39,7 @@ async function uploadThumbnailFile(thumbnail: File) {
   const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
   if (!bucket) throw new Error("버킷 설정이 비어 있습니다.")
 
-  const key = `cathedral/gallery/${Date.now()}-${randomUUID()}.${ext}`
+  const key = `data/gallery/${Date.now()}-${randomUUID()}.${ext}`
   const client = getMinioS3Client()
   await client.send(
     new PutObjectCommand({

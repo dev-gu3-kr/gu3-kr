@@ -111,7 +111,7 @@ export async function PATCH(
       )
     }
 
-    const key = `cathedral/bulletins/${Date.now()}-${randomUUID()}.${ext}`
+    const key = `data/bulletins/${Date.now()}-${randomUUID()}.${ext}`
     const client = getMinioS3Client()
 
     await client.send(
