@@ -19,6 +19,7 @@ const minioRemotePattern = (() => {
 })()
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   turbopack: {
     rules: {
       "*.svg": {
