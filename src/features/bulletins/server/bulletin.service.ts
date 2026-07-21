@@ -35,6 +35,15 @@ type BulletinPublicRow = {
   }>
 }
 
+function mapBulletinAdminListItem<T extends BulletinPublicRow>(item: T) {
+  const { fileUsages, ...rest } = item
+
+  return {
+    ...rest,
+    attachments: fileUsages.map((usage) => usage.asset),
+  }
+}
+
 function mapBulletinPublicItem<T extends BulletinPublicRow>(item: T) {
   const { fileUsages, ...rest } = item
 
@@ -53,13 +62,14 @@ export async function getBulletinPage(params: {
 }) {
   const rows = await findBulletinPageRows(params)
   const hasMore = rows.length > params.take
-  const items = hasMore ? rows.slice(0, params.take) : rows
+  const pageRows = hasMore ? rows.slice(0, params.take) : rows
+  const items = pageRows.map(mapBulletinAdminListItem)
 
   return {
     items,
     pageInfo: {
       hasMore,
-      nextCursor: hasMore ? items[items.length - 1]?.id : null,
+      nextCursor: hasMore ? pageRows[pageRows.length - 1]?.id : null,
       take: params.take,
     },
   }
