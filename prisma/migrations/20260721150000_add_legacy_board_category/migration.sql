@@ -1,0 +1,1 @@
+ALTER TYPE "PostCategory" ADD VALUE 'LEGACY_BOARD';
