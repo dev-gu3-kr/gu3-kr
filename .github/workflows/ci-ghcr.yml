@@ -17,6 +17,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Notify validation started
+        if: github.event_name == 'push'
+        uses: ./.github/actions/discord-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: in_progress
+          title: CI 검증 시작
+          description: 의존성 설치와 품질 검증을 시작합니다.
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
@@ -38,6 +47,15 @@ jobs:
           pnpm run validate
           git diff --exit-code
 
+      - name: Notify validation result
+        if: always() && github.event_name == 'push'
+        uses: ./.github/actions/discord-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          title: CI 검증 완료
+          description: 품질 검증 단계가 종료되었습니다.
+
   publish:
     name: Build and publish images
     if: github.event_name == 'push'
@@ -53,6 +71,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+
+      - name: Notify image publishing started
+        uses: ./.github/actions/discord-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: in_progress
+          title: GHCR 이미지 발행 시작
+          description: 애플리케이션과 migrator 이미지를 빌드합니다.
 
       - name: Resolve lowercase image name
         id: image
@@ -113,6 +139,15 @@ jobs:
           cache-from: type=gha,scope=cathedral-app
           cache-to: type=gha,mode=max,scope=cathedral-migrator
 
+      - name: Notify image publishing result
+        if: always()
+        uses: ./.github/actions/discord-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          title: GHCR 이미지 발행 완료
+          description: 애플리케이션과 migrator 이미지 발행 단계가 종료되었습니다.
+
   deploy:
     name: Deploy to Synology NAS
     if: github.event_name == 'push'
@@ -122,6 +157,17 @@ jobs:
       contents: read
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Notify deployment request started
+        uses: ./.github/actions/discord-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: in_progress
+          title: NAS 배포 요청 시작
+          description: 서명된 배포 요청을 NAS webhook으로 전달합니다.
+
       - name: Request production deployment
         shell: bash
         env:
@@ -164,3 +210,12 @@ jobs:
             --header "X-Signature: sha256=${signature}" \
             --data "$payload" \
             https://webhook.gu3.kr/hooks/cathedral-production
+
+      - name: Notify deployment request result
+        if: always()
+        uses: ./.github/actions/discord-notify
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          status: ${{ job.status }}
+          title: NAS 배포 요청 전달 완료
+          description: 이 결과는 요청 접수 여부이며 실제 배포 결과는 NAS 알림으로 전달됩니다.

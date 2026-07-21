@@ -1,0 +1,105 @@
+name: Send Discord notification
+description: Send a non-blocking CI/CD status notification to Discord
+
+inputs:
+  webhook-url:
+    description: Discord webhook URL
+    required: false
+    default: ""
+  status:
+    description: in_progress, success, failure, or cancelled
+    required: true
+  title:
+    description: Notification title
+    required: true
+  description:
+    description: Notification description
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Send notification
+      shell: bash
+      env:
+        DISCORD_WEBHOOK_URL: ${{ inputs.webhook-url }}
+        NOTIFICATION_STATUS: ${{ inputs.status }}
+        NOTIFICATION_TITLE: ${{ inputs.title }}
+        NOTIFICATION_DESCRIPTION: ${{ inputs.description }}
+      run: |
+        set -uo pipefail
+
+        if [[ -z "$DISCORD_WEBHOOK_URL" ]]; then
+          echo "::notice::DISCORD_WEBHOOK_URL is not configured; skipping Discord notification."
+          exit 0
+        fi
+
+        case "$NOTIFICATION_STATUS" in
+          in_progress)
+            color=3447003
+            status_label="진행 중"
+            ;;
+          success)
+            color=5763719
+            status_label="성공"
+            ;;
+          failure)
+            color=15548997
+            status_label="실패"
+            ;;
+          cancelled)
+            color=9807270
+            status_label="취소"
+            ;;
+          *)
+            color=10181046
+            status_label="$NOTIFICATION_STATUS"
+            ;;
+        esac
+
+        run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+        short_sha="${GITHUB_SHA:0:7}"
+
+        if ! payload="$(
+          jq --compact-output --null-input \
+            --arg title "$NOTIFICATION_TITLE" \
+            --arg description "$NOTIFICATION_DESCRIPTION" \
+            --arg status "$status_label" \
+            --arg repository "$GITHUB_REPOSITORY" \
+            --arg commit "$short_sha" \
+            --arg actor "$GITHUB_ACTOR" \
+            --arg run_url "$run_url" \
+            --arg timestamp "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" \
+            --argjson color "$color" \
+            '{
+              username: "Cathedral CI/CD",
+              embeds: [{
+                title: $title,
+                description: $description,
+                color: $color,
+                fields: [
+                  {name: "상태", value: $status, inline: true},
+                  {name: "커밋", value: $commit, inline: true},
+                  {name: "실행자", value: $actor, inline: true},
+                  {name: "저장소", value: $repository, inline: false}
+                ],
+                url: $run_url,
+                timestamp: $timestamp
+              }]
+            }'
+        )"; then
+          echo "::warning::Could not build the Discord notification payload."
+          exit 0
+        fi
+
+        if ! curl \
+          --fail \
+          --silent \
+          --show-error \
+          --connect-timeout 10 \
+          --max-time 20 \
+          --header 'Content-Type: application/json' \
+          --data "$payload" \
+          "$DISCORD_WEBHOOK_URL" >/dev/null; then
+          echo "::warning::Discord notification delivery failed."
+        fi
