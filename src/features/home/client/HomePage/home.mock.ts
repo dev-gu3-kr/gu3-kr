@@ -85,6 +85,7 @@ export const homePageMock: HomePageViewModel = {
     },
     {
       label: "유튜브 채널",
+      href: "https://www.youtube.com/@gu3kr",
       icon: HomeQuickYoutubeSvg,
     },
   ],

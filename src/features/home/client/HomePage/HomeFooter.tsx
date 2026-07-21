@@ -39,7 +39,7 @@ export function HomeFooter({ massTimes }: HomeFooterProps) {
             <div className="flex items-center justify-between gap-6 md:ml-4 md:flex-1 md:justify-start md:gap-3">
               <div className="flex items-center gap-4 md:gap-3">
                 <a
-                  href="https://www.youtube.com/@guro3cc"
+                  href="https://www.youtube.com/@gu3kr"
                   aria-label="유튜브"
                   target="_blank"
                   rel="noreferrer"
