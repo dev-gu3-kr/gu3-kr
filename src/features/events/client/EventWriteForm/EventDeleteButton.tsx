@@ -1,12 +1,15 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { syncEventMutationCache } from "@/features/events/isomorphic"
 import { apiFetch } from "@/lib/api"
 
 export function EventDeleteButton({ eventId }: { eventId: string }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   return (
     <button
@@ -30,6 +33,11 @@ export function EventDeleteButton({ eventId }: { eventId: string }) {
           if (!response.ok || !json?.ok) {
             throw new Error(json?.message ?? "삭제에 실패했습니다.")
           }
+
+          await syncEventMutationCache(queryClient, {
+            id: eventId,
+            deleted: true,
+          })
 
           router.push("/admin/events")
           router.refresh()

@@ -1,10 +1,14 @@
 // 청소년 블로그 작성 컨테이너: 저장 API 연동과 이미지 업로드를 담당한다.
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { CreateYouthBlogInputDto } from "@/features/youth-blog/isomorphic"
+import {
+  type CreateYouthBlogInputDto,
+  syncYouthBlogMutationCache,
+} from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { YouthBlogWriteFormView } from "./YouthBlogWriteFormView"
 
@@ -13,6 +17,7 @@ export function YouthBlogWriteFormContainer() {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   async function uploadYouthBlogImage(file: File) {
     const formData = new FormData()
@@ -57,6 +62,8 @@ export function YouthBlogWriteFormContainer() {
       if (!response.ok || !json?.ok) {
         throw new Error(json?.message ?? "청소년 블로그 저장에 실패했습니다.")
       }
+
+      await syncYouthBlogMutationCache(queryClient, { id: json.id })
 
       setMessage("청소년 블로그가 저장되었습니다.")
       toast.success("청소년 블로그가 저장되었습니다.")

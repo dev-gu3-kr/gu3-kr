@@ -1,4 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  type QueryClient,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
 import type {
   PriestApiResponseDto,
@@ -19,6 +23,25 @@ export const priestQueryKeys = {
 export const publicPriestQueryKeys = {
   all: ["public", "clergy", "priests"] as const,
   lists: () => [...publicPriestQueryKeys.all, "list"] as const,
+}
+
+export async function syncPriestMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: priestQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: priestQueryKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: publicPriestQueryKeys.lists() }),
+    id && !deleted
+      ? queryClient.invalidateQueries({ queryKey: priestQueryKeys.detail(id) })
+      : Promise.resolve(),
+  ])
 }
 
 type PriestListResponseDto = { ok?: boolean; items?: PriestListItemDto[] }

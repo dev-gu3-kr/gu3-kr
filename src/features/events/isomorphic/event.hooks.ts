@@ -1,10 +1,12 @@
 "use client"
 
 import {
+  type QueryClient,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query"
+import { homeQueryKeys } from "@/features/home/isomorphic"
 import { apiFetch } from "@/lib/api"
 import type {
   EventDetailDto,
@@ -26,16 +28,38 @@ type EventInfinitePageDto = {
 
 export const eventQueryKeys = {
   all: ["admin", "events"] as const,
+  lists: () => [...eventQueryKeys.all, "list"] as const,
   list: (filters: { query: string; status: EventPublishFilterDto }) =>
-    [...eventQueryKeys.all, "list", filters] as const,
+    [...eventQueryKeys.lists(), filters] as const,
+  schedulers: () => [...eventQueryKeys.all, "scheduler"] as const,
   scheduler: (params: {
     from: string
     to: string
     query: string
     status: EventPublishFilterDto
-  }) => [...eventQueryKeys.all, "scheduler", params] as const,
+  }) => [...eventQueryKeys.schedulers(), params] as const,
   detail: (id: string) => [...eventQueryKeys.all, "detail", id] as const,
 } as const
+
+export async function syncEventMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: eventQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: eventQueryKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: eventQueryKeys.schedulers() }),
+    queryClient.invalidateQueries({ queryKey: homeQueryKeys.all }),
+    id && !deleted
+      ? queryClient.invalidateQueries({ queryKey: eventQueryKeys.detail(id) })
+      : Promise.resolve(),
+  ])
+}
 
 async function fetchEventPage(params: {
   cursor?: string | null

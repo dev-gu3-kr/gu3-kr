@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  type QueryClient,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -19,16 +20,49 @@ import type {
 // 청소년 블로그 목록 캐시 key를 중앙 관리해 invalidate 범위를 명확히 유지한다.
 export const youthBlogQueryKeys = {
   all: ["admin", "youth-blog"] as const,
+  lists: () => [...youthBlogQueryKeys.all, "list"] as const,
   list: (filters: { query: string; status: YouthBlogPublishFilterDto }) =>
-    [...youthBlogQueryKeys.all, "list", filters] as const,
+    [...youthBlogQueryKeys.lists(), filters] as const,
   detail: (id: string) => [...youthBlogQueryKeys.all, "detail", id] as const,
 } as const
 
 export const publicYouthBlogQueryKeys = {
+  all: ["public", "youth-blog"] as const,
+  lists: () => [...publicYouthBlogQueryKeys.all, "list"] as const,
   list: (params: { query: string }) =>
-    ["public", "youth-blog", "list", "infinite", params] as const,
-  detail: (id: string) => ["public", "youth-blog", "detail", "v1", id] as const,
+    [...publicYouthBlogQueryKeys.lists(), "infinite", params] as const,
+  detail: (id: string) =>
+    [...publicYouthBlogQueryKeys.all, "detail", "v1", id] as const,
 } as const
+
+export async function syncYouthBlogMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: youthBlogQueryKeys.detail(id) })
+    queryClient.removeQueries({ queryKey: publicYouthBlogQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: youthBlogQueryKeys.lists() }),
+    queryClient.invalidateQueries({
+      queryKey: publicYouthBlogQueryKeys.lists(),
+    }),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: youthBlogQueryKeys.detail(id),
+        })
+      : Promise.resolve(),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: publicYouthBlogQueryKeys.detail(id),
+        })
+      : Promise.resolve(),
+  ])
+}
 
 type YouthBlogPageResponse = ApiResponseDto<YouthBlogPageDto>
 type YouthBlogDetailResponse = ApiResponseDto<{ item: YouthBlogDetailDto }>

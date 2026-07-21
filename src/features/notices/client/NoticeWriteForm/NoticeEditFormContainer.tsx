@@ -1,10 +1,12 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
   type CreateNoticeInputDto,
+  syncNoticeMutationCache,
   useNoticeDetailQuery,
 } from "@/features/notices/isomorphic"
 import { apiFetch } from "@/lib/api"
@@ -15,6 +17,7 @@ export function NoticeEditFormContainer({ noticeId }: { noticeId: string }) {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const {
     data,
     isLoading: isDetailLoading,
@@ -53,6 +56,7 @@ export function NoticeEditFormContainer({ noticeId }: { noticeId: string }) {
       } | null
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "공지 수정에 실패했습니다.")
+      await syncNoticeMutationCache(queryClient, { id: noticeId })
       setMessage("공지사항이 수정되었습니다.")
       toast.success("공지사항이 수정되었습니다.")
       router.push(`/admin/notices/${noticeId}`)

@@ -8,7 +8,38 @@
 openssl rand -base64 48
 ```
 
-생성한 값을 애플리케이션 런타임의 `AUTH_TOKEN_SECRET`에 설정한다. 여러 인스턴스를 운영할 때는 모두 같은 값을 사용한다. Prisma seed를 실행할 때는 12자 이상의 `ADMIN_SEED_PASSWORD`도 별도로 설정한다.
+생성한 값을 애플리케이션 런타임의 `AUTH_TOKEN_SECRET`에 설정한다. 여러 인스턴스를 운영할 때는 모두 같은 값을 사용한다. Prisma seed를 실행할 때는 8자 이상의 `ADMIN_SEED_PASSWORD`도 별도로 설정한다.
+
+## Synology NAS Docker seed
+
+운영 애플리케이션 이미지는 Next.js standalone 런타임이므로 Prisma CLI와 seed 소스를 포함하지 않는다. NAS에서는 동일 배포에서 발행된 migrator 이미지를 일회성 컨테이너로 실행한다.
+
+먼저 PostgreSQL 컨테이너가 연결된 Docker 네트워크를 확인한다.
+
+```bash
+sudo docker inspect postgres \
+  --format '{{range $name, $_ := .NetworkSettings.Networks}}{{$name}}{{"\n"}}{{end}}'
+```
+
+`DATABASE_URL`, `DATABASE_SCHEMA`, `ADMIN_SEED_PASSWORD`를 포함한 전용 환경 파일을 준비한 뒤 권한을 제한한다.
+
+```bash
+sudo chmod 600 /volume1/docker/cathedral-nextjs/seed.env
+```
+
+최신 migrator 이미지를 받고 seed를 실행한다. `<POSTGRES_NETWORK>`에는 위에서 확인한 네트워크 이름을 넣는다.
+
+```bash
+sudo docker pull ghcr.io/dev-gu3-kr/gu3-kr-migrator:latest
+
+sudo docker run --rm \
+  --network <POSTGRES_NETWORK> \
+  --env-file /volume1/docker/cathedral-nextjs/seed.env \
+  ghcr.io/dev-gu3-kr/gu3-kr-migrator:latest \
+  pnpm exec prisma db seed
+```
+
+seed는 `username=master`인 기존 계정을 유지하면서 이메일과 비밀번호를 환경 변수 기준으로 갱신하고, 사목협의회 초기 데이터를 upsert한다. 실행 전 `DATABASE_URL`이 대상 DB를 가리키는지 확인한다.
 
 ## 세션 구조
 

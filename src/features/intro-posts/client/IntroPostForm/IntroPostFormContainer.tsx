@@ -8,8 +8,7 @@ import {
   type CreateIntroPostInputDto,
   getIntroPostSectionConfig,
   type IntroPostSectionKey,
-  introPostQueryKeys,
-  publicIntroPostQueryKeys,
+  syncIntroPostMutationCache,
   useIntroPostDetailQuery,
 } from "@/features/intro-posts/isomorphic"
 import { apiFetch } from "@/lib/api"
@@ -75,19 +74,7 @@ export function IntroPostFormContainer({
       throw new Error(json?.message ?? "이미지 삭제에 실패했습니다.")
     }
 
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: introPostQueryKeys.list(section),
-      }),
-      postId
-        ? queryClient.invalidateQueries({
-            queryKey: introPostQueryKeys.detail(section, postId),
-          })
-        : Promise.resolve(),
-      queryClient.invalidateQueries({
-        queryKey: publicIntroPostQueryKeys.list(section),
-      }),
-    ])
+    await syncIntroPostMutationCache(queryClient, { section, id: postId })
   }
 
   const handleSubmit = async (values: CreateIntroPostInputDto) => {
@@ -115,16 +102,10 @@ export function IntroPostFormContainer({
         )
       }
 
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: introPostQueryKeys.list(section),
-        }),
-        postId
-          ? queryClient.invalidateQueries({
-              queryKey: introPostQueryKeys.detail(section, postId),
-            })
-          : Promise.resolve(),
-      ])
+      await syncIntroPostMutationCache(queryClient, {
+        section,
+        id: postId ?? json.id,
+      })
 
       const successMessage = postId
         ? `${config.menuLabel}가 수정되었습니다.`

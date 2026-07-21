@@ -1,12 +1,15 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { syncBulletinMutationCache } from "@/features/bulletins/isomorphic"
 import { apiFetch } from "@/lib/api"
 
 export function BulletinDeleteButton({ bulletinId }: { bulletinId: string }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   return (
     <button
@@ -28,6 +31,10 @@ export function BulletinDeleteButton({ bulletinId }: { bulletinId: string }) {
           if (!response.ok || !json?.ok) {
             throw new Error(json?.message ?? "삭제에 실패했습니다.")
           }
+          await syncBulletinMutationCache(queryClient, {
+            id: bulletinId,
+            deleted: true,
+          })
           router.push("/admin/bulletins")
           router.refresh()
         } catch (error) {

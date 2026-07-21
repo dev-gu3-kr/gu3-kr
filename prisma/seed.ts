@@ -136,16 +136,17 @@ async function main() {
   const prisma = createPrismaClient()
   const adminSeedPassword = process.env.ADMIN_SEED_PASSWORD
 
-  if (!adminSeedPassword || adminSeedPassword.length < 12) {
-    throw new Error("ADMIN_SEED_PASSWORD must be at least 12 characters.")
+  if (!adminSeedPassword || adminSeedPassword.length < 8) {
+    throw new Error("ADMIN_SEED_PASSWORD must be at least 8 characters.")
   }
 
   try {
     const adminPasswordHash = await hashPassword(adminSeedPassword)
 
     await prisma.user.upsert({
-      where: { email: "master@sample.com" },
+      where: { username: "master" },
       update: {
+        email: "master@gu3.kr",
         username: "master",
         passwordHash: adminPasswordHash,
         displayName: "Master Admin",
@@ -153,7 +154,7 @@ async function main() {
         isActive: true,
       },
       create: {
-        email: "master@sample.com",
+        email: "master@gu3.kr",
         username: "master",
         passwordHash: adminPasswordHash,
         displayName: "Master Admin",

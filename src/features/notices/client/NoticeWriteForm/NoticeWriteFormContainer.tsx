@@ -1,10 +1,14 @@
 // 공지 작성 컨테이너: 저장 API 연동 + 에디터 이미지 업로드
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import type { CreateNoticeInputDto } from "@/features/notices/isomorphic"
+import {
+  type CreateNoticeInputDto,
+  syncNoticeMutationCache,
+} from "@/features/notices/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { NoticeWriteFormView } from "./NoticeWriteFormView"
 
@@ -14,6 +18,7 @@ export function NoticeWriteFormContainer() {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   // 본문 이미지 업로드: formData 전송 후 삽입 가능한 이미지 URL을 반환한다.
   async function uploadNoticeImage(file: File) {
@@ -59,6 +64,8 @@ export function NoticeWriteFormContainer() {
       if (!response.ok || !json?.ok) {
         throw new Error(json?.message ?? "공지 저장에 실패했습니다.")
       }
+
+      await syncNoticeMutationCache(queryClient, { id: json.id })
 
       setMessage("공지사항이 저장되었습니다.")
       toast.success("공지사항이 저장되었습니다.")

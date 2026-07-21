@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  type QueryClient,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -24,16 +25,45 @@ type GalleryInfinitePageDto = {
 
 export const galleryQueryKeys = {
   all: ["admin", "gallery"] as const,
+  lists: () => [...galleryQueryKeys.all, "list"] as const,
   list: (filters: { query: string; status: GalleryPublishFilterDto }) =>
-    [...galleryQueryKeys.all, "list", filters] as const,
+    [...galleryQueryKeys.lists(), filters] as const,
   detail: (id: string) => [...galleryQueryKeys.all, "detail", id] as const,
 } as const
 
 export const publicGalleryQueryKeys = {
+  all: ["public", "gallery"] as const,
+  lists: () => [...publicGalleryQueryKeys.all, "list"] as const,
   list: (params: { page: number; query: string }) =>
-    ["public", "gallery", "list", params] as const,
-  detail: (id: string) => ["public", "gallery", "detail", "v1", id] as const,
+    [...publicGalleryQueryKeys.lists(), params] as const,
+  detail: (id: string) =>
+    [...publicGalleryQueryKeys.all, "detail", "v1", id] as const,
 } as const
+
+export async function syncGalleryMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: galleryQueryKeys.detail(id) })
+    queryClient.removeQueries({ queryKey: publicGalleryQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: galleryQueryKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: publicGalleryQueryKeys.lists() }),
+    id && !deleted
+      ? queryClient.invalidateQueries({ queryKey: galleryQueryKeys.detail(id) })
+      : Promise.resolve(),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: publicGalleryQueryKeys.detail(id),
+        })
+      : Promise.resolve(),
+  ])
+}
 
 type GalleryListResponseDto = {
   ok?: boolean

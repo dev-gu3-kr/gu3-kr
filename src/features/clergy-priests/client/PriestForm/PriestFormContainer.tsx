@@ -1,10 +1,12 @@
 // 신부 폼 컨테이너: 저장/이미지 업로드/교체/삭제 로직
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
+  syncPriestMutationCache,
   type UpsertPriestInputDto,
   usePriestDetailQuery,
 } from "@/features/clergy-priests/isomorphic"
@@ -76,6 +78,7 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const detailQuery = usePriestDetailQuery(priestId ?? "")
 
@@ -117,6 +120,7 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
         } | null
         if (!response.ok || !json?.ok || !json.id)
           throw new Error(json?.message ?? "저장에 실패했습니다.")
+        await syncPriestMutationCache(queryClient, { id: json.id })
         toast.success("신부님 프로필이 저장되었습니다.")
         router.push(`/admin/clergy/priests/${json.id}`)
         router.refresh()
@@ -132,6 +136,7 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
       } | null
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "수정에 실패했습니다.")
+      await syncPriestMutationCache(queryClient, { id: priestId })
       toast.success("신부님 프로필이 수정되었습니다.")
       router.push(`/admin/clergy/priests/${priestId}`)
       router.refresh()
@@ -182,6 +187,8 @@ export function PriestFormContainer({ mode, priestId, initialValues }: Props) {
       if (previousUrl && previousUrl !== json.url) {
         await removeClergyImage(previousUrl)
       }
+
+      await syncPriestMutationCache(queryClient, { id: priestId })
     }
 
     return json.url

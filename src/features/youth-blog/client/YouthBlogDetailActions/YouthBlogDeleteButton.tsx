@@ -1,6 +1,8 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { syncYouthBlogMutationCache } from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
 
 type YouthBlogDeleteButtonProps = {
@@ -11,6 +13,7 @@ export function YouthBlogDeleteButton({
   noticeId,
 }: YouthBlogDeleteButtonProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const handleDelete = async () => {
     // 삭제 전 사용자 확인을 받는다.
@@ -28,6 +31,11 @@ export function YouthBlogDeleteButton({
       window.alert("삭제에 실패했습니다.")
       return
     }
+
+    await syncYouthBlogMutationCache(queryClient, {
+      id: noticeId,
+      deleted: true,
+    })
 
     router.push("/admin/youth-blog")
     router.refresh()

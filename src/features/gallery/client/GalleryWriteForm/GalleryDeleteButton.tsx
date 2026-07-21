@@ -1,12 +1,15 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
+import { syncGalleryMutationCache } from "@/features/gallery/isomorphic"
 import { apiFetch } from "@/lib/api"
 
 export function GalleryDeleteButton({ postId }: { postId: string }) {
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   return (
     <button
@@ -26,6 +29,10 @@ export function GalleryDeleteButton({ postId }: { postId: string }) {
           } | null
           if (!response.ok || !json?.ok)
             throw new Error(json?.message ?? "삭제에 실패했습니다.")
+          await syncGalleryMutationCache(queryClient, {
+            id: postId,
+            deleted: true,
+          })
           router.push("/admin/gallery")
           router.refresh()
         } catch (error) {

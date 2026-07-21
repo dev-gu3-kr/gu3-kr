@@ -1,10 +1,12 @@
 // 수녀 폼 컨테이너: 저장/이미지 업로드/교체/삭제 로직
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
+  syncNunMutationCache,
   type UpsertNunInputDto,
   useNunDetailQuery,
 } from "@/features/clergy-nuns/isomorphic"
@@ -74,6 +76,7 @@ export function NunFormContainer({ mode, nunId, initialValues }: Props) {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const detailQuery = useNunDetailQuery(nunId ?? "")
 
@@ -115,6 +118,7 @@ export function NunFormContainer({ mode, nunId, initialValues }: Props) {
         } | null
         if (!response.ok || !json?.ok || !json.id)
           throw new Error(json?.message ?? "저장에 실패했습니다.")
+        await syncNunMutationCache(queryClient, { id: json.id })
         toast.success("수녀님 프로필이 저장되었습니다.")
         router.push(`/admin/clergy/nuns/${json.id}`)
         router.refresh()
@@ -130,6 +134,7 @@ export function NunFormContainer({ mode, nunId, initialValues }: Props) {
       } | null
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "수정에 실패했습니다.")
+      await syncNunMutationCache(queryClient, { id: nunId })
       toast.success("수녀님 프로필이 수정되었습니다.")
       router.push(`/admin/clergy/nuns/${nunId}`)
       router.refresh()
@@ -180,6 +185,8 @@ export function NunFormContainer({ mode, nunId, initialValues }: Props) {
       if (previousUrl && previousUrl !== json.url) {
         await removeClergyImage(previousUrl)
       }
+
+      await syncNunMutationCache(queryClient, { id: nunId })
     }
 
     return json.url

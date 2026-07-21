@@ -1,4 +1,8 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  type QueryClient,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
 import type {
   NunApiResponseDto,
@@ -19,6 +23,25 @@ export const nunQueryKeys = {
 export const publicNunQueryKeys = {
   all: ["public", "clergy", "nuns"] as const,
   lists: () => [...publicNunQueryKeys.all, "list"] as const,
+}
+
+export async function syncNunMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: nunQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: nunQueryKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: publicNunQueryKeys.lists() }),
+    id && !deleted
+      ? queryClient.invalidateQueries({ queryKey: nunQueryKeys.detail(id) })
+      : Promise.resolve(),
+  ])
 }
 
 type NunListResponseDto = { ok?: boolean; items?: NunListItemDto[] }

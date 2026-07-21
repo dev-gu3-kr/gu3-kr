@@ -1,6 +1,8 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { syncNunMutationCache } from "@/features/clergy-nuns/isomorphic"
 import { apiFetch } from "@/lib/api"
 
 type NunDeleteButtonProps = {
@@ -9,6 +11,7 @@ type NunDeleteButtonProps = {
 
 export function NunDeleteButton({ nunId }: NunDeleteButtonProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const handleDelete = async () => {
     const shouldDelete = window.confirm("이 수녀님 프로필을 삭제할까요?")
@@ -22,6 +25,11 @@ export function NunDeleteButton({ nunId }: NunDeleteButtonProps) {
       window.alert("삭제에 실패했습니다.")
       return
     }
+
+    await syncNunMutationCache(queryClient, {
+      id: nunId,
+      deleted: true,
+    })
 
     router.push("/admin/clergy/nuns")
     router.refresh()

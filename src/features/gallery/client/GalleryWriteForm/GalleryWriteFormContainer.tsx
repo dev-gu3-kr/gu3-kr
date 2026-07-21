@@ -1,8 +1,10 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { syncGalleryMutationCache } from "@/features/gallery/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { GalleryWriteFormView } from "./GalleryWriteFormView"
 
@@ -18,6 +20,7 @@ export function GalleryWriteFormContainer() {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   async function uploadGalleryImage(file: File) {
     const formData = new FormData()
@@ -63,6 +66,7 @@ export function GalleryWriteFormContainer() {
       if (!response.ok || !json?.ok || !json.id) {
         throw new Error(json?.message ?? "저장에 실패했습니다.")
       }
+      await syncGalleryMutationCache(queryClient, { id: json.id })
       toast.success("갤러리가 저장되었습니다.")
       router.push(`/admin/gallery/${json.id}`)
       router.refresh()

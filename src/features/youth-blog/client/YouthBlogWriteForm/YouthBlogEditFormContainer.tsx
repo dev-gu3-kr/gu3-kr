@@ -6,8 +6,8 @@ import { useState } from "react"
 import { toast } from "sonner"
 import {
   type CreateYouthBlogInputDto,
+  syncYouthBlogMutationCache,
   useYouthBlogDetailQuery,
-  youthBlogQueryKeys,
 } from "@/features/youth-blog/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { YouthBlogWriteFormView } from "./YouthBlogWriteFormView"
@@ -57,12 +57,7 @@ export function YouthBlogEditFormContainer({ noticeId }: { noticeId: string }) {
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "청소년 블로그 수정에 실패했습니다.")
 
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: youthBlogQueryKeys.detail(noticeId),
-        }),
-        queryClient.invalidateQueries({ queryKey: youthBlogQueryKeys.all }),
-      ])
+      await syncYouthBlogMutationCache(queryClient, { id: noticeId })
 
       setMessage("청소년 블로그가 수정되었습니다.")
       toast.success("청소년 블로그가 수정되었습니다.")

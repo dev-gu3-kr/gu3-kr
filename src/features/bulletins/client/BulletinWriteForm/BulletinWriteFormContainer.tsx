@@ -1,8 +1,10 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
+import { syncBulletinMutationCache } from "@/features/bulletins/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { BulletinWriteFormView } from "./BulletinWriteFormView"
 
@@ -19,6 +21,7 @@ export function BulletinWriteFormContainer() {
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const handleSubmit = async (values: BulletinWriteFormValues) => {
     setIsLoading(true)
@@ -46,6 +49,8 @@ export function BulletinWriteFormContainer() {
       if (!response.ok || !json?.ok || !json.id) {
         throw new Error(json?.message ?? "본당주보 저장에 실패했습니다.")
       }
+
+      await syncBulletinMutationCache(queryClient, { id: json.id })
 
       toast.success("본당주보가 저장되었습니다.")
       router.push(`/admin/bulletins/${json.id}`)

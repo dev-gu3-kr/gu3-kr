@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  type QueryClient,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -19,10 +20,45 @@ import type {
 // 공지 목록 캐시 key를 한 곳에서 정의해 invalidate/prefetch 기준을 고정한다.
 export const noticeQueryKeys = {
   all: ["admin", "notices"] as const,
+  lists: () => [...noticeQueryKeys.all, "list"] as const,
   list: (filters: { query: string; status: NoticePublishFilterDto }) =>
-    [...noticeQueryKeys.all, "list", filters] as const,
+    [...noticeQueryKeys.lists(), filters] as const,
   detail: (id: string) => [...noticeQueryKeys.all, "detail", id] as const,
 } as const
+
+export const publicNoticeQueryKeys = {
+  all: ["public", "notices"] as const,
+  lists: () => [...publicNoticeQueryKeys.all, "list"] as const,
+  list: (params: { page: number; query: string }) =>
+    [...publicNoticeQueryKeys.lists(), params] as const,
+  detail: (id: string) =>
+    [...publicNoticeQueryKeys.all, "detail", "v2", id] as const,
+} as const
+
+export async function syncNoticeMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: noticeQueryKeys.detail(id) })
+    queryClient.removeQueries({ queryKey: publicNoticeQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: noticeQueryKeys.lists() }),
+    queryClient.invalidateQueries({ queryKey: publicNoticeQueryKeys.lists() }),
+    id && !deleted
+      ? queryClient.invalidateQueries({ queryKey: noticeQueryKeys.detail(id) })
+      : Promise.resolve(),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: publicNoticeQueryKeys.detail(id),
+        })
+      : Promise.resolve(),
+  ])
+}
 
 type NoticePageResponse = ApiResponseDto<NoticePageDto>
 type NoticeDetailResponse = ApiResponseDto<{
@@ -233,7 +269,7 @@ export function usePublicNoticePageQuery(params: {
   query: string
 }) {
   return useQuery({
-    queryKey: ["public", "notices", "list", params] as const,
+    queryKey: publicNoticeQueryKeys.list(params),
     queryFn: () => fetchPublicNoticePage(params),
     staleTime: 10_000,
   })
@@ -241,7 +277,7 @@ export function usePublicNoticePageQuery(params: {
 
 export function usePublicNoticeDetailQuery(id: string) {
   return useQuery({
-    queryKey: ["public", "notices", "detail", "v2", id] as const,
+    queryKey: publicNoticeQueryKeys.detail(id),
     enabled: id.length > 0,
     queryFn: () => fetchPublicNoticeDetail(id),
     staleTime: 10_000,

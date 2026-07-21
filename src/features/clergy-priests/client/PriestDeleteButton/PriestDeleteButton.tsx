@@ -1,6 +1,8 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { syncPriestMutationCache } from "@/features/clergy-priests/isomorphic"
 import { apiFetch } from "@/lib/api"
 
 type PriestDeleteButtonProps = {
@@ -9,6 +11,7 @@ type PriestDeleteButtonProps = {
 
 export function PriestDeleteButton({ priestId }: PriestDeleteButtonProps) {
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const handleDelete = async () => {
     // 삭제 전 사용자 확인을 받는다.
@@ -26,6 +29,11 @@ export function PriestDeleteButton({ priestId }: PriestDeleteButtonProps) {
       window.alert("삭제에 실패했습니다.")
       return
     }
+
+    await syncPriestMutationCache(queryClient, {
+      id: priestId,
+      deleted: true,
+    })
 
     router.push("/admin/clergy/priests")
     router.refresh()

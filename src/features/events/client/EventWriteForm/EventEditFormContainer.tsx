@@ -1,9 +1,13 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { useEventDetailQuery } from "@/features/events/isomorphic"
+import {
+  syncEventMutationCache,
+  useEventDetailQuery,
+} from "@/features/events/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { EventWriteFormView } from "./EventWriteFormView"
 
@@ -34,6 +38,7 @@ export function EventEditFormContainer({
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
   const router = useRouter()
+  const queryClient = useQueryClient()
   const {
     data,
     isLoading: isDetailLoading,
@@ -62,6 +67,8 @@ export function EventEditFormContainer({
       } | null
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "일정 수정에 실패했습니다.")
+
+      await syncEventMutationCache(queryClient, { id: eventId })
 
       toast.success("일정이 수정되었습니다.")
       if (navigateOnSuccess) {

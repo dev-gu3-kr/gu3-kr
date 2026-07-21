@@ -1,6 +1,10 @@
 "use client"
 
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import {
+  type QueryClient,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query"
 import { apiFetch } from "@/lib/api"
 import {
   type ApiResponseDto,
@@ -26,6 +30,37 @@ export const publicIntroPostQueryKeys = {
   list: (section: IntroPostSectionKey) =>
     [...publicIntroPostQueryKeys.all, "list", section] as const,
 } as const
+
+export async function syncIntroPostMutationCache(
+  queryClient: QueryClient,
+  options: {
+    section: IntroPostSectionKey
+    id?: string
+    deleted?: boolean
+  },
+) {
+  const { section, id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({
+      queryKey: introPostQueryKeys.detail(section, id),
+    })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: introPostQueryKeys.list(section),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: publicIntroPostQueryKeys.list(section),
+    }),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: introPostQueryKeys.detail(section, id),
+        })
+      : Promise.resolve(),
+  ])
+}
 
 type IntroPostListResponse = ApiResponseDto<IntroPostListDto>
 type IntroPostDetailResponse = ApiResponseDto<{ item: IntroPostDetailDto }>

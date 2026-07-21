@@ -1,9 +1,11 @@
 "use client"
 
+import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import {
   getIntroPostSectionConfig,
   type IntroPostSectionKey,
+  syncIntroPostMutationCache,
 } from "@/features/intro-posts/isomorphic"
 import { apiFetch } from "@/lib/api"
 
@@ -18,6 +20,7 @@ export function IntroPostDeleteButton({
 }: IntroPostDeleteButtonProps) {
   const config = getIntroPostSectionConfig(section)
   const router = useRouter()
+  const queryClient = useQueryClient()
 
   const handleDelete = async () => {
     const shouldDelete = window.confirm(
@@ -34,6 +37,12 @@ export function IntroPostDeleteButton({
       window.alert(`${config.menuLabel} 삭제에 실패했습니다.`)
       return
     }
+
+    await syncIntroPostMutationCache(queryClient, {
+      section,
+      id: postId,
+      deleted: true,
+    })
 
     router.push(config.adminPath)
     router.refresh()

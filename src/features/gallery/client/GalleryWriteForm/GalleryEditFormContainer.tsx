@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
 import {
-  galleryQueryKeys,
+  syncGalleryMutationCache,
   useGalleryDetailQuery,
 } from "@/features/gallery/isomorphic"
 import { apiFetch } from "@/lib/api"
@@ -68,12 +68,7 @@ export function GalleryEditFormContainer({ postId }: { postId: string }) {
       if (!response.ok || !json?.ok)
         throw new Error(json?.message ?? "수정에 실패했습니다.")
 
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: galleryQueryKeys.detail(postId),
-        }),
-        queryClient.invalidateQueries({ queryKey: galleryQueryKeys.all }),
-      ])
+      await syncGalleryMutationCache(queryClient, { id: postId })
 
       toast.success("갤러리가 수정되었습니다.")
       router.replace(`/admin/gallery/${postId}`)

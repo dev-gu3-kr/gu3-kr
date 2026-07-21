@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  type QueryClient,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -23,10 +24,49 @@ type BulletinInfinitePageDto = BulletinPageDto["pageInfo"] & {
 
 export const bulletinQueryKeys = {
   all: ["admin", "bulletins"] as const,
+  lists: () => [...bulletinQueryKeys.all, "list"] as const,
   list: (filters: { query: string; status: BulletinPublishFilterDto }) =>
-    [...bulletinQueryKeys.all, "list", filters] as const,
+    [...bulletinQueryKeys.lists(), filters] as const,
   detail: (id: string) => [...bulletinQueryKeys.all, "detail", id] as const,
 } as const
+
+export const publicBulletinQueryKeys = {
+  all: ["public", "bulletins"] as const,
+  lists: () => [...publicBulletinQueryKeys.all, "list"] as const,
+  list: (params: { page: number; query: string }) =>
+    [...publicBulletinQueryKeys.lists(), params] as const,
+  detail: (id: string) =>
+    [...publicBulletinQueryKeys.all, "detail", "v1", id] as const,
+} as const
+
+export async function syncBulletinMutationCache(
+  queryClient: QueryClient,
+  options: { id?: string; deleted?: boolean } = {},
+) {
+  const { id, deleted = false } = options
+
+  if (id && deleted) {
+    queryClient.removeQueries({ queryKey: bulletinQueryKeys.detail(id) })
+    queryClient.removeQueries({ queryKey: publicBulletinQueryKeys.detail(id) })
+  }
+
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: bulletinQueryKeys.lists() }),
+    queryClient.invalidateQueries({
+      queryKey: publicBulletinQueryKeys.lists(),
+    }),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: bulletinQueryKeys.detail(id),
+        })
+      : Promise.resolve(),
+    id && !deleted
+      ? queryClient.invalidateQueries({
+          queryKey: publicBulletinQueryKeys.detail(id),
+        })
+      : Promise.resolve(),
+  ])
+}
 
 async function fetchBulletinPage(params: {
   cursor?: string | null
@@ -163,7 +203,7 @@ export function usePublicBulletinPageQuery(params: {
   query: string
 }) {
   return useQuery({
-    queryKey: ["public", "bulletins", "list", params] as const,
+    queryKey: publicBulletinQueryKeys.list(params),
     queryFn: () => fetchPublicBulletinPage(params),
     staleTime: 10_000,
   })
@@ -171,7 +211,7 @@ export function usePublicBulletinPageQuery(params: {
 
 export function usePublicBulletinDetailQuery(id: string) {
   return useQuery({
-    queryKey: ["public", "bulletins", "detail", "v1", id] as const,
+    queryKey: publicBulletinQueryKeys.detail(id),
     enabled: id.length > 0,
     queryFn: () => fetchPublicBulletinDetail(id),
     staleTime: 10_000,
