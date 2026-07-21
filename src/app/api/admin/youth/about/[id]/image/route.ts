@@ -2,20 +2,9 @@ import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { introPostsService } from "@/features/intro-posts/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
+import { extractMinioObjectKey, getMinioS3Client } from "@/lib/admin/storage"
 
 const SECTION = "youth" as const
-
-function resolveObjectKey(raw: string) {
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-
-  if (endpoint && raw.startsWith(endpoint)) {
-    const [, , ...rest] = raw.slice(endpoint.length + 1).split("/")
-    return rest.join("/")
-  }
-
-  return raw
-}
 
 export async function DELETE(
   request: Request,
@@ -48,7 +37,7 @@ export async function DELETE(
       await client.send(
         new DeleteObjectCommand({
           Bucket: bucket,
-          Key: resolveObjectKey(removed.oldImageUrl),
+          Key: extractMinioObjectKey(removed.oldImageUrl, bucket),
         }),
       )
     }

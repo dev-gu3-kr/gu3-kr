@@ -46,6 +46,9 @@ jobs:
     permissions:
       contents: read
       packages: write
+    outputs:
+      app_digest: ${{ steps.build-app.outputs.digest }}
+      migrator_digest: ${{ steps.build-migrator.outputs.digest }}
 
     steps:
       - name: Checkout repository
@@ -54,7 +57,9 @@ jobs:
       - name: Resolve lowercase image name
         id: image
         shell: bash
-        run: echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "name=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -67,6 +72,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push application image
+        id: build-app
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -75,14 +81,16 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.image.outputs.name }}:latest
-            ghcr.io/${{ steps.image.outputs.name }}:sha-${{ github.sha }}
+            ghcr.io/${{ steps.image.outputs.name }}:${{ steps.image.outputs.short_sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+            kr.gu3.cathedral.image-role=app
           cache-from: type=gha,scope=cathedral-app
           cache-to: type=gha,mode=max,scope=cathedral-app
 
       - name: Build and push migration image
+        id: build-migrator
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -91,9 +99,62 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ steps.image.outputs.name }}-migrator:latest
-            ghcr.io/${{ steps.image.outputs.name }}-migrator:sha-${{ github.sha }}
+            ghcr.io/${{ steps.image.outputs.name }}-migrator:${{ steps.image.outputs.short_sha }}
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
+            kr.gu3.cathedral.image-role=migrator
           cache-from: type=gha,scope=cathedral-app
           cache-to: type=gha,mode=max,scope=cathedral-migrator
+
+  deploy:
+    name: Deploy to Synology NAS
+    if: github.event_name == 'push'
+    needs: publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Request production deployment
+        shell: bash
+        env:
+          APP_DIGEST: ${{ needs.publish.outputs.app_digest }}
+          MIGRATOR_DIGEST: ${{ needs.publish.outputs.migrator_digest }}
+          COMMIT_SHA: ${{ github.sha }}
+          DEPLOY_WEBHOOK_SECRET: ${{ secrets.DEPLOY_WEBHOOK_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [[ -z "$DEPLOY_WEBHOOK_SECRET" ]]; then
+            echo "DEPLOY_WEBHOOK_SECRET is not configured"
+            exit 1
+          fi
+
+          payload="$(
+            jq --compact-output --null-input \
+              --arg app_digest "$APP_DIGEST" \
+              --arg migrator_digest "$MIGRATOR_DIGEST" \
+              --arg sha "$COMMIT_SHA" \
+              '{app_digest: $app_digest, migrator_digest: $migrator_digest, sha: $sha}'
+          )"
+
+          signature="$(
+            printf '%s' "$payload" \
+              | openssl dgst -sha256 -hmac "$DEPLOY_WEBHOOK_SECRET" \
+              | awk '{print $NF}'
+          )"
+
+          curl \
+            --fail-with-body \
+            --silent \
+            --show-error \
+            --connect-timeout 10 \
+            --max-time 30 \
+            --retry 3 \
+            --retry-all-errors \
+            --request POST \
+            --header 'Content-Type: application/json' \
+            --header "X-Signature: sha256=${signature}" \
+            --data "$payload" \
+            https://webhook.gu3.kr/hooks/cathedral-production

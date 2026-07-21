@@ -3,7 +3,10 @@ import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { galleryService } from "@/features/gallery/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
+import {
+  createMinioPublicObjectUrl,
+  getMinioS3Client,
+} from "@/lib/admin/storage"
 
 function toImageRecordFromUrl(url: string) {
   const fileName = url.split("/").pop() || `${Date.now()}.webp`
@@ -31,6 +34,7 @@ async function uploadThumbnailFile(thumbnail: File) {
   if (!bucket) throw new Error("버킷 설정이 비어 있습니다.")
 
   const key = `data/gallery/${Date.now()}-${randomUUID()}.${ext}`
+  const fileUrl = createMinioPublicObjectUrl(bucket, key)
   const client = getMinioS3Client()
   await client.send(
     new PutObjectCommand({
@@ -40,9 +44,6 @@ async function uploadThumbnailFile(thumbnail: File) {
       ContentType: thumbnail.type || "application/octet-stream",
     }),
   )
-
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-  const fileUrl = `${endpoint}/${bucket}/${key}`
 
   return {
     fileName: key.split("/").pop() || thumbnail.name,

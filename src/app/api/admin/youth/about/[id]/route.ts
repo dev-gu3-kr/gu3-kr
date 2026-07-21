@@ -7,18 +7,9 @@ import {
 } from "@/features/intro-posts/isomorphic"
 import { introPostsService } from "@/features/intro-posts/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
+import { extractMinioObjectKey, getMinioS3Client } from "@/lib/admin/storage"
 
 const SECTION = "youth" as const
-
-function resolveObjectKey(raw: string) {
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-  if (endpoint && raw.startsWith(endpoint)) {
-    const [, , ...rest] = raw.slice(endpoint.length + 1).split("/")
-    return rest.join("/")
-  }
-  return raw
-}
 
 function toImageRecordFromUrl(url: string) {
   const fileName = url.split("/").pop() || `${Date.now()}.webp`
@@ -138,7 +129,7 @@ export async function PATCH(
       await client.send(
         new DeleteObjectCommand({
           Bucket: bucket,
-          Key: resolveObjectKey(updated.oldImageUrl),
+          Key: extractMinioObjectKey(updated.oldImageUrl, bucket),
         }),
       )
     }
@@ -179,7 +170,7 @@ export async function DELETE(
         client.send(
           new DeleteObjectCommand({
             Bucket: bucket,
-            Key: resolveObjectKey(url),
+            Key: extractMinioObjectKey(url, bucket),
           }),
         ),
       ),

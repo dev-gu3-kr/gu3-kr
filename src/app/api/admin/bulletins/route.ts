@@ -4,7 +4,10 @@ import { NextResponse } from "next/server"
 import { createBulletinSchema } from "@/features/bulletins/isomorphic"
 import { bulletinService } from "@/features/bulletins/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
+import {
+  createMinioPublicObjectUrl,
+  getMinioS3Client,
+} from "@/lib/admin/storage"
 
 export async function GET(request: Request) {
   const author = await assertAdminSession(request)
@@ -97,6 +100,7 @@ export async function POST(request: Request) {
   }
 
   const key = `data/bulletins/${Date.now()}-${randomUUID()}.${ext}`
+  const fileUrl = createMinioPublicObjectUrl(bucket, key)
   const client = getMinioS3Client()
 
   await client.send(
@@ -107,9 +111,6 @@ export async function POST(request: Request) {
       ContentType: file.type || "application/octet-stream",
     }),
   )
-
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-  const fileUrl = `${endpoint}/${bucket}/${key}`
 
   const created = await bulletinService.createBulletin({
     title: parsed.data.title,

@@ -3,30 +3,15 @@ import { randomUUID } from "node:crypto"
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
+import {
+  createMinioPublicObjectUrl,
+  getMinioS3Client,
+  resolveMinioObjectKey,
+} from "@/lib/admin/storage"
 
 // 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 
 // 세션 쿠키를 기준으로 관리자 로그인 여부를 검증한다.
-
-// key 또는 URL에서 실제 S3 object key를 안전하게 복원한다.
-function resolveObjectKey(params: {
-  key?: string
-  url?: string
-  bucket: string
-}) {
-  const { key, url, bucket } = params
-
-  if (key?.trim()) return key.trim()
-  if (!url?.trim()) return null
-
-  const normalizedUrl = url.trim()
-  const marker = `/${bucket}/`
-  const markerIndex = normalizedUrl.indexOf(marker)
-  if (markerIndex < 0) return null
-
-  return normalizedUrl.slice(markerIndex + marker.length)
-}
 
 // MinIO 환경변수를 검증한 뒤 S3Client를 생성한다.
 
@@ -75,6 +60,7 @@ export async function POST(request: Request) {
   const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin"
   const key = `data/clergy/${Date.now()}-${randomUUID()}.${ext}`
   const body = Buffer.from(await file.arrayBuffer())
+  const url = createMinioPublicObjectUrl(bucket, key)
 
   const client = getMinioS3Client()
   await client.send(
@@ -85,9 +71,6 @@ export async function POST(request: Request) {
       ContentType: file.type,
     }),
   )
-
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-  const url = `${endpoint}/${bucket}/${key}`
 
   return NextResponse.json({ ok: true, url, key })
 }
@@ -115,7 +98,7 @@ export async function DELETE(request: Request) {
     url?: string
   } | null
 
-  const objectKey = resolveObjectKey({
+  const objectKey = resolveMinioObjectKey({
     key: body?.key,
     url: body?.url,
     bucket,

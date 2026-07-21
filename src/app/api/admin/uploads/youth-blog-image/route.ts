@@ -3,7 +3,10 @@ import { randomUUID } from "node:crypto"
 import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
+import {
+  createMinioPublicObjectUrl,
+  getMinioS3Client,
+} from "@/lib/admin/storage"
 
 export async function POST(request: Request) {
   const author = await assertAdminSession(request)
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
 
   const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin"
   const key = `data/youth-blog/${Date.now()}-${randomUUID()}.${ext}`
+  const url = createMinioPublicObjectUrl(bucket, key)
 
   const client = getMinioS3Client()
   await client.send(
@@ -60,9 +64,6 @@ export async function POST(request: Request) {
       ContentType: file.type,
     }),
   )
-
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-  const url = `${endpoint}/${bucket}/${key}`
 
   return NextResponse.json({ ok: true, url, key })
 }

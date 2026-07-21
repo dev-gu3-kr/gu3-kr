@@ -4,16 +4,11 @@ import { NextResponse } from "next/server"
 import { createBulletinSchema } from "@/features/bulletins/isomorphic"
 import { bulletinService } from "@/features/bulletins/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { getMinioS3Client } from "@/lib/admin/storage"
-
-function resolveObjectKey(raw: string) {
-  const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-  if (endpoint && raw.startsWith(endpoint)) {
-    const [, , ...rest] = raw.slice(endpoint.length + 1).split("/")
-    return rest.join("/")
-  }
-  return raw
-}
+import {
+  createMinioPublicObjectUrl,
+  extractMinioObjectKey,
+  getMinioS3Client,
+} from "@/lib/admin/storage"
 
 export async function GET(
   request: Request,
@@ -112,6 +107,7 @@ export async function PATCH(
     }
 
     const key = `data/bulletins/${Date.now()}-${randomUUID()}.${ext}`
+    const fileUrl = createMinioPublicObjectUrl(bucket, key)
     const client = getMinioS3Client()
 
     await client.send(
@@ -122,9 +118,6 @@ export async function PATCH(
         ContentType: file.type || "application/octet-stream",
       }),
     )
-
-    const endpoint = (process.env.MINIO_ENDPOINT || "").replace(/\/$/, "")
-    const fileUrl = `${endpoint}/${bucket}/${key}`
 
     newAttachment = {
       fileName: key.split("/").pop() || file.name,
@@ -157,7 +150,7 @@ export async function PATCH(
       await client.send(
         new DeleteObjectCommand({
           Bucket: bucket,
-          Key: resolveObjectKey(updated.oldAttachmentUrl),
+          Key: extractMinioObjectKey(updated.oldAttachmentUrl, bucket),
         }),
       )
     }
@@ -196,7 +189,7 @@ export async function DELETE(
         client.send(
           new DeleteObjectCommand({
             Bucket: bucket,
-            Key: resolveObjectKey(url),
+            Key: extractMinioObjectKey(url, bucket),
           }),
         ),
       ),
