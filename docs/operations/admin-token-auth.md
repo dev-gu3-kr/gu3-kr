@@ -58,6 +58,8 @@ seed는 `username=master`인 기존 계정을 유지하면서 이메일과 비�
 
 기존의 사용자 ID 쿠키는 더 이상 인증으로 인정하지 않으므로 배포 후 관리자는 다시 로그인해야 한다.
 
+Synology 리버스 프록시는 외부 요청 정보를 애플리케이션에 전달하도록 `X-Forwarded-Proto`와 `X-Forwarded-Host` 헤더를 유지해야 한다. 로그인 CSRF 검사는 이 값과 `NEXT_PUBLIC_SITE_URL`을 사용해 브라우저의 `Origin`이 동일 출처인지 확인한다.
+
 ## 비밀값 교체
 
 `AUTH_TOKEN_SECRET`을 교체하면 기존 access JWT는 즉시 무효화된다. 침해 대응 목적이라면 `AdminRefreshToken`의 활성 세션도 함께 폐기해야 기존 refresh token으로 새 access JWT를 발급할 수 없다.
