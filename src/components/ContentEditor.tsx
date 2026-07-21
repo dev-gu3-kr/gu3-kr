@@ -176,6 +176,7 @@ export function ContentEditor({
     const imageButton = document.createElement("button")
     imageButton.type = "button"
     imageButton.className = "toastui-editor-toolbar-icons image"
+    imageButton.style.margin = "0"
     imageButton.title = "이미지 여러 장 추가"
     imageButton.setAttribute("aria-label", "이미지 여러 장 추가")
     imageButton.disabled = disabled
