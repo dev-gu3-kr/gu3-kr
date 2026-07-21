@@ -26,11 +26,11 @@ RUN DATABASE_URL="postgresql://docker-build:docker-build@localhost:5432/docker-b
 
 FROM base AS builder
 
-ARG MINIO_ENDPOINT="http://localhost:9000"
+ARG MINIO_PUBLIC_BASE_URL="http://localhost:9000"
 ARG NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV MINIO_ENDPOINT="$MINIO_ENDPOINT"
+ENV MINIO_PUBLIC_BASE_URL="$MINIO_PUBLIC_BASE_URL"
 ENV NEXT_PUBLIC_SITE_URL="$NEXT_PUBLIC_SITE_URL"
 
 COPY --from=dependencies /app/node_modules ./node_modules

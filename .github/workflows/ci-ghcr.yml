@@ -79,6 +79,9 @@ jobs:
           target: runner
           platforms: linux/amd64
           push: true
+          build-args: |
+            MINIO_PUBLIC_BASE_URL=https://api.gu3.kr
+            NEXT_PUBLIC_SITE_URL=https://gu3.kr
           tags: |
             ghcr.io/${{ steps.image.outputs.name }}:latest
             ghcr.io/${{ steps.image.outputs.name }}:${{ steps.image.outputs.short_sha }}
@@ -97,6 +100,9 @@ jobs:
           target: migrator
           platforms: linux/amd64
           push: true
+          build-args: |
+            MINIO_PUBLIC_BASE_URL=https://api.gu3.kr
+            NEXT_PUBLIC_SITE_URL=https://gu3.kr
           tags: |
             ghcr.io/${{ steps.image.outputs.name }}-migrator:latest
             ghcr.io/${{ steps.image.outputs.name }}-migrator:${{ steps.image.outputs.short_sha }}

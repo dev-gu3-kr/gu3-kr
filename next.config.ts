@@ -1,12 +1,12 @@
 import type { NextConfig } from "next"
 
-const minioEndpoint = process.env.MINIO_ENDPOINT
+const minioPublicBaseUrl = process.env.MINIO_PUBLIC_BASE_URL
 
 const minioRemotePattern = (() => {
-  if (!minioEndpoint) return null
+  if (!minioPublicBaseUrl) return null
 
   try {
-    const parsed = new URL(minioEndpoint)
+    const parsed = new URL(minioPublicBaseUrl)
     return {
       protocol: parsed.protocol.replace(":", "") as "http" | "https",
       hostname: parsed.hostname,
