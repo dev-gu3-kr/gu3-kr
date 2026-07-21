@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 
 import { ADMIN_MENU_ITEMS } from "@/features/admin/isomorphic"
+import { apiFetch } from "@/lib/api"
 import { AdminDashboardView } from "./AdminDashboardView"
 
 export function AdminDashboardContainer() {
@@ -10,7 +11,10 @@ export function AdminDashboardContainer() {
 
   useEffect(() => {
     const run = async () => {
-      const response = await fetch("/api/admin/session", { cache: "no-store" })
+      const response = await apiFetch
+        .get("/api/admin/session")
+        .init({ cache: "no-store" })
+        .send()
       const json = (await response.json().catch(() => null)) as {
         ok?: boolean
         role?: string

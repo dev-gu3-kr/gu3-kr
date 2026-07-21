@@ -1,6 +1,10 @@
 # 90-changelog
 
 ## 2026-07-21
+- 관리자 로그인을 이메일·비밀번호 기반 access JWT + 회전형 refresh token 방식으로 전환
+- 인증 쿠키를 `HttpOnly`/`SameSite`로 보호하고 관리자 변경 API에 CSRF 검증 추가
+- 신규 비밀번호를 scrypt로 저장하고 기존 SHA-256 비밀번호는 로그인 시 자동 승격
+- 관리자 로그인 폼을 React Hook Form 검증과 공통 오류·토스트 처리 방식으로 정리
 - `Attachment`, `PostImage`, `ContentImageAsset`의 중복 메타데이터를 `FileAsset + PostAsset` 구조로 정규화
 - 기존 첨부파일·대표 이미지·본문 이미지 데이터를 역할 기반 사용처로 자동 백필하는 안전한 마이그레이션 추가
 - 게시물 저장·수정·삭제 시 실제 파일 사용처를 동기화하고 제거 자산을 MinIO에서 정리

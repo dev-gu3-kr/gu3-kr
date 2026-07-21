@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import { useEffect, useMemo, useState } from "react"
 import { AppLink as Link } from "@/components/AppLink"
 import { ADMIN_MENU_ITEMS } from "@/features/admin/isomorphic"
+import { apiFetch } from "@/lib/api"
 
 type AdminSidebarContainerProps = {
   className?: string
@@ -20,7 +21,10 @@ export function AdminSidebarContainer({
   // 사이드바 렌더링 시 현재 세션 권한을 조회해 메뉴 노출을 동적으로 결정한다.
   useEffect(() => {
     const run = async () => {
-      const response = await fetch("/api/admin/session", { cache: "no-store" })
+      const response = await apiFetch
+        .get("/api/admin/session")
+        .init({ cache: "no-store" })
+        .send()
       const json = (await response.json().catch(() => null)) as {
         ok?: boolean
         role?: string

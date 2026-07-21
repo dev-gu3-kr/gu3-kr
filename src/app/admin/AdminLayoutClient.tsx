@@ -3,9 +3,10 @@
 import { Menu, X } from "lucide-react"
 import { usePathname, useRouter } from "next/navigation"
 import type { ReactNode } from "react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { AppLink as Link } from "@/components/AppLink"
 import { AdminSidebarContainer } from "@/features/admin/client"
+import { apiFetch } from "@/lib/api"
 
 type AdminLayoutClientProps = {
   children: ReactNode
@@ -21,8 +22,15 @@ export function AdminLayoutClient({
   const router = useRouter()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
+  useEffect(() => {
+    if (!isLoginPage && !initialDisplayName) {
+      router.replace("/admin/login")
+      router.refresh()
+    }
+  }, [initialDisplayName, isLoginPage, router])
+
   const handleLogout = async () => {
-    await fetch("/api/admin/logout", { method: "POST" })
+    await apiFetch.post("/api/admin/logout").send()
     router.push("/admin/login")
     router.refresh()
   }

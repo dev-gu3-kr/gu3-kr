@@ -102,6 +102,26 @@ model User {
   events             Event[] // 작성한 일정 목록
   processedInquiries Inquiry[]   @relation("InquiryProcessedBy") // 처리한 문의 목록
   fileAssets         FileAsset[] // 업로드한 물리 파일 자산 목록
+  refreshTokens      AdminRefreshToken[] // 관리자 로그인 갱신 토큰 목록
+}
+
+model AdminRefreshToken {
+  id            String   @id @default(cuid()) // 갱신 토큰 레코드 식별자
+  userId        String // 토큰 소유 관리자 식별자
+  familyId      String // 회전 과정에서 토큰 재사용을 추적하는 세션 계열 식별자
+  tokenHash     String   @unique // 원문 대신 저장하는 SHA-256 토큰 해시
+  rotatedToHash String? // 회전 후 발급된 다음 토큰의 해시
+  expiresAt     DateTime // 토큰 만료 시각
+  usedAt        DateTime? // 회전 처리된 시각이며 null이면 아직 사용 가능
+  revokedAt     DateTime? // 로그아웃·재사용 탐지로 폐기된 시각
+  createdAt     DateTime @default(now()) // 토큰 발급 시각
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([familyId])
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([revokedAt])
 }
 
 model Post {

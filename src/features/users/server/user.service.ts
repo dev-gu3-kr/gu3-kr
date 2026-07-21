@@ -1,8 +1,8 @@
-import { createHash } from "node:crypto"
 import type {
   CreateAdminUserInputDto,
   UpdateAdminUserInputDto,
 } from "@/features/users/isomorphic"
+import { hashPassword } from "@/lib/auth/password"
 import {
   createAdminUser,
   deleteAdminUser,
@@ -11,11 +11,6 @@ import {
   findAdminUsers,
   updateAdminUser,
 } from "./user.query"
-
-// 로그인 비밀번호는 단방향 해시로 저장한다.
-function hashPassword(plainPassword: string) {
-  return createHash("sha256").update(plainPassword).digest("hex")
-}
 
 // 관리자 사용자 목록 조회 서비스다.
 export async function getAdminUsers() {
@@ -29,7 +24,7 @@ export async function getAdminUserById(id: string) {
 
 // 이메일 중복 검사 후 관리자 사용자를 생성한다.
 export async function createAdminUserAccount(input: CreateAdminUserInputDto) {
-  const normalizedEmail = input.email.trim()
+  const normalizedEmail = input.email.trim().toLowerCase()
   const existed = await findAdminUserByEmail(normalizedEmail)
   if (existed) throw new Error("이미 사용 중인 이메일입니다.")
 
@@ -39,7 +34,7 @@ export async function createAdminUserAccount(input: CreateAdminUserInputDto) {
     displayName: input.displayName.trim(),
     email: normalizedEmail,
     role: input.role,
-    passwordHash: hashPassword(input.password),
+    passwordHash: await hashPassword(input.password),
     isActive: input.isActive ?? true,
   })
 }
@@ -54,11 +49,11 @@ export async function updateAdminUserAccount(
 
   return updateAdminUser(id, {
     displayName: input.displayName?.trim(),
-    email: input.email === null ? null : input.email?.trim(),
+    email: input.email === null ? null : input.email?.trim().toLowerCase(),
     role: input.role,
     isActive: input.isActive,
     ...(input.resetPassword
-      ? { passwordHash: hashPassword(input.resetPassword) }
+      ? { passwordHash: await hashPassword(input.resetPassword) }
       : {}),
   })
 }

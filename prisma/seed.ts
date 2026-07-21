@@ -1,10 +1,6 @@
-import { createHash } from "node:crypto"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "@prisma/client"
-
-function hashPassword(plainPassword: string) {
-  return createHash("sha256").update(plainPassword).digest("hex")
-}
+import { hashPassword } from "../src/lib/auth/password"
 
 function createPrismaClient() {
   const connectionString = process.env.DATABASE_URL
@@ -138,13 +134,20 @@ const pastoralCouncilSeed: Array<{
 
 async function main() {
   const prisma = createPrismaClient()
+  const adminSeedPassword = process.env.ADMIN_SEED_PASSWORD
+
+  if (!adminSeedPassword || adminSeedPassword.length < 12) {
+    throw new Error("ADMIN_SEED_PASSWORD must be at least 12 characters.")
+  }
 
   try {
+    const adminPasswordHash = await hashPassword(adminSeedPassword)
+
     await prisma.user.upsert({
       where: { email: "master@sample.com" },
       update: {
         username: "master",
-        passwordHash: hashPassword("cathedral12312!"),
+        passwordHash: adminPasswordHash,
         displayName: "Master Admin",
         role: "SUPER_ADMIN",
         isActive: true,
@@ -152,7 +155,7 @@ async function main() {
       create: {
         email: "master@sample.com",
         username: "master",
-        passwordHash: hashPassword("cathedral12312!"),
+        passwordHash: adminPasswordHash,
         displayName: "Master Admin",
         role: "SUPER_ADMIN",
         isActive: true,

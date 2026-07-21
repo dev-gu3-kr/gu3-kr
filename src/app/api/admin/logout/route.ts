@@ -1,20 +1,19 @@
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
+import { authService } from "@/features/auth/server"
+import { validateAdminCsrfRequest } from "@/lib/auth/csrf"
+import { applyAuthCookies } from "@/lib/auth/next-response"
 
-export async function POST() {
-  // 로그아웃 응답 객체를 생성한다.
+export async function POST(request: Request) {
+  if (!validateAdminCsrfRequest(request)) {
+    return NextResponse.json(
+      { ok: false, message: "요청 보안 검증에 실패했습니다." },
+      { status: 403 },
+    )
+  }
+
+  await authService.revokeAuthSession(request)
+
   const response = NextResponse.json({ ok: true })
-
-  // 관리자 세션 쿠키를 만료시켜 로그아웃 처리한다.
-  response.cookies.set({
-    name: ADMIN_SESSION_COOKIE_KEY,
-    value: "",
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 0,
-  })
-
+  applyAuthCookies(response, authService.clearAuthCookies())
   return response
 }

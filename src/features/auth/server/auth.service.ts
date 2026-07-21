@@ -1,47 +1,244 @@
-import { createHash, timingSafeEqual } from "node:crypto"
-import { findUserByEmail, findUserById } from "./auth.query"
+import { createHash, randomBytes, randomUUID } from "node:crypto"
+import {
+  ADMIN_ACCESS_TOKEN_MAX_AGE_SECONDS,
+  issueAdminAccessToken,
+  verifyAdminAccessToken,
+} from "@/lib/auth/access-token"
+import {
+  ADMIN_ACCESS_COOKIE_KEY,
+  ADMIN_REFRESH_COOKIE_KEY,
+  buildAuthCookie,
+  clearAuthCookie,
+  getRequestCookie,
+} from "@/lib/auth/cookies"
+import { clearAdminCsrfCookie, issueAdminCsrfCookie } from "@/lib/auth/csrf"
+import {
+  DUMMY_PASSWORD_HASH,
+  hashPassword,
+  verifyPassword,
+} from "@/lib/auth/password"
+import {
+  ADMIN_REFRESH_TOKEN_MAX_AGE_SECONDS,
+  ADMIN_REFRESH_TOKEN_ROTATE_AFTER_SECONDS,
+} from "@/lib/auth/session-config"
+import {
+  createRefreshToken,
+  deleteExpiredRefreshTokens,
+  findRefreshTokenByHash,
+  findUserByEmail,
+  findUserById,
+  revokeRefreshTokenFamily,
+  rotateRefreshToken,
+  updateUserPasswordHash,
+} from "./auth.query"
 
-function hashPassword(plainPassword: string) {
-  // 시드/로그인 검증에서 공통으로 사용할 SHA-256 해시를 생성한다.
-  return createHash("sha256").update(plainPassword).digest("hex")
-}
-
-function verifyPassword(plainPassword: string, storedHash: string) {
-  // 타이밍 공격 완화를 위해 상수 시간 비교를 수행한다.
-  const inputBuffer = Buffer.from(hashPassword(plainPassword), "hex")
-  const storedBuffer = Buffer.from(storedHash, "hex")
-
-  if (inputBuffer.length !== storedBuffer.length) {
-    return false
-  }
-
-  return timingSafeEqual(inputBuffer, storedBuffer)
-}
-
+const REFRESH_TOKEN_GRACE_SECONDS = 30
 export async function authenticateAdmin(email: string, plainPassword: string) {
-  // 이메일 기준으로 관리자 후보 계정을 조회한다.
-  const user = await findUserByEmail(email)
+  const user = await findUserByEmail(email.trim().toLowerCase())
+  const verification = await verifyPassword(
+    plainPassword,
+    user?.passwordHash ?? DUMMY_PASSWORD_HASH,
+  )
 
-  if (!user) {
-    return null
-  }
+  if (!user || !user.isActive || !verification.valid) return null
 
-  // 입력 비밀번호와 저장된 해시를 비교한다.
-  const isPasswordValid = verifyPassword(plainPassword, user.passwordHash)
-
-  if (!isPasswordValid) {
-    return null
+  if (verification.needsUpgrade) {
+    await updateUserPasswordHash(user.id, await hashPassword(plainPassword))
   }
 
   return user
 }
 
-export async function getLoginCandidate(email: string) {
-  // 로그인 대상 계정을 이메일로 조회한다.
-  return findUserByEmail(email)
+function hashRefreshToken(token: string) {
+  return createHash("sha256").update(token).digest("hex")
+}
+
+function buildRefreshToken() {
+  return randomBytes(32).toString("base64url")
+}
+
+function issueAccessCookie(userId: string) {
+  return buildAuthCookie(
+    ADMIN_ACCESS_COOKIE_KEY,
+    issueAdminAccessToken(userId),
+    ADMIN_ACCESS_TOKEN_MAX_AGE_SECONDS,
+  )
+}
+
+function issueRefreshCookie(token: string) {
+  return buildAuthCookie(
+    ADMIN_REFRESH_COOKIE_KEY,
+    token,
+    ADMIN_REFRESH_TOKEN_MAX_AGE_SECONDS,
+  )
+}
+
+export async function issueAuthCookies(userId: string) {
+  const refreshToken = buildRefreshToken()
+  const now = new Date()
+
+  await Promise.all([
+    createRefreshToken({
+      userId,
+      familyId: randomUUID(),
+      tokenHash: hashRefreshToken(refreshToken),
+      expiresAt: new Date(
+        now.getTime() + ADMIN_REFRESH_TOKEN_MAX_AGE_SECONDS * 1000,
+      ),
+    }),
+    deleteExpiredRefreshTokens(now),
+  ])
+
+  return [
+    issueAccessCookie(userId),
+    issueRefreshCookie(refreshToken),
+    issueAdminCsrfCookie(),
+  ]
+}
+
+function getRequestAccessToken(request: Request) {
+  const authorization = request.headers.get("authorization")
+  if (authorization?.startsWith("Bearer ")) {
+    const token = authorization.slice("Bearer ".length).trim()
+    if (token) return token
+  }
+
+  return getRequestCookie(request, ADMIN_ACCESS_COOKIE_KEY)
+}
+
+export function getUserIdFromAccessToken(token: string) {
+  try {
+    return verifyAdminAccessToken(token).sub ?? null
+  } catch {
+    return null
+  }
+}
+
+export async function getAdminFromAccessToken(request: Request) {
+  const token = getRequestAccessToken(request)
+  if (!token) return null
+
+  const userId = getUserIdFromAccessToken(token)
+  if (!userId) return null
+
+  const user = await findUserById(userId)
+  return user?.isActive ? user : null
+}
+
+export async function getAdminFromRefreshToken(refreshToken: string | null) {
+  if (!refreshToken) return null
+
+  const record = await findRefreshTokenByHash(hashRefreshToken(refreshToken))
+  const now = new Date()
+
+  if (
+    !record ||
+    record.revokedAt ||
+    record.expiresAt <= now ||
+    !record.user.isActive
+  ) {
+    return null
+  }
+
+  if (
+    record.usedAt &&
+    now.getTime() - record.usedAt.getTime() > REFRESH_TOKEN_GRACE_SECONDS * 1000
+  ) {
+    return null
+  }
+
+  return record.user
+}
+
+type RefreshResult =
+  | { ok: true; cookies: ReturnType<typeof issueAccessCookie>[] }
+  | { ok: false; reason: "AUTH_REQUIRED" | "EXPIRED" | "REUSED" | "RETRY" }
+
+export async function refreshAuthCookies(
+  request: Request,
+): Promise<RefreshResult> {
+  const refreshToken = getRequestCookie(request, ADMIN_REFRESH_COOKIE_KEY)
+  if (!refreshToken) return { ok: false, reason: "AUTH_REQUIRED" }
+
+  const currentHash = hashRefreshToken(refreshToken)
+  const record = await findRefreshTokenByHash(currentHash)
+  if (!record) return { ok: false, reason: "AUTH_REQUIRED" }
+
+  const now = new Date()
+  if (record.revokedAt || !record.user.isActive) {
+    return { ok: false, reason: "AUTH_REQUIRED" }
+  }
+
+  if (record.expiresAt <= now) {
+    await revokeRefreshTokenFamily(record.familyId, now)
+    return { ok: false, reason: "EXPIRED" }
+  }
+
+  if (record.usedAt) {
+    const withinGrace =
+      now.getTime() - record.usedAt.getTime() <=
+      REFRESH_TOKEN_GRACE_SECONDS * 1000
+
+    if (withinGrace) return { ok: false, reason: "RETRY" }
+
+    await revokeRefreshTokenFamily(record.familyId, now)
+    return { ok: false, reason: "REUSED" }
+  }
+
+  const shouldRotate =
+    now.getTime() - record.createdAt.getTime() >=
+    ADMIN_REFRESH_TOKEN_ROTATE_AFTER_SECONDS * 1000
+
+  if (!shouldRotate) {
+    return {
+      ok: true,
+      cookies: [issueAccessCookie(record.userId), issueAdminCsrfCookie()],
+    }
+  }
+
+  const nextRefreshToken = buildRefreshToken()
+  const rotated = await rotateRefreshToken({
+    currentTokenHash: currentHash,
+    userId: record.userId,
+    familyId: record.familyId,
+    tokenHash: hashRefreshToken(nextRefreshToken),
+    expiresAt: new Date(
+      now.getTime() + ADMIN_REFRESH_TOKEN_MAX_AGE_SECONDS * 1000,
+    ),
+    now,
+  })
+
+  if (!rotated) return { ok: false, reason: "RETRY" }
+
+  return {
+    ok: true,
+    cookies: [
+      issueAccessCookie(record.userId),
+      issueRefreshCookie(nextRefreshToken),
+      issueAdminCsrfCookie(),
+    ],
+  }
+}
+
+export async function revokeAuthSession(request: Request) {
+  const refreshToken = getRequestCookie(request, ADMIN_REFRESH_COOKIE_KEY)
+  if (!refreshToken) return
+
+  const record = await findRefreshTokenByHash(hashRefreshToken(refreshToken))
+  if (record) {
+    await revokeRefreshTokenFamily(record.familyId, new Date())
+  }
+}
+
+export function clearAuthCookies() {
+  return [
+    clearAuthCookie(ADMIN_ACCESS_COOKIE_KEY),
+    clearAuthCookie(ADMIN_REFRESH_COOKIE_KEY),
+    clearAdminCsrfCookie(),
+  ]
 }
 
 export async function getLoginCandidateById(id: string) {
-  // 로그인 세션의 사용자 ID로 계정을 조회한다.
-  return findUserById(id)
+  const user = await findUserById(id)
+  return user?.isActive ? user : null
 }

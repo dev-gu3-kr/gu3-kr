@@ -1,26 +1,61 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
+import { isValidAdminAccessToken } from "@/lib/auth/access-token"
+import {
+  ADMIN_ACCESS_COOKIE_KEY,
+  ADMIN_REFRESH_COOKIE_KEY,
+} from "@/lib/auth/cookies"
+import { validateAdminCsrfRequest } from "@/lib/auth/csrf"
+
+const PUBLIC_ADMIN_API_PATHS = new Set([
+  "/api/admin/login",
+  "/api/admin/logout",
+  "/api/admin/refresh",
+])
 
 export function proxy(request: NextRequest) {
-  // 현재 요청 경로를 확인한다.
   const { pathname } = request.nextUrl
-
-  // 관리자 세션 쿠키 존재 여부를 확인한다.
-  const hasAdminSession = Boolean(
-    request.cookies.get(ADMIN_SESSION_COOKIE_KEY)?.value,
+  const bearerToken = request.headers
+    .get("authorization")
+    ?.match(/^Bearer\s+(.+)$/i)?.[1]
+  const hasValidBearerToken = isValidAdminAccessToken(bearerToken)
+  const hasValidAccessToken =
+    isValidAdminAccessToken(
+      request.cookies.get(ADMIN_ACCESS_COOKIE_KEY)?.value,
+    ) || hasValidBearerToken
+  const hasRefreshToken = Boolean(
+    request.cookies.get(ADMIN_REFRESH_COOKIE_KEY)?.value,
   )
 
-  // 로그인 페이지 접근 시 이미 로그인되어 있으면 관리자 메인으로 보낸다.
-  if (pathname === "/admin/login" && hasAdminSession) {
+  if (pathname.startsWith("/api/admin")) {
+    if (PUBLIC_ADMIN_API_PATHS.has(pathname)) return NextResponse.next()
+
+    if (!hasValidAccessToken) {
+      return NextResponse.json(
+        { ok: false, message: "인증 갱신이 필요합니다." },
+        { status: 401 },
+      )
+    }
+
+    if (!hasValidBearerToken && !validateAdminCsrfRequest(request)) {
+      return NextResponse.json(
+        { ok: false, message: "요청 보안 검증에 실패했습니다." },
+        { status: 403 },
+      )
+    }
+
+    return NextResponse.next()
+  }
+
+  if (pathname === "/admin/login" && hasValidAccessToken) {
     return NextResponse.redirect(new URL("/admin", request.url))
   }
 
-  // 로그인 페이지를 제외한 관리자 경로는 인증이 없으면 로그인으로 보낸다.
   if (
     pathname.startsWith("/admin") &&
     pathname !== "/admin/login" &&
-    !hasAdminSession
+    !hasValidAccessToken &&
+    !hasRefreshToken
   ) {
     return NextResponse.redirect(new URL("/admin/login", request.url))
   }
@@ -29,5 +64,5 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/api/admin/:path*"],
 }

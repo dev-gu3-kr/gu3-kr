@@ -8,8 +8,10 @@ export function useLoginForm() {
       // 로그인 API를 호출해 관리자 인증을 수행한다.
       const response = await fetch("/api/admin/login", {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          "X-Requested-With": "fetch",
         },
         body: JSON.stringify(input),
       })

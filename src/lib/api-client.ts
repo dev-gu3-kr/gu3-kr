@@ -1,3 +1,8 @@
+import {
+  getAdminCsrfHeader,
+  refreshAdminSession,
+} from "@/lib/auth/refresh-client"
+
 // 쿼리 파라미터로 허용할 값 타입이다.
 type QueryValue = string | number | boolean | null | undefined
 // URLSearchParams로 직렬화할 쿼리 객체 타입이다.
@@ -71,7 +76,36 @@ function createApiBuilder(method: string, path: string): RequestBuilder {
       return this
     },
     async send() {
-      return fetch(requestPath, requestInit)
+      const sendRequest = () => {
+        const headers = new Headers(requestInit.headers)
+        const isUnsafeMethod = !["GET", "HEAD", "OPTIONS"].includes(method)
+
+        if (isUnsafeMethod) {
+          for (const [key, value] of Object.entries(getAdminCsrfHeader())) {
+            headers.set(key, value)
+          }
+        }
+
+        return fetch(requestPath, {
+          ...requestInit,
+          credentials: "include",
+          headers,
+        })
+      }
+
+      const response = await sendRequest()
+      const isRefreshableAdminRequest =
+        requestPath.startsWith("/api/admin/") &&
+        !["/api/admin/login", "/api/admin/logout", "/api/admin/refresh"].some(
+          (publicPath) => requestPath.startsWith(publicPath),
+        )
+
+      if (response.status !== 401 || !isRefreshableAdminRequest) {
+        return response
+      }
+
+      const refreshed = await refreshAdminSession()
+      return refreshed ? sendRequest() : response
     },
   }
 }

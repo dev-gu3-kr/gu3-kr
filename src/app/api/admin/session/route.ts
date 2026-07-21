@@ -1,31 +1,21 @@
 import { NextResponse } from "next/server"
-import { authService } from "@/features/auth/server"
-import { getAuthorIdFromCookieHeader } from "@/lib/admin/session"
+import { assertAdminSession } from "@/lib/admin/session"
 
-// 관리자 세션 쿠키에서 로그인 식별자를 추출한다.
-
-// 사이드바 권한 분기와 헤더 사용자명 표시를 위해 현재 관리자 세션 정보를 반환한다.
 export async function GET(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) {
-    return NextResponse.json(
-      { ok: false, message: "로그인이 필요합니다." },
-      { status: 401 },
-    )
-  }
-
-  const author = await authService.getLoginCandidateById(authorId)
+  const author = await assertAdminSession(request)
   if (!author) {
     return NextResponse.json(
-      { ok: false, message: "유효하지 않은 세션입니다." },
+      { ok: false, message: "로그인이 필요합니다." },
       { status: 401 },
     )
   }
 
-  return NextResponse.json({
-    ok: true,
-    role: author.role,
-    displayName: author.displayName,
-  })
+  return NextResponse.json(
+    {
+      ok: true,
+      role: author.role,
+      displayName: author.displayName,
+    },
+    { headers: { "Cache-Control": "private, no-store" } },
+  )
 }

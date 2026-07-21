@@ -1,42 +1,48 @@
 "use client"
 
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
-import { useLoginForm } from "@/features/auth/isomorphic"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import {
+  type LoginInput,
+  loginSchema,
+  useLoginForm,
+} from "@/features/auth/isomorphic"
 import { LoginFormView } from "./LoginFormView"
 
 export function LoginFormContainer() {
-  // 로그인 실패 메시지를 보관한다.
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  // 로그인 성공 후 관리자 페이지 이동에 사용한다.
   const router = useRouter()
-  // 로그인 API 호출 뮤테이션이다.
   const loginMutation = useLoginForm()
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    mode: "onSubmit",
+    defaultValues: { email: "", password: "" },
+  })
 
-  const handleSubmit = async (formData: FormData) => {
-    // 폼에서 이메일/비밀번호를 추출한다.
-    const email = String(formData.get("email") ?? "").trim()
-    const password = String(formData.get("password") ?? "")
-
+  const handleSubmit = async (input: LoginInput) => {
     setErrorMessage(null)
 
     try {
-      // 관리자 로그인 요청을 수행한다.
-      await loginMutation.mutateAsync({ email, password })
-      // 성공 시 관리자 메인으로 이동한다.
+      await loginMutation.mutateAsync(input)
+      toast.success("로그인되었습니다.")
       router.push("/admin")
       router.refresh()
     } catch (error) {
-      // 실패 시 사용자에게 에러 메시지를 노출한다.
-      setErrorMessage(
-        error instanceof Error ? error.message : "로그인에 실패했습니다.",
-      )
+      const message =
+        error instanceof Error ? error.message : "로그인에 실패했습니다."
+      setErrorMessage(message)
+      toast.error(message)
     }
   }
 
   return (
     <LoginFormView
-      onSubmit={handleSubmit}
+      onSubmit={form.handleSubmit(handleSubmit)}
+      register={form.register}
+      errors={form.formState.errors}
       isLoading={loginMutation.isPending}
       errorMessage={errorMessage}
     />

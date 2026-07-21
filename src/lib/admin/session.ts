@@ -1,24 +1,20 @@
-import { ADMIN_SESSION_COOKIE_KEY } from "@/features/auth/isomorphic"
 import { authService } from "@/features/auth/server"
+import {
+  ADMIN_ACCESS_COOKIE_KEY,
+  getCookieFromHeader,
+} from "@/lib/auth/cookies"
 
-// 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
+// 서명과 만료 검증을 통과한 access JWT에서만 관리자 식별자를 반환한다.
 export function getAuthorIdFromCookieHeader(cookieHeader: string) {
-  return cookieHeader
-    .split(";")
-    .map((token) => token.trim())
-    .find((token) => token.startsWith(`${ADMIN_SESSION_COOKIE_KEY}=`))
-    ?.split("=")[1]
+  const accessToken = getCookieFromHeader(cookieHeader, ADMIN_ACCESS_COOKIE_KEY)
+  return accessToken ? authService.getUserIdFromAccessToken(accessToken) : null
 }
 
-// 요청에서 관리자 세션 유효성을 검사하고 계정을 반환한다.
+// 요청 access JWT와 활성 계정을 모두 검증해 보호 API의 관리자 정보를 반환한다.
 export async function assertAdminSession(request: Request) {
-  const cookieHeader = request.headers.get("cookie") || ""
-  const authorId = getAuthorIdFromCookieHeader(cookieHeader)
-  if (!authorId) return null
-  return authService.getLoginCandidateById(authorId)
+  return authService.getAdminFromAccessToken(request)
 }
 
-// 요청에서 최고관리자 세션을 검사한다.
 export async function assertSuperAdminSession(request: Request) {
   const author = await assertAdminSession(request)
   if (!author || author.role !== "SUPER_ADMIN") return null
