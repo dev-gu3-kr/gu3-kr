@@ -12,7 +12,7 @@ function isAuthorized(request: Request, secret: string) {
   return actual.length === expected.length && timingSafeEqual(actual, expected)
 }
 
-// 외부 운영 작업만 호출할 수 있는 멱등 API로 백필과 오래된 미연결 이미지 정리를 수행한다.
+// 외부 스케줄러만 호출할 수 있는 멱등 API로 오래된 미사용 파일을 정리한다.
 export async function POST(request: Request) {
   const secret = process.env.CONTENT_IMAGE_CLEANUP_SECRET
 
@@ -37,19 +37,6 @@ export async function POST(request: Request) {
   const take = Number.isFinite(takeParam)
     ? Math.min(Math.max(Math.trunc(takeParam), 1), 500)
     : 500
-
-  if (action === "backfill") {
-    const result = await contentImageService.backfillExistingImages({
-      cursor: searchParams.get("cursor") || undefined,
-      take: Math.min(take, 100),
-      dryRun,
-    })
-
-    return NextResponse.json(
-      { ok: result.failed === 0, action, ...result },
-      { status: result.failed === 0 ? 200 : 500 },
-    )
-  }
 
   if (action !== "cleanup") {
     return NextResponse.json(

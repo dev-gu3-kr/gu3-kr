@@ -6,7 +6,7 @@ import {
 import {
   createIntroPostRecord,
   deleteIntroPostById,
-  deletePostImageById,
+  deletePostAssetById,
   findIntroPostById,
   findIntroPostDeleteTargetById,
   findIntroPosts,
@@ -15,13 +15,7 @@ import {
 } from "./intro-posts.query"
 
 type PostImageRecord = {
-  fileName: string
-  originalName: string
-  mimeType: string
-  sizeBytes: number
   url: string
-  isCover: boolean
-  sortOrder: number
 }
 
 type IntroPostListRow = {
@@ -31,7 +25,7 @@ type IntroPostListRow = {
   sortOrder: number
   isPublished: boolean
   createdAt: Date
-  postImages: Array<{ url: string }>
+  fileUsages: Array<{ asset: { url: string } }>
 }
 
 type IntroPostDetailRow = {
@@ -41,14 +35,14 @@ type IntroPostDetailRow = {
   sortOrder: number
   isPublished: boolean
   createdAt: Date
-  postImages: Array<{ id: string; url: string }>
+  fileUsages: Array<{ id: string; asset: { url: string } }>
 }
 
 function mapIntroPostListItem<T extends IntroPostListRow>(item: T) {
   return {
     id: item.id,
     title: item.title,
-    imageUrl: item.postImages[0]?.url ?? null,
+    imageUrl: item.fileUsages[0]?.asset.url ?? null,
     content: item.content,
     sortOrder: item.sortOrder,
     isPublished: item.isPublished,
@@ -60,7 +54,7 @@ function mapIntroPostDetail<T extends IntroPostDetailRow>(item: T) {
   return {
     id: item.id,
     title: item.title,
-    imageUrl: item.postImages[0]?.url ?? null,
+    imageUrl: item.fileUsages[0]?.asset.url ?? null,
     content: item.content,
     sortOrder: item.sortOrder,
     isPublished: item.isPublished,
@@ -152,11 +146,7 @@ export async function updateIntroPost(input: {
 
   if (!target) return null
 
-  const old = target.postImages[0]
-
-  if (input.replaceImage && old) {
-    await deletePostImageById(old.id)
-  }
+  const old = target.fileUsages[0]
 
   const normalizedContent = input.content.trim()
   const normalizedSortOrder = input.sortOrder ?? 0
@@ -173,7 +163,7 @@ export async function updateIntroPost(input: {
   })
 
   return {
-    oldImageUrl: input.replaceImage ? (old?.url ?? null) : null,
+    oldImageUrl: input.replaceImage ? (old?.asset.url ?? null) : null,
   }
 }
 
@@ -192,7 +182,7 @@ export async function removeIntroPostById(
   await deleteIntroPostById(id)
 
   return {
-    imageUrls: target.postImages.map((image) => image.url),
+    imageUrls: target.fileUsages.map((usage) => usage.asset.url),
   }
 }
 
@@ -208,7 +198,7 @@ export async function removeIntroPostImage(
 
   if (!target) return null
 
-  const old = target.postImages[0]
+  const old = target.fileUsages[0]
 
   if (!old) {
     return {
@@ -216,9 +206,10 @@ export async function removeIntroPostImage(
     }
   }
 
-  await deletePostImageById(old.id)
+  await deletePostAssetById(old.id)
 
   return {
-    oldImageUrl: old.url,
+    oldImageUrl: old.asset.url,
+    oldImageAssetId: old.asset.id,
   }
 }

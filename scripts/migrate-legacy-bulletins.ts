@@ -31,7 +31,8 @@ type LegacyDetail = LegacyListItem & {
 }
 
 type UploadedAttachment = {
-  fileName: string
+  bucket: string
+  objectKey: string
   originalName: string
   mimeType: string
   sizeBytes: number
@@ -357,7 +358,8 @@ async function uploadAttachment(
   )
 
   return {
-    fileName,
+    bucket,
+    objectKey: key,
     originalName: attachment.originalName,
     mimeType,
     sizeBytes: body.length,
@@ -405,7 +407,22 @@ async function migrateDetail(detail: LegacyDetail, authorId: string) {
       authorId,
       createdAt: detail.createdAt,
       updatedAt: detail.createdAt,
-      attachments: { create: uploaded },
+      fileUsages: {
+        create: uploaded.map((attachment) => ({
+          role: "ATTACHMENT",
+          asset: {
+            create: {
+              bucket: attachment.bucket,
+              objectKey: attachment.objectKey,
+              url: attachment.url,
+              originalName: attachment.originalName,
+              mimeType: attachment.mimeType,
+              sizeBytes: attachment.sizeBytes,
+              uploadedById: authorId,
+            },
+          },
+        })),
+      },
     },
   })
 

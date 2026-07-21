@@ -81,9 +81,10 @@ enum InquiryType {
   OTHER // 기타 문의
 }
 
-enum ContentImageStatus {
-  PENDING
-  ATTACHED
+enum PostAssetRole {
+  CONTENT
+  COVER
+  ATTACHMENT
 }
 
 model User {
@@ -99,8 +100,8 @@ model User {
 
   posts              Post[] // 작성한 게시글 목록
   events             Event[] // 작성한 일정 목록
-  processedInquiries Inquiry[]           @relation("InquiryProcessedBy") // 처리한 문의 목록
-  contentImageAssets ContentImageAsset[] // 저장 전 업로드한 본문/대표 이미지 추적 목록
+  processedInquiries Inquiry[]   @relation("InquiryProcessedBy") // 처리한 문의 목록
+  fileAssets         FileAsset[] // 업로드한 물리 파일 자산 목록
 }
 
 model Post {
@@ -121,10 +122,8 @@ model Post {
   createdAt       DateTime     @default(now()) // 생성 시각
   updatedAt       DateTime     @updatedAt // 수정 시각
 
-  author             User                @relation(fields: [authorId], references: [id]) // 작성자(User) 관계
-  attachments        Attachment[] // 첨부파일 목록
-  postImages         PostImage[] // 게시글 이미지 목록(대표 이미지 포함)
-  contentImageAssets ContentImageAsset[] // 본문 또는 대표 이미지로 연결된 업로드 자산
+  author     User        @relation(fields: [authorId], references: [id]) // 작성자(User) 관계
+  fileUsages PostAsset[] // 게시글에서 사용하는 파일과 역할 목록
 
   @@index([category, isPublished, publishedAt])
   @@index([category, isPublished, sortOrder, createdAt])
@@ -132,58 +131,40 @@ model Post {
   @@index([createdAt])
 }
 
-model Attachment {
-  id           String   @id @default(cuid()) // 고유 식별자
-  postId       String // 게시글(Post) FK
-  fileName     String // 저장 파일명
-  originalName String // 업로드 원본 파일명
-  mimeType     String // 파일 MIME 타입
-  sizeBytes    Int // 파일 크기(byte)
-  url          String // 파일 접근 URL
-  createdAt    DateTime @default(now()) // 생성 시각
+model FileAsset {
+  id           String   @id @default(cuid()) // 물리 파일 자산 고유 식별자
+  bucket       String // MinIO 버킷
+  objectKey    String // 버킷 내부 객체 키
+  url          String   @unique // 현재 공개 URL이며 파일 식별에는 사용하지 않음
+  originalName String // 업로드 원본 파일명
+  mimeType     String // 저장 객체 MIME 타입
+  sizeBytes    Int // 저장 객체 크기(byte)
+  uploadedById String // 업로드한 관리자 식별자
+  createdAt    DateTime @default(now()) // 업로드 시각 및 미사용 파일 유예 시간 기준
+  updatedAt    DateTime @updatedAt // 메타데이터 변경 시각
 
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade) // 게시글(Post) 관계
+  uploadedBy User        @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  postUsages PostAsset[] // 게시글 사용처 목록, 비어 있으면 PENDING 자산으로 간주
 
-  @@index([postId])
-}
-
-model PostImage {
-  id           String   @id @default(cuid()) // 고유 식별자
-  postId       String // 게시글(Post) FK
-  fileName     String // 저장 파일명
-  originalName String // 업로드 원본 파일명
-  mimeType     String // 파일 MIME 타입
-  sizeBytes    Int // 파일 크기(byte)
-  url          String // 파일 접근 URL
-  sortOrder    Int      @default(0) // 노출 정렬 순서
-  isCover      Boolean  @default(false) // 대표 이미지 여부
-  createdAt    DateTime @default(now()) // 생성 시각
-
-  post Post @relation(fields: [postId], references: [id], onDelete: Cascade) // 게시글(Post) 관계
-
-  @@index([postId, sortOrder])
-}
-
-model ContentImageAsset {
-  id           String             @id @default(cuid()) // 업로드 자산 고유 식별자
-  objectKey    String             @unique // MinIO에서 물리 파일을 식별하는 객체 키
-  url          String             @unique // 본문과 대표 이미지 필드에 저장되는 공개 URL
-  originalName String // 관리자에게 받은 원본 파일명
-  mimeType     String // WebP 변환 후 저장된 MIME 타입
-  sizeBytes    Int // WebP 변환 후 실제 저장 크기(byte)
-  status       ContentImageStatus @default(PENDING) // 게시물 저장 전후 연결 상태
-  uploadedById String // 임시 업로드를 생성한 관리자 식별자
-  postId       String? // 저장된 게시물과 연결되기 전에는 null
-  attachedAt   DateTime? // 게시물에 마지막으로 연결된 시각
-  createdAt    DateTime           @default(now()) // 고아 이미지 유예 시간 계산 기준
-  updatedAt    DateTime           @updatedAt // 상태 변경 및 운영 추적 시각
-
-  uploadedBy User  @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
-  post       Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
-
-  @@index([status, createdAt])
-  @@index([postId])
+  @@unique([bucket, objectKey])
   @@index([uploadedById, createdAt])
+  @@index([createdAt])
+}
+
+model PostAsset {
+  id        String        @id @default(cuid()) // 게시글 파일 사용처 고유 식별자
+  postId    String // 파일을 사용하는 게시글
+  assetId   String // 물리 파일 자산
+  role      PostAssetRole // 본문·대표·첨부 역할
+  sortOrder Int           @default(0) // 같은 역할 내 노출 순서
+  createdAt DateTime      @default(now()) // 게시글 연결 시각
+
+  post  Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  asset FileAsset @relation(fields: [assetId], references: [id], onDelete: Restrict)
+
+  @@unique([postId, assetId, role])
+  @@index([postId, role, sortOrder])
+  @@index([assetId])
 }
 
 model Event {

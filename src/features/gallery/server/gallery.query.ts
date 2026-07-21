@@ -1,13 +1,7 @@
 import { prisma } from "@/lib/prisma"
 
 type PostImageRecord = {
-  fileName: string
-  originalName: string
-  mimeType: string
-  sizeBytes: number
   url: string
-  isCover: boolean
-  sortOrder: number
 }
 
 export async function findGalleryPageRows(params: {
@@ -35,14 +29,11 @@ export async function findGalleryPageRows(params: {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { url: true },
+        select: { asset: { select: { url: true } } },
       },
     },
   })
@@ -58,14 +49,14 @@ export async function findGalleryDetailById(id: string) {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, originalName: true, url: true },
+        select: {
+          id: true,
+          asset: { select: { originalName: true, url: true } },
+        },
       },
     },
   })
@@ -76,14 +67,11 @@ export async function findGalleryTargetById(id: string) {
     where: { id, category: "GALLERY" },
     select: {
       id: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, url: true },
+        select: { id: true, asset: { select: { url: true } } },
       },
     },
   })
@@ -108,7 +96,12 @@ export async function createGalleryRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
-      postImages: { create: params.imageRecord },
+      fileUsages: {
+        create: {
+          role: "COVER",
+          asset: { connect: { url: params.imageRecord.url } },
+        },
+      },
     },
     select: { id: true },
   })
@@ -131,20 +124,28 @@ export async function replaceGalleryRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       ...(params.replaceImage
-        ? { postImages: { create: params.replaceImage } }
+        ? {
+            fileUsages: {
+              create: {
+                role: "COVER",
+                asset: { connect: { url: params.replaceImage.url } },
+              },
+            },
+          }
         : {}),
     },
   })
 }
 
-export async function deletePostImageById(id: string) {
-  return prisma.postImage.delete({ where: { id } })
-}
-
 export async function findGalleryDeleteTargetById(id: string) {
   return prisma.post.findFirst({
     where: { id, category: "GALLERY" },
-    select: { id: true, postImages: { select: { url: true } } },
+    select: {
+      id: true,
+      fileUsages: {
+        select: { asset: { select: { url: true } } },
+      },
+    },
   })
 }
 
@@ -196,14 +197,11 @@ export async function findPublishedGalleryPageByOffset(params: {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { url: true },
+        select: { asset: { select: { url: true } } },
       },
     },
   })
@@ -223,14 +221,14 @@ export async function findPublishedGalleryById(id: string) {
       isPublished: true,
       createdAt: true,
       youtubeUrl: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, originalName: true, url: true },
+        select: {
+          id: true,
+          asset: { select: { originalName: true, url: true } },
+        },
       },
     },
   })

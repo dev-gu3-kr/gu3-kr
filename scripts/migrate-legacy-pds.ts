@@ -50,7 +50,8 @@ type UploadedImage = {
   sourceUrl: string
   publicUrl: string
   alt: string
-  fileName: string
+  bucket: string
+  objectKey: string
   originalName: string
   mimeType: string
   sizeBytes: number
@@ -420,7 +421,8 @@ async function uploadLegacyImage(params: {
     sourceUrl: params.sourceUrl,
     publicUrl: minioPublicUrl(key),
     alt: params.alt,
-    fileName: key.split("/").at(-1) || `${randomUUID()}.${extension}`,
+    bucket,
+    objectKey: key,
     originalName:
       decodeURIComponent(
         new URL(params.sourceUrl).pathname.split("/").at(-1) || "",
@@ -601,16 +603,23 @@ async function migrateDetail(detail: LegacyDetail, authorId: string) {
         TARGET_CATEGORY === "LEGACY_BOARD") &&
       images.length > 0
         ? {
-            postImages: {
+            fileUsages: {
               create: images.map((image, index) => ({
-                fileName: image.fileName,
-                originalName: image.originalName,
-                mimeType: image.mimeType,
-                sizeBytes: image.sizeBytes,
-                url: image.publicUrl,
+                role: index === 0 ? "COVER" : "CONTENT",
                 sortOrder: index,
-                isCover: index === 0,
                 createdAt: detail.createdAt,
+                asset: {
+                  create: {
+                    bucket: image.bucket,
+                    objectKey: image.objectKey,
+                    originalName: image.originalName,
+                    mimeType: image.mimeType,
+                    sizeBytes: image.sizeBytes,
+                    url: image.publicUrl,
+                    uploadedById: authorId,
+                    createdAt: detail.createdAt,
+                  },
+                },
               })),
             },
           }

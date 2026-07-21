@@ -4,7 +4,6 @@ import {
   countPublishedGalleries,
   createGalleryRecord,
   deleteGalleryById,
-  deletePostImageById,
   findGalleryDeleteTargetById,
   findGalleryDetailById,
   findGalleryPageRows,
@@ -16,13 +15,7 @@ import {
 } from "./gallery.query"
 
 type PostImageRecord = {
-  fileName: string
-  originalName: string
-  mimeType: string
-  sizeBytes: number
   url: string
-  isCover: boolean
-  sortOrder: number
 }
 
 type GalleryListRow = {
@@ -31,7 +24,7 @@ type GalleryListRow = {
   isPublished: boolean
   createdAt: Date
   youtubeUrl: string | null
-  postImages: Array<{ url: string }>
+  fileUsages: Array<{ asset: { url: string } }>
 }
 
 type GalleryDetailRow = {
@@ -41,7 +34,10 @@ type GalleryDetailRow = {
   isPublished: boolean
   createdAt: Date
   youtubeUrl: string | null
-  postImages: Array<{ id: string; originalName: string; url: string }>
+  fileUsages: Array<{
+    id: string
+    asset: { originalName: string; url: string }
+  }>
 }
 
 function mapGalleryListItem<T extends GalleryListRow>(item: T) {
@@ -50,7 +46,7 @@ function mapGalleryListItem<T extends GalleryListRow>(item: T) {
     title: item.title,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
-    thumbnailUrl: item.postImages[0]?.url ?? null,
+    thumbnailUrl: item.fileUsages[0]?.asset.url ?? null,
     hasYoutube: Boolean(item.youtubeUrl),
   }
 }
@@ -62,7 +58,11 @@ function mapGalleryDetail<T extends GalleryDetailRow>(item: T) {
     content: item.content,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
-    galleryImages: item.postImages,
+    galleryImages: item.fileUsages.map((usage) => ({
+      id: usage.id,
+      originalName: usage.asset.originalName,
+      url: usage.asset.url,
+    })),
     youtubeUrl: item.youtubeUrl ?? null,
     hasYoutube: Boolean(item.youtubeUrl),
   }
@@ -125,10 +125,7 @@ export async function updateGallery(input: {
   const target = await findGalleryTargetById(input.id)
   if (!target) return null
 
-  const old = target.postImages[0]
-  if (input.replaceImage && old) {
-    await deletePostImageById(old.id)
-  }
+  const old = target.fileUsages[0]
 
   const normalizedContent = input.content.trim()
 
@@ -142,7 +139,7 @@ export async function updateGallery(input: {
   })
 
   return {
-    oldImageUrl: input.replaceImage ? (old?.url ?? null) : null,
+    oldImageUrl: input.replaceImage ? (old?.asset.url ?? null) : null,
   }
 }
 
@@ -153,7 +150,7 @@ export async function removeGallery(id: string) {
   await deleteGalleryById(id)
 
   return {
-    imageUrls: target.postImages.map((image) => image.url),
+    imageUrls: target.fileUsages.map((usage) => usage.asset.url),
   }
 }
 

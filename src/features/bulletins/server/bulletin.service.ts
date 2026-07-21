@@ -16,11 +16,13 @@ import {
 } from "./bulletin.query"
 
 type AttachmentRecord = {
-  fileName: string
+  bucket: string
+  objectKey: string
   originalName: string
   mimeType: string
   sizeBytes: number
   url: string
+  uploadedById: string
 }
 
 type BulletinPublicRow = {
@@ -28,12 +30,17 @@ type BulletinPublicRow = {
   title: string
   createdAt: Date
   author?: { displayName: string } | null
-  attachments: Array<{ originalName: string; url: string }>
+  fileUsages: Array<{
+    asset: { originalName: string; url: string }
+  }>
 }
 
 function mapBulletinPublicItem<T extends BulletinPublicRow>(item: T) {
+  const { fileUsages, ...rest } = item
+
   return {
-    ...item,
+    ...rest,
+    attachments: fileUsages.map((usage) => usage.asset),
     authorName: item.author?.displayName ?? "관리자",
   }
 }
@@ -59,7 +66,17 @@ export async function getBulletinPage(params: {
 }
 
 export async function getBulletinById(id: string) {
-  return findBulletinById(id)
+  const item = await findBulletinById(id)
+  if (!item) return null
+
+  const { fileUsages, ...rest } = item
+  return {
+    ...rest,
+    attachments: fileUsages.map((usage) => ({
+      id: usage.id,
+      ...usage.asset,
+    })),
+  }
 }
 
 export async function getBulletinCount(params: {
@@ -142,7 +159,7 @@ export async function updateBulletin(input: {
   const target = await findBulletinTargetById(input.id)
   if (!target) return null
 
-  const oldAttachment = target.attachments[0]
+  const oldAttachment = target.fileUsages[0]
   if (input.newAttachment && oldAttachment) {
     await deleteAttachmentById(oldAttachment.id)
   }
@@ -161,7 +178,12 @@ export async function updateBulletin(input: {
   })
 
   return {
-    oldAttachmentUrl: input.newAttachment ? (oldAttachment?.url ?? null) : null,
+    oldAttachmentUrl: input.newAttachment
+      ? (oldAttachment?.asset.url ?? null)
+      : null,
+    oldAttachmentAssetId: input.newAttachment
+      ? (oldAttachment?.asset.id ?? null)
+      : null,
   }
 }
 
@@ -172,6 +194,7 @@ export async function removeBulletin(id: string) {
   await deleteBulletinById(id)
 
   return {
-    attachmentUrls: target.attachments.map((attachment) => attachment.url),
+    attachmentUrls: target.fileUsages.map((usage) => usage.asset.url),
+    attachmentAssetIds: target.fileUsages.map((usage) => usage.asset.id),
   }
 }

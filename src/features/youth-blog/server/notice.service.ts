@@ -2,7 +2,6 @@ import { extractFirstYoutubeUrl } from "@/lib/youtube"
 import {
   countPublishedYouthBlogs,
   createYouthBlogRecord,
-  deletePostImageById,
   deleteYouthBlogById,
   findPublishedYouthBlogById,
   findPublishedYouthBlogNavigationList,
@@ -15,13 +14,7 @@ import {
 } from "./notice.query"
 
 type PostImageRecord = {
-  fileName: string
-  originalName: string
-  mimeType: string
-  sizeBytes: number
   url: string
-  isCover: boolean
-  sortOrder: number
 }
 
 type YouthBlogListRow = {
@@ -30,7 +23,7 @@ type YouthBlogListRow = {
   content: string
   isPublished: boolean
   createdAt: Date
-  postImages: Array<{ url: string }>
+  fileUsages: Array<{ asset: { url: string } }>
 }
 
 type YouthBlogDetailRow = {
@@ -39,14 +32,17 @@ type YouthBlogDetailRow = {
   content: string
   isPublished: boolean
   createdAt: Date
-  postImages: Array<{ id: string; originalName: string; url: string }>
+  fileUsages: Array<{
+    id: string
+    asset: { originalName: string; url: string }
+  }>
 }
 
 function mapYouthBlogListItem<T extends YouthBlogListRow>(item: T) {
   return {
     id: item.id,
     title: item.title,
-    thumbnailUrl: item.postImages[0]?.url ?? null,
+    thumbnailUrl: item.fileUsages[0]?.asset.url ?? null,
     content: item.content,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
@@ -57,7 +53,7 @@ function mapYouthBlogDetail<T extends YouthBlogDetailRow>(item: T) {
   return {
     id: item.id,
     title: item.title,
-    thumbnailUrl: item.postImages[0]?.url ?? null,
+    thumbnailUrl: item.fileUsages[0]?.asset.url ?? null,
     content: item.content,
     isPublished: item.isPublished,
     createdAt: item.createdAt,
@@ -136,10 +132,7 @@ export async function updateYouthBlog(input: {
   const target = await findYouthBlogTargetById(input.id)
   if (!target) return null
 
-  const old = target.postImages[0]
-  if (input.replaceImage && old) {
-    await deletePostImageById(old.id)
-  }
+  const old = target.fileUsages[0]
 
   const normalizedContent = input.content.trim()
   const youtubeUrl = extractFirstYoutubeUrl(normalizedContent)
@@ -154,7 +147,7 @@ export async function updateYouthBlog(input: {
   })
 
   return {
-    oldImageUrl: input.replaceImage ? (old?.url ?? null) : null,
+    oldImageUrl: input.replaceImage ? (old?.asset.url ?? null) : null,
   }
 }
 
@@ -165,7 +158,7 @@ export async function removeYouthBlogById(id: string) {
   await deleteYouthBlogById(id)
 
   return {
-    imageUrls: target.postImages.map((image) => image.url),
+    imageUrls: target.fileUsages.map((usage) => usage.asset.url),
   }
 }
 

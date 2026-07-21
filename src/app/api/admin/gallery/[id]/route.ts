@@ -6,7 +6,6 @@ import { galleryService } from "@/features/gallery/server"
 import { assertAdminSession } from "@/lib/admin/session"
 import {
   createMinioPublicObjectUrl,
-  extractMinioObjectKey,
   getMinioS3Client,
 } from "@/lib/admin/storage"
 import {
@@ -27,7 +26,7 @@ function toImageRecordFromUrl(url: string) {
   }
 }
 
-async function uploadThumbnailFile(thumbnail: File) {
+async function uploadThumbnailFile(thumbnail: File, uploadedById: string) {
   if (thumbnail.size > CONTENT_IMAGE_UPLOAD_MAX_BYTES) {
     throw new Error("파일 용량은 20MB 이하여야 합니다.")
   }
@@ -55,6 +54,20 @@ async function uploadThumbnailFile(thumbnail: File) {
       ContentType: converted.contentType,
     }),
   )
+
+  try {
+    await contentImageService.registerPendingUpload({
+      objectKey: key,
+      url: fileUrl,
+      originalName: thumbnail.name,
+      mimeType: converted.contentType,
+      sizeBytes: converted.body.byteLength,
+      uploadedById,
+    })
+  } catch (error) {
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
+    throw error
+  }
 
   return {
     fileName: key.split("/").pop() || thumbnail.name,
@@ -142,7 +155,7 @@ export async function PATCH(
     replaceImage = toImageRecordFromUrl(thumbnailUrl)
   } else if (thumbnail instanceof File && thumbnail.size > 0) {
     try {
-      replaceImage = await uploadThumbnailFile(thumbnail)
+      replaceImage = await uploadThumbnailFile(thumbnail, author.id)
     } catch (error) {
       return NextResponse.json(
         {
@@ -179,19 +192,6 @@ export async function PATCH(
     uploadedById: author.id,
   })
 
-  if (updated.oldImageUrl) {
-    const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-    if (bucket) {
-      const client = getMinioS3Client()
-      await client.send(
-        new DeleteObjectCommand({
-          Bucket: bucket,
-          Key: extractMinioObjectKey(updated.oldImageUrl, bucket),
-        }),
-      )
-    }
-  }
-
   return NextResponse.json({ ok: true })
 }
 
@@ -219,21 +219,6 @@ export async function DELETE(
   }
 
   await contentImageService.cleanupPreparedDeletion(contentImageIds)
-
-  const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-  if (bucket && removed.imageUrls.length > 0) {
-    const client = getMinioS3Client()
-    await Promise.all(
-      removed.imageUrls.map((url: string) =>
-        client.send(
-          new DeleteObjectCommand({
-            Bucket: bucket,
-            Key: extractMinioObjectKey(url, bucket),
-          }),
-        ),
-      ),
-    )
-  }
 
   return NextResponse.json({ ok: true })
 }

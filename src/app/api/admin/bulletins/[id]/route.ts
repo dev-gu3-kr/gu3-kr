@@ -1,12 +1,12 @@
 import { randomUUID } from "node:crypto"
-import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import { PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { createBulletinSchema } from "@/features/bulletins/isomorphic"
 import { bulletinService } from "@/features/bulletins/server"
+import { contentImageService } from "@/features/content-images/server"
 import { assertAdminSession } from "@/lib/admin/session"
 import {
   createMinioPublicObjectUrl,
-  extractMinioObjectKey,
   getMinioS3Client,
 } from "@/lib/admin/storage"
 import { BULLETIN_UPLOAD_MAX_BYTES } from "@/lib/admin/upload"
@@ -71,11 +71,13 @@ export async function PATCH(
 
   let newAttachment:
     | {
-        fileName: string
+        bucket: string
+        objectKey: string
         originalName: string
         mimeType: string
         sizeBytes: number
         url: string
+        uploadedById: string
       }
     | undefined
 
@@ -121,11 +123,13 @@ export async function PATCH(
     )
 
     newAttachment = {
-      fileName: key.split("/").pop() || file.name,
+      bucket,
+      objectKey: key,
       originalName: file.name,
       mimeType: file.type || "application/octet-stream",
       sizeBytes: file.size,
       url: fileUrl,
+      uploadedById: author.id,
     }
   }
 
@@ -144,17 +148,10 @@ export async function PATCH(
     )
   }
 
-  if (updated.oldAttachmentUrl) {
-    const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-    if (bucket) {
-      const client = getMinioS3Client()
-      await client.send(
-        new DeleteObjectCommand({
-          Bucket: bucket,
-          Key: extractMinioObjectKey(updated.oldAttachmentUrl, bucket),
-        }),
-      )
-    }
+  if (updated.oldAttachmentAssetId) {
+    await contentImageService.deletePendingImageById(
+      updated.oldAttachmentAssetId,
+    )
   }
 
   return NextResponse.json({ ok: true })
@@ -173,6 +170,7 @@ export async function DELETE(
   }
 
   const { id } = await context.params
+  const fileAssetIds = await contentImageService.preparePostDeletion(id)
   const removed = await bulletinService.removeBulletin(id)
 
   if (!removed) {
@@ -182,20 +180,7 @@ export async function DELETE(
     )
   }
 
-  const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-  if (bucket && removed.attachmentUrls.length > 0) {
-    const client = getMinioS3Client()
-    await Promise.all(
-      removed.attachmentUrls.map((url) =>
-        client.send(
-          new DeleteObjectCommand({
-            Bucket: bucket,
-            Key: extractMinioObjectKey(url, bucket),
-          }),
-        ),
-      ),
-    )
-  }
+  await contentImageService.cleanupPreparedDeletion(fileAssetIds)
 
   return NextResponse.json({ ok: true })
 }

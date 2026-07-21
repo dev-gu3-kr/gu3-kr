@@ -2,13 +2,7 @@ import { prisma } from "@/lib/prisma"
 import type { IntroPostCategory } from "../isomorphic/intro-posts.types"
 
 type PostImageRecord = {
-  fileName: string
-  originalName: string
-  mimeType: string
-  sizeBytes: number
   url: string
-  isCover: boolean
-  sortOrder: number
 }
 
 export async function createIntroPostRecord(params: {
@@ -33,7 +27,12 @@ export async function createIntroPostRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
-      postImages: { create: params.imageRecord },
+      fileUsages: {
+        create: {
+          role: "COVER",
+          asset: { connect: { url: params.imageRecord.url } },
+        },
+      },
     },
     select: { id: true },
   })
@@ -58,14 +57,11 @@ export async function findIntroPosts(params: {
       sortOrder: true,
       isPublished: true,
       createdAt: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { url: true },
+        select: { asset: { select: { url: true } } },
       },
     },
   })
@@ -87,14 +83,11 @@ export async function findIntroPostById(params: {
       sortOrder: true,
       isPublished: true,
       createdAt: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, url: true },
+        select: { id: true, asset: { select: { id: true, url: true } } },
       },
     },
   })
@@ -111,14 +104,11 @@ export async function findIntroPostTargetById(params: {
     },
     select: {
       id: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, url: true },
+        select: { id: true, asset: { select: { id: true, url: true } } },
       },
     },
   })
@@ -143,14 +133,21 @@ export async function replaceIntroPostRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       ...(params.replaceImage
-        ? { postImages: { create: params.replaceImage } }
+        ? {
+            fileUsages: {
+              create: {
+                role: "COVER",
+                asset: { connect: { url: params.replaceImage.url } },
+              },
+            },
+          }
         : {}),
     },
   })
 }
 
-export async function deletePostImageById(id: string) {
-  return prisma.postImage.delete({ where: { id } })
+export async function deletePostAssetById(id: string) {
+  return prisma.postAsset.delete({ where: { id } })
 }
 
 export async function findIntroPostDeleteTargetById(params: {
@@ -164,7 +161,9 @@ export async function findIntroPostDeleteTargetById(params: {
     },
     select: {
       id: true,
-      postImages: { select: { url: true } },
+      fileUsages: {
+        select: { asset: { select: { url: true } } },
+      },
     },
   })
 }

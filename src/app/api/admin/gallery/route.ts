@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto"
-import { PutObjectCommand } from "@aws-sdk/client-s3"
+import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { contentImageService } from "@/features/content-images/server"
 import { galleryService } from "@/features/gallery/server"
@@ -26,7 +26,7 @@ function toImageRecordFromUrl(url: string) {
   }
 }
 
-async function uploadThumbnailFile(thumbnail: File) {
+async function uploadThumbnailFile(thumbnail: File, uploadedById: string) {
   if (thumbnail.size > CONTENT_IMAGE_UPLOAD_MAX_BYTES) {
     throw new Error("파일 용량은 20MB 이하여야 합니다.")
   }
@@ -54,6 +54,20 @@ async function uploadThumbnailFile(thumbnail: File) {
       ContentType: converted.contentType,
     }),
   )
+
+  try {
+    await contentImageService.registerPendingUpload({
+      objectKey: key,
+      url: fileUrl,
+      originalName: thumbnail.name,
+      mimeType: converted.contentType,
+      sizeBytes: converted.body.byteLength,
+      uploadedById,
+    })
+  } catch (error) {
+    await client.send(new DeleteObjectCommand({ Bucket: bucket, Key: key }))
+    throw error
+  }
 
   return {
     fileName: key.split("/").pop() || thumbnail.name,
@@ -123,7 +137,7 @@ export async function POST(request: Request) {
     imageRecord = toImageRecordFromUrl(thumbnailUrl)
   } else if (thumbnail instanceof File) {
     try {
-      imageRecord = await uploadThumbnailFile(thumbnail)
+      imageRecord = await uploadThumbnailFile(thumbnail, author.id)
     } catch (error) {
       return NextResponse.json(
         {

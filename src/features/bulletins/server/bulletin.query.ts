@@ -1,11 +1,13 @@
 import { prisma } from "@/lib/prisma"
 
 type AttachmentRecord = {
-  fileName: string
+  bucket: string
+  objectKey: string
   originalName: string
   mimeType: string
   sizeBytes: number
   url: string
+  uploadedById: string
 }
 
 export async function findBulletinPageRows(params: {
@@ -32,10 +34,11 @@ export async function findBulletinPageRows(params: {
       title: true,
       isPublished: true,
       createdAt: true,
-      attachments: {
+      fileUsages: {
+        where: { role: "ATTACHMENT" },
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { url: true, originalName: true },
+        select: { asset: { select: { url: true, originalName: true } } },
       },
     },
   })
@@ -92,10 +95,11 @@ export async function findBulletinPageByOffset(params: {
       title: true,
       createdAt: true,
       author: { select: { displayName: true } },
-      attachments: {
+      fileUsages: {
+        where: { role: "ATTACHMENT" },
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { originalName: true, url: true },
+        select: { asset: { select: { originalName: true, url: true } } },
       },
     },
   })
@@ -110,10 +114,14 @@ export async function findBulletinById(id: string) {
       content: true,
       isPublished: true,
       createdAt: true,
-      attachments: {
+      fileUsages: {
+        where: { role: "ATTACHMENT" },
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { id: true, originalName: true, url: true },
+        select: {
+          id: true,
+          asset: { select: { originalName: true, url: true } },
+        },
       },
     },
   })
@@ -132,10 +140,11 @@ export async function findPublishedBulletinById(id: string) {
       content: true,
       createdAt: true,
       author: { select: { displayName: true } },
-      attachments: {
+      fileUsages: {
+        where: { role: "ATTACHMENT" },
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { originalName: true, url: true },
+        select: { asset: { select: { originalName: true, url: true } } },
       },
     },
   })
@@ -160,10 +169,11 @@ export async function findBulletinTargetById(id: string) {
     where: { id, category: "BULLETIN" },
     select: {
       id: true,
-      attachments: {
+      fileUsages: {
+        where: { role: "ATTACHMENT" },
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { id: true, url: true },
+        select: { id: true, asset: { select: { id: true, url: true } } },
       },
     },
   })
@@ -188,7 +198,22 @@ export async function createBulletinRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
-      attachments: { create: params.attachment },
+      fileUsages: {
+        create: {
+          role: "ATTACHMENT",
+          asset: {
+            create: {
+              bucket: params.attachment.bucket,
+              objectKey: params.attachment.objectKey,
+              originalName: params.attachment.originalName,
+              mimeType: params.attachment.mimeType,
+              sizeBytes: params.attachment.sizeBytes,
+              url: params.attachment.url,
+              uploadedById: params.attachment.uploadedById,
+            },
+          },
+        },
+      },
     },
     select: { id: true },
   })
@@ -213,20 +238,43 @@ export async function updateBulletinRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       ...(params.newAttachment
-        ? { attachments: { create: params.newAttachment } }
+        ? {
+            fileUsages: {
+              create: {
+                role: "ATTACHMENT",
+                asset: {
+                  create: {
+                    bucket: params.newAttachment.bucket,
+                    objectKey: params.newAttachment.objectKey,
+                    originalName: params.newAttachment.originalName,
+                    mimeType: params.newAttachment.mimeType,
+                    sizeBytes: params.newAttachment.sizeBytes,
+                    url: params.newAttachment.url,
+                    uploadedById: params.newAttachment.uploadedById,
+                  },
+                },
+              },
+            },
+          }
         : {}),
     },
   })
 }
 
 export async function deleteAttachmentById(id: string) {
-  return prisma.attachment.delete({ where: { id } })
+  return prisma.postAsset.delete({ where: { id } })
 }
 
 export async function findBulletinDeleteTargetById(id: string) {
   return prisma.post.findFirst({
     where: { id, category: "BULLETIN" },
-    select: { id: true, attachments: { select: { id: true, url: true } } },
+    select: {
+      id: true,
+      fileUsages: {
+        where: { role: "ATTACHMENT" },
+        select: { id: true, asset: { select: { id: true, url: true } } },
+      },
+    },
   })
 }
 

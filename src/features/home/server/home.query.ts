@@ -20,14 +20,11 @@ export async function findPublishedGalleriesForHome(take: number) {
       content: true,
       createdAt: true,
       youtubeUrl: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { url: true },
+        select: { asset: { select: { url: true } } },
       },
     },
   })

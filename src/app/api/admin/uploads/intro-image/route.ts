@@ -147,18 +147,10 @@ export async function DELETE(request: Request) {
     )
   }
 
-  const client = getMinioS3Client()
-  await client.send(
-    new DeleteObjectCommand({
-      Bucket: bucket,
-      Key: objectKey,
-    }),
-  )
-
-  await contentImageService.forgetTrackedImage({
+  const deleted = await contentImageService.deleteUnusedImageByReference({
     url: body?.url,
     objectKey,
   })
 
-  return NextResponse.json({ ok: true })
+  return NextResponse.json({ ok: true, deleted })
 }

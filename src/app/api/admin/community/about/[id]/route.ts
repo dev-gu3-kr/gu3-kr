@@ -1,4 +1,3 @@
-import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
 import { contentImageService } from "@/features/content-images/server"
 import {
@@ -8,7 +7,6 @@ import {
 } from "@/features/intro-posts/isomorphic"
 import { introPostsService } from "@/features/intro-posts/server"
 import { assertAdminSession } from "@/lib/admin/session"
-import { extractMinioObjectKey, getMinioS3Client } from "@/lib/admin/storage"
 
 const SECTION = "community" as const
 
@@ -129,20 +127,6 @@ export async function PATCH(
     uploadedById: author.id,
   })
 
-  if (updated.oldImageUrl) {
-    const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-
-    if (bucket) {
-      const client = getMinioS3Client()
-      await client.send(
-        new DeleteObjectCommand({
-          Bucket: bucket,
-          Key: extractMinioObjectKey(updated.oldImageUrl, bucket),
-        }),
-      )
-    }
-  }
-
   return NextResponse.json({ ok: true })
 }
 
@@ -171,22 +155,6 @@ export async function DELETE(
   }
 
   await contentImageService.cleanupPreparedDeletion(contentImageIds)
-
-  const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
-
-  if (bucket && removed.imageUrls.length > 0) {
-    const client = getMinioS3Client()
-    await Promise.all(
-      removed.imageUrls.map((url) =>
-        client.send(
-          new DeleteObjectCommand({
-            Bucket: bucket,
-            Key: extractMinioObjectKey(url, bucket),
-          }),
-        ),
-      ),
-    )
-  }
 
   return NextResponse.json({ ok: true })
 }

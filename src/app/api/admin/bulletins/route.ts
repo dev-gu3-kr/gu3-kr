@@ -119,11 +119,13 @@ export async function POST(request: Request) {
     isPublished: parsed.data.isPublished ?? true,
     authorId: author.id,
     attachment: {
-      fileName: key.split("/").pop() || file.name,
+      bucket,
+      objectKey: key,
       originalName: file.name,
       mimeType: file.type || "application/octet-stream",
       sizeBytes: file.size,
       url: fileUrl,
+      uploadedById: author.id,
     },
   })
 

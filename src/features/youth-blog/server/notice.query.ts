@@ -1,13 +1,7 @@
 import { prisma } from "@/lib/prisma"
 
 type PostImageRecord = {
-  fileName: string
-  originalName: string
-  mimeType: string
-  sizeBytes: number
   url: string
-  isCover: boolean
-  sortOrder: number
 }
 
 export async function createYouthBlogRecord(params: {
@@ -30,7 +24,12 @@ export async function createYouthBlogRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       authorId: params.authorId,
-      postImages: { create: params.imageRecord },
+      fileUsages: {
+        create: {
+          role: "COVER",
+          asset: { connect: { url: params.imageRecord.url } },
+        },
+      },
     },
     select: { id: true },
   })
@@ -74,14 +73,11 @@ export async function findYouthBlogPage(params: {
       content: true,
       isPublished: true,
       createdAt: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { url: true },
+        select: { asset: { select: { url: true } } },
       },
     },
   })
@@ -100,14 +96,14 @@ export async function findYouthBlogById(id: string) {
       content: true,
       isPublished: true,
       createdAt: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, originalName: true, url: true },
+        select: {
+          id: true,
+          asset: { select: { originalName: true, url: true } },
+        },
       },
     },
   })
@@ -118,14 +114,11 @@ export async function findYouthBlogTargetById(id: string) {
     where: { id, category: "YOUTH_BLOG" },
     select: {
       id: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, url: true },
+        select: { id: true, asset: { select: { url: true } } },
       },
     },
   })
@@ -148,20 +141,28 @@ export async function replaceYouthBlogRecord(params: {
       isPublished: params.isPublished,
       publishedAt: params.isPublished ? new Date() : null,
       ...(params.replaceImage
-        ? { postImages: { create: params.replaceImage } }
+        ? {
+            fileUsages: {
+              create: {
+                role: "COVER",
+                asset: { connect: { url: params.replaceImage.url } },
+              },
+            },
+          }
         : {}),
     },
   })
 }
 
-export async function deletePostImageById(id: string) {
-  return prisma.postImage.delete({ where: { id } })
-}
-
 export async function findYouthBlogDeleteTargetById(id: string) {
   return prisma.post.findFirst({
     where: { id, category: "YOUTH_BLOG" },
-    select: { id: true, postImages: { select: { url: true } } },
+    select: {
+      id: true,
+      fileUsages: {
+        select: { asset: { select: { url: true } } },
+      },
+    },
   })
 }
 
@@ -216,14 +217,11 @@ export async function findPublishedYouthBlogPageByOffset(params: {
       content: true,
       isPublished: true,
       createdAt: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { url: true },
+        select: { asset: { select: { url: true } } },
       },
     },
   })
@@ -242,14 +240,14 @@ export async function findPublishedYouthBlogById(id: string) {
       content: true,
       isPublished: true,
       createdAt: true,
-      postImages: {
-        orderBy: [
-          { isCover: "desc" },
-          { sortOrder: "asc" },
-          { createdAt: "asc" },
-        ],
+      fileUsages: {
+        where: { role: "COVER" },
+        orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
         take: 1,
-        select: { id: true, originalName: true, url: true },
+        select: {
+          id: true,
+          asset: { select: { originalName: true, url: true } },
+        },
       },
     },
   })
