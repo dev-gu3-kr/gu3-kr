@@ -8,6 +8,10 @@ import {
   getMinioS3Client,
   resolveMinioObjectKey,
 } from "@/lib/admin/storage"
+import {
+  CLERGY_IMAGE_UPLOAD_MAX_BYTES,
+  convertImageToWebp,
+} from "@/lib/admin/upload"
 
 // 쿠키 헤더에서 관리자 세션 식별자를 추출한다.
 
@@ -42,9 +46,9 @@ export async function POST(request: Request) {
     )
   }
 
-  if (file.size > 5 * 1024 * 1024) {
+  if (file.size > CLERGY_IMAGE_UPLOAD_MAX_BYTES) {
     return NextResponse.json(
-      { ok: false, message: "파일 용량은 5MB 이하여야 합니다." },
+      { ok: false, message: "파일 용량은 10MB 이하여야 합니다." },
       { status: 400 },
     )
   }
@@ -57,9 +61,23 @@ export async function POST(request: Request) {
     )
   }
 
-  const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin"
-  const key = `data/clergy/${Date.now()}-${randomUUID()}.${ext}`
-  const body = Buffer.from(await file.arrayBuffer())
+  let converted: Awaited<ReturnType<typeof convertImageToWebp>>
+  try {
+    converted = await convertImageToWebp(file)
+  } catch (error) {
+    return NextResponse.json(
+      {
+        ok: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "이미지 변환에 실패했습니다.",
+      },
+      { status: 400 },
+    )
+  }
+
+  const key = `data/clergy/${Date.now()}-${randomUUID()}.${converted.extension}`
   const url = createMinioPublicObjectUrl(bucket, key)
 
   const client = getMinioS3Client()
@@ -67,8 +85,8 @@ export async function POST(request: Request) {
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: body,
-      ContentType: file.type,
+      Body: converted.body,
+      ContentType: converted.contentType,
     }),
   )
 

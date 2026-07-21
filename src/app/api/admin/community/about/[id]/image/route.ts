@@ -1,5 +1,6 @@
 import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
+import { contentImageService } from "@/features/content-images/server"
 import { introPostsService } from "@/features/intro-posts/server"
 import { assertAdminSession } from "@/lib/admin/session"
 import { extractMinioObjectKey, getMinioS3Client } from "@/lib/admin/storage"
@@ -41,6 +42,8 @@ export async function DELETE(
         }),
       )
     }
+
+    await contentImageService.forgetTrackedImage({ url: removed.oldImageUrl })
   }
 
   return NextResponse.json({ ok: true })

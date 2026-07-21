@@ -88,7 +88,7 @@ export function BulletinWriteFormView({
         />
 
         <p className="text-xs text-neutral-500">
-          지원 형식: pdf, doc, docx, hwp, hwpx (최대 20MB)
+          지원 형식: pdf, doc, docx, hwp, hwpx (최대 40MB)
         </p>
 
         {!requireFile && currentFileName && currentFileUrl ? (

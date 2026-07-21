@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { authService } from "@/features/auth/server"
+import { contentImageService } from "@/features/content-images/server"
 import type {
   ApiResponseDto,
   NoticePageDto,
@@ -93,6 +94,12 @@ export async function POST(request: Request) {
   const created = await noticeService.createNotice({
     ...parsed.data,
     authorId,
+  })
+
+  await contentImageService.reconcilePostImages({
+    postId: created.id,
+    content: parsed.data.content,
+    uploadedById: authorId,
   })
 
   return NextResponse.json({ ok: true, id: created.id })

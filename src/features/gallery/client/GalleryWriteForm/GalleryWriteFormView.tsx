@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
+import { ContentEditor } from "@/components/ContentEditor"
 import { ImageCropUploadField } from "@/components/ImageCropUploadField"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -13,28 +13,6 @@ type GalleryWriteFormValues = {
   isPublished: boolean
   thumbnailUrl: string
 }
-
-type ToastEditorLike = {
-  getMarkdown: () => string
-  on: (event: "change", handler: () => void) => void
-}
-
-type ToastEditorConstructor = new (options: {
-  el: HTMLElement
-  height: string
-  minHeight?: string
-  initialValue: string
-  initialEditType: "wysiwyg" | "markdown"
-  previewStyle: "vertical" | "tab"
-  hideModeSwitch: boolean
-  usageStatistics: boolean
-  hooks?: {
-    addImageBlobHook?: (
-      blob: Blob | File,
-      callback: (url: string, altText?: string) => void,
-    ) => Promise<void>
-  }
-}) => ToastEditorLike
 
 type GalleryWriteFormViewProps = {
   onSubmitAction: (values: GalleryWriteFormValues) => Promise<void>
@@ -85,101 +63,6 @@ export function GalleryWriteFormView({
 
   const content = watch("content")
   const thumbnailUrl = watch("thumbnailUrl")
-  const mountRef = useRef<HTMLDivElement | null>(null)
-  const editorRef = useRef<ToastEditorLike | null>(null)
-  const isUploadingImageRef = useRef(false)
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
-  const [imageUploadProgress, setImageUploadProgress] = useState(0)
-
-  useEffect(() => {
-    if (!isUploadingImage) {
-      setImageUploadProgress(0)
-      return
-    }
-
-    setImageUploadProgress(8)
-    const timer = window.setInterval(() => {
-      setImageUploadProgress((prev) =>
-        prev >= 90 ? prev : prev + Math.max(2, Math.round((90 - prev) * 0.14)),
-      )
-    }, 140)
-
-    return () => window.clearInterval(timer)
-  }, [isUploadingImage])
-
-  useEffect(() => {
-    let disposed = false
-
-    void import("@toast-ui/editor").then((module) => {
-      if (disposed || !mountRef.current || editorRef.current) return
-
-      const Editor = module.default as ToastEditorConstructor
-      const editorViewportHeight = window.innerWidth < 640 ? "320px" : "520px"
-
-      const editor = new Editor({
-        el: mountRef.current,
-        height: editorViewportHeight,
-        minHeight: editorViewportHeight,
-        initialValue: initialContent ?? "",
-        initialEditType: "wysiwyg",
-        previewStyle: "vertical",
-        hideModeSwitch: false,
-        usageStatistics: false,
-        hooks: {
-          addImageBlobHook: async (blob, callback) => {
-            if (isUploadingImageRef.current) return
-
-            isUploadingImageRef.current = true
-            setIsUploadingImage(true)
-            setImageUploadProgress(10)
-
-            try {
-              const file =
-                blob instanceof File
-                  ? blob
-                  : new File([blob], "gallery-content-image.png", {
-                      type: blob.type || "image/png",
-                    })
-              const imageUrl = await onUploadImageAction(file)
-              setImageUploadProgress(100)
-              callback(imageUrl, file.name)
-              setValue("content", editor.getMarkdown(), {
-                shouldDirty: true,
-                shouldValidate: true,
-              })
-            } catch (error) {
-              window.alert(
-                error instanceof Error
-                  ? error.message
-                  : "이미지 업로드에 실패했습니다.",
-              )
-            } finally {
-              isUploadingImageRef.current = false
-              window.setTimeout(() => {
-                setIsUploadingImage(false)
-                setImageUploadProgress(0)
-              }, 150)
-            }
-          },
-        },
-      })
-
-      editor.on("change", () => {
-        setValue("content", editor.getMarkdown(), {
-          shouldDirty: true,
-          shouldValidate: true,
-        })
-      })
-
-      editorRef.current = editor
-    })
-
-    return () => {
-      disposed = true
-      editorRef.current = null
-      if (mountRef.current) mountRef.current.innerHTML = ""
-    }
-  }, [initialContent, onUploadImageAction, setValue])
 
   return (
     <form onSubmit={handleSubmit(onSubmitAction)} className="space-y-4">
@@ -234,13 +117,16 @@ export function GalleryWriteFormView({
         <label htmlFor="content" className="text-sm">
           내용 <span className="text-red-500">*</span>
         </label>
-        <div
-          ref={mountRef}
-          className={
-            errors.content
-              ? "min-w-0 w-full overflow-hidden rounded-md border border-red-500 ring-1 ring-red-500"
-              : "min-w-0 w-full overflow-hidden"
+        <ContentEditor
+          initialValue={initialContent}
+          onUploadImageAction={onUploadImageAction}
+          onChangeAction={(markdown) =>
+            setValue("content", markdown, {
+              shouldDirty: true,
+              shouldValidate: true,
+            })
           }
+          hasError={Boolean(errors.content)}
         />
         <input
           id="content"
@@ -250,20 +136,6 @@ export function GalleryWriteFormView({
           })}
           value={content}
         />
-
-        {isUploadingImage ? (
-          <div className="mt-2 space-y-1">
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
-              <div
-                className="h-full rounded-full bg-primary transition-[width] duration-150"
-                style={{ width: `${imageUploadProgress}%` }}
-              />
-            </div>
-            <p className="text-xs text-neutral-500">
-              본문 이미지 업로드 중... {imageUploadProgress}%
-            </p>
-          </div>
-        ) : null}
       </div>
 
       <label htmlFor="is-published" className="flex items-center gap-2 text-sm">

@@ -1,5 +1,6 @@
 import { DeleteObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
+import { contentImageService } from "@/features/content-images/server"
 import {
   type ApiResponseDto,
   createIntroPostSchema,
@@ -121,6 +122,13 @@ export async function PATCH(
     )
   }
 
+  await contentImageService.reconcilePostImages({
+    postId: id,
+    content: parsed.data.content,
+    explicitUrls: [replaceImage?.url ?? detail.imageUrl],
+    uploadedById: author.id,
+  })
+
   if (updated.oldImageUrl) {
     const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
 
@@ -152,6 +160,7 @@ export async function DELETE(
   }
 
   const { id } = await context.params
+  const contentImageIds = await contentImageService.preparePostDeletion(id)
   const removed = await introPostsService.removeIntroPostById(SECTION, id)
 
   if (!removed) {
@@ -160,6 +169,8 @@ export async function DELETE(
       { status: 404 },
     )
   }
+
+  await contentImageService.cleanupPreparedDeletion(contentImageIds)
 
   const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { contentImageService } from "@/features/content-images/server"
 import {
   type ApiResponseDto,
   createIntroPostSchema,
@@ -72,6 +73,13 @@ export async function POST(request: Request) {
     sortOrder: parsed.data.sortOrder,
     isPublished: parsed.data.isPublished,
     imageRecord: toImageRecordFromUrl(parsed.data.imageUrl),
+  })
+
+  await contentImageService.reconcilePostImages({
+    postId: created.id,
+    content: parsed.data.content,
+    explicitUrls: [parsed.data.imageUrl],
+    uploadedById: author.id,
   })
 
   return NextResponse.json({ ok: true, id: created.id })

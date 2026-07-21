@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { contentImageService } from "@/features/content-images/server"
 import type {
   ApiResponseDto,
   NoticeDetailDto,
@@ -81,6 +82,12 @@ export async function PATCH(
     ...parsed.data,
   })
 
+  await contentImageService.reconcilePostImages({
+    postId: id,
+    content: parsed.data.content,
+    uploadedById: author.id,
+  })
+
   return NextResponse.json({ ok: true })
 }
 
@@ -99,8 +106,10 @@ export async function DELETE(
   }
 
   const { id } = await context.params
+  const contentImageIds = await contentImageService.preparePostDeletion(id)
 
   await noticeService.removeNoticeById(id)
+  await contentImageService.cleanupPreparedDeletion(contentImageIds)
 
   return NextResponse.json({ ok: true })
 }

@@ -71,6 +71,8 @@ RUN groupadd --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/backfill-existing-content-images.mjs ./scripts/backfill-existing-content-images.mjs
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/cleanup-pending-content-images.mjs ./scripts/cleanup-pending-content-images.mjs
 
 USER nextjs
 

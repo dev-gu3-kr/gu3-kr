@@ -8,6 +8,7 @@ import {
   createMinioPublicObjectUrl,
   getMinioS3Client,
 } from "@/lib/admin/storage"
+import { BULLETIN_UPLOAD_MAX_BYTES } from "@/lib/admin/upload"
 
 export async function GET(request: Request) {
   const author = await assertAdminSession(request)
@@ -72,9 +73,9 @@ export async function POST(request: Request) {
     )
   }
 
-  if (file.size > 20 * 1024 * 1024) {
+  if (file.size > BULLETIN_UPLOAD_MAX_BYTES) {
     return NextResponse.json(
-      { ok: false, message: "파일 용량은 20MB 이하여야 합니다." },
+      { ok: false, message: "파일 용량은 40MB 이하여야 합니다." },
       { status: 400 },
     )
   }

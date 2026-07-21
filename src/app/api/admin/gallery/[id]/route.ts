@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto"
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import { NextResponse } from "next/server"
+import { contentImageService } from "@/features/content-images/server"
 import { galleryService } from "@/features/gallery/server"
 import { assertAdminSession } from "@/lib/admin/session"
 import {
@@ -8,6 +9,10 @@ import {
   extractMinioObjectKey,
   getMinioS3Client,
 } from "@/lib/admin/storage"
+import {
+  CONTENT_IMAGE_UPLOAD_MAX_BYTES,
+  convertImageToWebp,
+} from "@/lib/admin/upload"
 
 function toImageRecordFromUrl(url: string) {
   const fileName = url.split("/").pop() || `${Date.now()}.webp`
@@ -23,6 +28,10 @@ function toImageRecordFromUrl(url: string) {
 }
 
 async function uploadThumbnailFile(thumbnail: File) {
+  if (thumbnail.size > CONTENT_IMAGE_UPLOAD_MAX_BYTES) {
+    throw new Error("파일 용량은 20MB 이하여야 합니다.")
+  }
+
   const ext = thumbnail.name.includes(".")
     ? thumbnail.name.split(".").pop()?.toLowerCase()
     : ""
@@ -34,23 +43,24 @@ async function uploadThumbnailFile(thumbnail: File) {
   const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
   if (!bucket) throw new Error("버킷 설정이 비어 있습니다.")
 
-  const key = `data/gallery/${Date.now()}-${randomUUID()}.${ext}`
+  const converted = await convertImageToWebp(thumbnail)
+  const key = `data/gallery/${Date.now()}-${randomUUID()}.${converted.extension}`
   const fileUrl = createMinioPublicObjectUrl(bucket, key)
   const client = getMinioS3Client()
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: Buffer.from(await thumbnail.arrayBuffer()),
-      ContentType: thumbnail.type || "application/octet-stream",
+      Body: converted.body,
+      ContentType: converted.contentType,
     }),
   )
 
   return {
     fileName: key.split("/").pop() || thumbnail.name,
     originalName: thumbnail.name,
-    mimeType: thumbnail.type || "application/octet-stream",
-    sizeBytes: thumbnail.size,
+    mimeType: converted.contentType,
+    sizeBytes: converted.body.byteLength,
     url: fileUrl,
     isCover: true,
     sortOrder: 0,
@@ -162,6 +172,13 @@ export async function PATCH(
     )
   }
 
+  await contentImageService.reconcilePostImages({
+    postId: id,
+    content,
+    explicitUrls: [replaceImage?.url ?? detail.galleryImages[0]?.url ?? ""],
+    uploadedById: author.id,
+  })
+
   if (updated.oldImageUrl) {
     const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
     if (bucket) {
@@ -191,6 +208,7 @@ export async function DELETE(
   }
 
   const { id } = await context.params
+  const contentImageIds = await contentImageService.preparePostDeletion(id)
   const removed = await galleryService.removeGallery(id)
 
   if (!removed) {
@@ -199,6 +217,8 @@ export async function DELETE(
       { status: 404 },
     )
   }
+
+  await contentImageService.cleanupPreparedDeletion(contentImageIds)
 
   const bucket = process.env.MINIO_PUBLIC_IMAGE_BUCKET
   if (bucket && removed.imageUrls.length > 0) {

@@ -1,6 +1,7 @@
 // 관리자 API 라우트: 요청 검증, 권한 확인, 서비스 호출을 통해 CRUD 계약을 제공한다.
 import { NextResponse } from "next/server"
 import { authService } from "@/features/auth/server"
+import { contentImageService } from "@/features/content-images/server"
 import type { YouthBlogPublishFilterDto } from "@/features/youth-blog/isomorphic"
 import { createYouthBlogSchema } from "@/features/youth-blog/isomorphic"
 import { noticeService } from "@/features/youth-blog/server"
@@ -103,6 +104,13 @@ export async function POST(request: Request) {
     content: parsed.data.content,
     isPublished: parsed.data.isPublished,
     imageRecord: toImageRecordFromUrl(parsed.data.thumbnailUrl),
+  })
+
+  await contentImageService.reconcilePostImages({
+    postId: created.id,
+    content: parsed.data.content,
+    explicitUrls: [parsed.data.thumbnailUrl],
+    uploadedById: authorId,
   })
 
   return NextResponse.json({ ok: true, id: created.id })
