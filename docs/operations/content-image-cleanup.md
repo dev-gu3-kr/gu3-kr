@@ -7,9 +7,9 @@
 1. `20260721213000_normalize_file_assets`로 신규 테이블을 만들고 기존 데이터를 백필한다.
 2. 신규 애플리케이션 배포 직전에 `prisma migrate deploy`를 실행해 `20260721220000_sync_file_asset_cutover`를 적용한다. 이 마이그레이션은 구버전 애플리케이션이 전환 전까지 기록한 데이터를 한 번 더 동기화한다.
 3. 신규 애플리케이션 배포와 조회·등록·수정·삭제 검증을 완료한다.
-4. 안정화 기간 후 별도 마이그레이션으로 `Attachment`, `PostImage`, `ContentImageAsset`, `ContentImageStatus`를 제거한다.
+4. 운영 검증 후 `20260721223000_drop_legacy_file_tables`로 `Attachment`, `PostImage`, `ContentImageAsset`, `ContentImageStatus`를 제거한다.
 
-첫 배포에서 기존 테이블을 바로 삭제하지 않는다. 롤백 가능성을 유지하고, 신규 코드가 `FileAsset`과 `PostAsset`만 사용하는 것을 운영 환경에서 확인한 뒤 제거한다.
+레거시 테이블 제거 마이그레이션은 모든 기존 레코드가 신규 구조에 대응되는지 다시 확인한다. 누락이 있거나 외부 DB 객체가 의존하고 있으면 삭제하지 않고 실패한다.
 
 ## 필수 런타임 환경변수
 
