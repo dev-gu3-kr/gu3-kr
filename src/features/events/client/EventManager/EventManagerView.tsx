@@ -1,20 +1,27 @@
 "use client"
 
+import koFullCalendarLocale from "@fullcalendar/core/locales/ko"
 import dayGridPlugin from "@fullcalendar/daygrid"
 import interactionPlugin from "@fullcalendar/interaction"
 import FullCalendar from "@fullcalendar/react"
 import timeGridPlugin from "@fullcalendar/timegrid"
 import { format, formatDistanceToNow } from "date-fns"
-import { ko } from "date-fns/locale"
+import { ko as koDateFnsLocale } from "date-fns/locale"
 import { Loader2, Search } from "lucide-react"
 
 import { AppLink as Link } from "@/components/AppLink"
 import { InfiniteSentinel } from "@/components/InfiniteSentinel"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import {
   EventDeleteButton,
   EventEditFormContainer,
+  EventWriteFormContainer,
 } from "@/features/events/client"
 import {
   type EventListItemDto,
@@ -22,10 +29,17 @@ import {
   useEventDetailQuery,
 } from "@/features/events/isomorphic"
 
-type SchedulerModalState = {
-  eventId: string
-  mode: "detail" | "edit"
-} | null
+type SchedulerModalState =
+  | {
+      mode: "create"
+      startsAt: string
+      endsAt: string
+    }
+  | {
+      eventId: string
+      mode: "detail" | "edit"
+    }
+  | null
 
 type CalendarEventItem = {
   id: string
@@ -53,6 +67,7 @@ type EventManagerViewProps = {
   onQueryInputChange: (value: string) => void
   onStatusChange: (value: EventPublishFilterDto) => void
   onCalendarRangeChange: (range: { from: string; to: string }) => void
+  onCalendarDateClick: (value: { dateStr: string }) => void
   onSchedulerModalChange: (value: SchedulerModalState) => void
   onLoadMore: () => Promise<void>
 }
@@ -60,9 +75,13 @@ type EventManagerViewProps = {
 function SchedulerDetailModal({
   eventId,
   onEdit,
+  onDeleted,
+  onClose,
 }: {
   eventId: string
   onEdit: () => void
+  onDeleted: () => void
+  onClose: () => void
 }) {
   const { data: item, isLoading, isError } = useEventDetailQuery(eventId)
 
@@ -77,10 +96,10 @@ function SchedulerDetailModal({
     )
 
   const startsAtText = format(new Date(item.startsAt), "yyyy.MM.dd HH:mm", {
-    locale: ko,
+    locale: koDateFnsLocale,
   })
   const endsAtText = format(new Date(item.endsAt), "yyyy.MM.dd HH:mm", {
-    locale: ko,
+    locale: koDateFnsLocale,
   })
 
   return (
@@ -91,7 +110,7 @@ function SchedulerDetailModal({
           {item.isPublished ? "공개" : "비공개"} ·{" "}
           {formatDistanceToNow(new Date(item.createdAt), {
             addSuffix: true,
-            locale: ko,
+            locale: koDateFnsLocale,
           })}
         </p>
       </div>
@@ -112,7 +131,7 @@ function SchedulerDetailModal({
         </p>
       </section>
 
-      <section className="flex items-center gap-2">
+      <section className="flex items-center justify-end gap-2">
         <button
           type="button"
           onClick={onEdit}
@@ -120,7 +139,18 @@ function SchedulerDetailModal({
         >
           수정
         </button>
-        <EventDeleteButton eventId={item.id} />
+        <EventDeleteButton
+          eventId={item.id}
+          navigateOnSuccess={false}
+          onSuccessAction={onDeleted}
+        />
+        <button
+          type="button"
+          onClick={onClose}
+          className="rounded-md border px-3 py-2 text-sm hover:bg-neutral-50"
+        >
+          닫기
+        </button>
       </section>
     </div>
   )
@@ -141,6 +171,7 @@ export function EventManagerView({
   onQueryInputChange,
   onStatusChange,
   onCalendarRangeChange,
+  onCalendarDateClick,
   onSchedulerModalChange,
   onLoadMore,
 }: EventManagerViewProps) {
@@ -221,42 +252,57 @@ export function EventManagerView({
       </section>
 
       {viewMode === "scheduler" ? (
-        <div className="event-scheduler">
-          <FullCalendar
-            plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-            initialView="dayGridMonth"
-            timeZone="local"
-            locale={ko}
-            datesSet={(arg) =>
-              onCalendarRangeChange({
-                from: arg.start.toISOString(),
-                to: arg.end.toISOString(),
-              })
-            }
-            headerToolbar={{
-              left: "prev,next today",
-              center: "title",
-              right: "dayGridMonth,timeGridWeek,timeGridDay",
-            }}
-            buttonText={{ today: "오늘", month: "월", week: "주", day: "일" }}
-            height="auto"
-            events={calendarEvents}
-            eventTimeFormat={{
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            }}
-            eventDisplay="block"
-            eventDidMount={(info) => {
-              info.el.style.cursor = "pointer"
-            }}
-            eventClick={(info) =>
-              onSchedulerModalChange({
-                eventId: String(info.event.id),
-                mode: "detail",
-              })
-            }
-          />
+        <div className="space-y-2">
+          <p className="text-xs text-neutral-500">
+            날짜 또는 시간을 누르면 해당 시점으로 일정을 등록할 수 있습니다.
+          </p>
+          <div className="event-scheduler [&_.fc-daygrid-day-frame]:cursor-pointer [&_.fc-timegrid-slot-lane]:cursor-pointer">
+            <FullCalendar
+              plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+              initialView="dayGridMonth"
+              timeZone="local"
+              locale={koFullCalendarLocale}
+              datesSet={(arg) =>
+                onCalendarRangeChange({
+                  from: arg.start.toISOString(),
+                  to: arg.end.toISOString(),
+                })
+              }
+              dateClick={(info) =>
+                onCalendarDateClick({
+                  dateStr: info.dateStr,
+                })
+              }
+              headerToolbar={{
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
+              }}
+              buttonText={{
+                today: "오늘",
+                month: "월",
+                week: "주",
+                day: "일",
+              }}
+              height="auto"
+              events={calendarEvents}
+              eventTimeFormat={{
+                hour: "2-digit",
+                minute: "2-digit",
+                hour12: false,
+              }}
+              eventDisplay="block"
+              eventDidMount={(info) => {
+                info.el.style.cursor = "pointer"
+              }}
+              eventClick={(info) =>
+                onSchedulerModalChange({
+                  eventId: String(info.event.id),
+                  mode: "detail",
+                })
+              }
+            />
+          </div>
         </div>
       ) : (
         <div className="overflow-hidden rounded-md border">
@@ -279,15 +325,15 @@ export function EventManagerView({
                     <p className="mt-1 text-sm text-neutral-600">
                       {item.startsAt === item.endsAt
                         ? format(new Date(item.startsAt), "yyyy.MM.dd HH:mm", {
-                            locale: ko,
+                            locale: koDateFnsLocale,
                           })
-                        : `${format(new Date(item.startsAt), "yyyy.MM.dd HH:mm", { locale: ko })} ~ ${format(new Date(item.endsAt), "yyyy.MM.dd HH:mm", { locale: ko })}`}
+                        : `${format(new Date(item.startsAt), "yyyy.MM.dd HH:mm", { locale: koDateFnsLocale })} ~ ${format(new Date(item.endsAt), "yyyy.MM.dd HH:mm", { locale: koDateFnsLocale })}`}
                     </p>
                     <p className="mt-1 text-xs text-neutral-500">
                       {item.isPublished ? "공개" : "비공개"} ·{" "}
                       {formatDistanceToNow(new Date(item.createdAt), {
                         addSuffix: true,
-                        locale: ko,
+                        locale: koDateFnsLocale,
                       })}
                     </p>
                   </div>
@@ -313,9 +359,34 @@ export function EventManagerView({
         }}
       >
         <DialogContent className="max-h-[85vh] overflow-visible">
-          <DialogTitle>일정</DialogTitle>
+          <DialogTitle>
+            {schedulerModal?.mode === "create" ? "일정 등록" : "일정"}
+          </DialogTitle>
+          <DialogDescription className="sr-only">
+            {schedulerModal?.mode === "create"
+              ? "선택한 날짜에 새로운 일정을 등록합니다."
+              : "선택한 일정의 상세 정보를 확인하거나 수정합니다."}
+          </DialogDescription>
           {schedulerModal ? (
-            schedulerModal.mode === "detail" ? (
+            schedulerModal.mode === "create" ? (
+              <div className="max-h-[75vh] overflow-y-auto pr-1">
+                <EventWriteFormContainer
+                  initialValues={{
+                    startsAt: schedulerModal.startsAt,
+                    endsAt: schedulerModal.endsAt,
+                    isPublished: true,
+                  }}
+                  navigateOnSuccess={false}
+                  onSuccessAction={(eventId) =>
+                    onSchedulerModalChange({
+                      eventId,
+                      mode: "detail",
+                    })
+                  }
+                  onCloseAction={() => onSchedulerModalChange(null)}
+                />
+              </div>
+            ) : schedulerModal.mode === "detail" ? (
               <SchedulerDetailModal
                 eventId={schedulerModal.eventId}
                 onEdit={() =>
@@ -324,10 +395,22 @@ export function EventManagerView({
                     mode: "edit",
                   })
                 }
+                onDeleted={() => onSchedulerModalChange(null)}
+                onClose={() => onSchedulerModalChange(null)}
               />
             ) : (
               <div className="max-h-[75vh] overflow-y-auto pr-1">
-                <EventEditFormContainer eventId={schedulerModal.eventId} />
+                <EventEditFormContainer
+                  eventId={schedulerModal.eventId}
+                  navigateOnSuccess={false}
+                  onSuccessAction={() =>
+                    onSchedulerModalChange({
+                      eventId: schedulerModal.eventId,
+                      mode: "detail",
+                    })
+                  }
+                  onCloseAction={() => onSchedulerModalChange(null)}
+                />
               </div>
             )
           ) : null}

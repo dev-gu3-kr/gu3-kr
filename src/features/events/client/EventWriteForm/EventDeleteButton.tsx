@@ -6,7 +6,15 @@ import { useState } from "react"
 import { syncEventMutationCache } from "@/features/events/isomorphic"
 import { apiFetch } from "@/lib/api"
 
-export function EventDeleteButton({ eventId }: { eventId: string }) {
+export function EventDeleteButton({
+  eventId,
+  navigateOnSuccess = true,
+  onSuccessAction,
+}: {
+  eventId: string
+  navigateOnSuccess?: boolean
+  onSuccessAction?: () => void
+}) {
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -39,8 +47,13 @@ export function EventDeleteButton({ eventId }: { eventId: string }) {
             deleted: true,
           })
 
-          router.push("/admin/events")
-          router.refresh()
+          // 상세 페이지는 목록으로 이동하고, 팝업은 소유자가 닫힘 상태를 결정한다.
+          if (navigateOnSuccess) {
+            router.push("/admin/events")
+            router.refresh()
+          } else {
+            onSuccessAction?.()
+          }
         } catch (error) {
           window.alert(
             error instanceof Error ? error.message : "삭제에 실패했습니다.",

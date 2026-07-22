@@ -21,6 +21,7 @@ type EventWriteFormViewProps = {
   isError: boolean
   initialValues?: Partial<EventWriteFormValues>
   submitLabel?: string
+  onCloseAction?: () => void
 }
 
 // 일정 작성/수정 폼 UI: 제목/내용/일시 필드를 검증하고 종료일 유효성을 보장한다.
@@ -31,6 +32,7 @@ export function EventWriteFormView({
   isError,
   initialValues,
   submitLabel = "일정 저장",
+  onCloseAction,
 }: EventWriteFormViewProps) {
   const {
     control,
@@ -160,13 +162,27 @@ export function EventWriteFormView({
         </p>
       ) : null}
 
-      <Button
-        type="submit"
-        disabled={isLoading}
-        className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60 sm:w-auto"
+      <div
+        className={onCloseAction ? "flex items-center justify-end gap-2" : ""}
       >
-        {isLoading ? "저장 중..." : submitLabel}
-      </Button>
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full rounded-md bg-black px-4 py-2 text-white disabled:opacity-60 sm:w-auto"
+        >
+          {isLoading ? "저장 중..." : submitLabel}
+        </Button>
+        {onCloseAction ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isLoading}
+            onClick={onCloseAction}
+          >
+            닫기
+          </Button>
+        ) : null}
+      </div>
     </form>
   )
 }

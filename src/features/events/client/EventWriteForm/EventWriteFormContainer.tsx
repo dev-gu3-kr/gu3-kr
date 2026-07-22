@@ -4,7 +4,10 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { toast } from "sonner"
-import { syncEventMutationCache } from "@/features/events/isomorphic"
+import {
+  syncEventMutationCache,
+  toEventDateTimeIso,
+} from "@/features/events/isomorphic"
 import { apiFetch } from "@/lib/api"
 import { EventWriteFormView } from "./EventWriteFormView"
 
@@ -16,7 +19,17 @@ type EventWriteFormValues = {
   isPublished: boolean
 }
 
-export function EventWriteFormContainer() {
+export function EventWriteFormContainer({
+  initialValues,
+  navigateOnSuccess = true,
+  onSuccessAction,
+  onCloseAction,
+}: {
+  initialValues?: Partial<EventWriteFormValues>
+  navigateOnSuccess?: boolean
+  onSuccessAction?: (eventId: string) => void
+  onCloseAction?: () => void
+}) {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [isError, setIsError] = useState(false)
@@ -34,8 +47,8 @@ export function EventWriteFormContainer() {
         .json({
           title: values.title.trim(),
           description: values.description.trim(),
-          startsAt: values.startsAt,
-          endsAt: values.endsAt,
+          startsAt: toEventDateTimeIso(values.startsAt),
+          endsAt: toEventDateTimeIso(values.endsAt),
           isPublished: values.isPublished,
         })
         .send()
@@ -53,8 +66,12 @@ export function EventWriteFormContainer() {
       await syncEventMutationCache(queryClient, { id: json.id })
 
       toast.success("일정이 저장되었습니다.")
-      router.push(`/admin/events/${json.id}`)
-      router.refresh()
+      if (navigateOnSuccess) {
+        router.push(`/admin/events/${json.id}`)
+        router.refresh()
+      } else {
+        onSuccessAction?.(json.id)
+      }
     } catch (error) {
       setIsError(true)
       setMessage(
@@ -71,7 +88,9 @@ export function EventWriteFormContainer() {
       isLoading={isLoading}
       message={message}
       isError={isError}
+      initialValues={initialValues}
       submitLabel="일정 저장"
+      onCloseAction={onCloseAction}
     />
   )
 }

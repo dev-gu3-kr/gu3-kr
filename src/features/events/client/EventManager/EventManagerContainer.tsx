@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 import {
   type EventPublishFilterDto,
+  toEventDateTimeFormValue,
   useEventListInfinite,
   useEventSchedulerQuery,
 } from "@/features/events/isomorphic"
@@ -20,10 +21,18 @@ export function EventManagerContainer() {
     from: string
     to: string
   } | null>(null)
-  const [schedulerModal, setSchedulerModal] = useState<{
-    eventId: string
-    mode: "detail" | "edit"
-  } | null>(null)
+  const [schedulerModal, setSchedulerModal] = useState<
+    | {
+        mode: "create"
+        startsAt: string
+        endsAt: string
+      }
+    | {
+        eventId: string
+        mode: "detail" | "edit"
+      }
+    | null
+  >(null)
 
   useEffect(() => {
     const timer = window.setTimeout(() => setQuery(queryInput.trim()), 300)
@@ -50,6 +59,19 @@ export function EventManagerContainer() {
   const handleLoadMore = useCallback(async () => {
     await fetchNextPage()
   }, [fetchNextPage])
+
+  const handleCalendarDateClick = useCallback(
+    ({ dateStr }: { dateStr: string }) => {
+      const selectedAt = toEventDateTimeFormValue(dateStr)
+
+      setSchedulerModal({
+        mode: "create",
+        startsAt: selectedAt,
+        endsAt: selectedAt,
+      })
+    },
+    [],
+  )
 
   const calendarEvents = useMemo(
     () =>
@@ -89,6 +111,7 @@ export function EventManagerContainer() {
       onQueryInputChange={setQueryInput}
       onStatusChange={setStatus}
       onCalendarRangeChange={setCalendarRange}
+      onCalendarDateClick={handleCalendarDateClick}
       onSchedulerModalChange={setSchedulerModal}
       onLoadMore={handleLoadMore}
     />

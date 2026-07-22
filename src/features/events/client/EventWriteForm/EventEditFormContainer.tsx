@@ -6,6 +6,8 @@ import { useState } from "react"
 import { toast } from "sonner"
 import {
   syncEventMutationCache,
+  toEventDateTimeIso,
+  toEventDateTimeLocal,
   useEventDetailQuery,
 } from "@/features/events/isomorphic"
 import { apiFetch } from "@/lib/api"
@@ -19,20 +21,16 @@ type EventWriteFormValues = {
   isPublished: boolean
 }
 
-function toDateTimeLocal(text: string) {
-  const d = new Date(text)
-  const pad = (n: number) => String(n).padStart(2, "0")
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
 export function EventEditFormContainer({
   eventId,
   navigateOnSuccess = true,
   onSuccessAction,
+  onCloseAction,
 }: {
   eventId: string
   navigateOnSuccess?: boolean
   onSuccessAction?: () => void
+  onCloseAction?: () => void
 }) {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
@@ -55,8 +53,8 @@ export function EventEditFormContainer({
         .json({
           title: values.title.trim(),
           description: values.description.trim(),
-          startsAt: values.startsAt,
-          endsAt: values.endsAt,
+          startsAt: toEventDateTimeIso(values.startsAt),
+          endsAt: toEventDateTimeIso(values.endsAt),
           isPublished: values.isPublished,
         })
         .send()
@@ -107,11 +105,12 @@ export function EventEditFormContainer({
       initialValues={{
         title: data.title,
         description: data.description || "",
-        startsAt: toDateTimeLocal(data.startsAt),
-        endsAt: toDateTimeLocal(data.endsAt),
+        startsAt: toEventDateTimeLocal(data.startsAt),
+        endsAt: toEventDateTimeLocal(data.endsAt),
         isPublished: data.isPublished,
       }}
       submitLabel="수정 저장"
+      onCloseAction={onCloseAction}
     />
   )
 }
