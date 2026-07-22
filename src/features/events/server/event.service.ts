@@ -1,3 +1,4 @@
+import { parseEventDateTime } from "../isomorphic/event.schema"
 import {
   createEventRecord,
   deleteEventById,
@@ -38,13 +39,13 @@ export async function createEvent(input: {
 }) {
   const title = input.title.trim()
   const description = input.description.trim()
-  const startsAt = new Date(input.startsAtText)
-  const endsAt = new Date(input.endsAtText)
+  const startsAt = parseEventDateTime(input.startsAtText)
+  const endsAt = parseEventDateTime(input.endsAtText)
 
   if (!title || !description) {
     return { error: "제목/내용/시작/종료는 필수입니다." as const }
   }
-  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+  if (!startsAt || !endsAt) {
     return { error: "일정 날짜 형식이 올바르지 않습니다." as const }
   }
   if (endsAt < startsAt) {
@@ -80,13 +81,13 @@ export async function updateEvent(input: {
 
   const title = input.title.trim()
   const description = input.description.trim()
-  const startsAt = new Date(input.startsAtText)
-  const endsAt = new Date(input.endsAtText)
+  const startsAt = parseEventDateTime(input.startsAtText)
+  const endsAt = parseEventDateTime(input.endsAtText)
 
   if (!title || !description) {
     return { error: "제목/내용/시작/종료는 필수입니다." as const }
   }
-  if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
+  if (!startsAt || !endsAt) {
     return { error: "일정 날짜 형식이 올바르지 않습니다." as const }
   }
   if (endsAt < startsAt) {

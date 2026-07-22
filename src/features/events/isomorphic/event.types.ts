@@ -2,8 +2,8 @@
 export type CreateEventInputDto = {
   title: string // 일정 제목
   description: string // 일정 설명/본문
-  startsAt: string // 시작 일시(ISO datetime)
-  endsAt: string // 종료 일시(ISO datetime)
+  startsAt: string // 시작 일시(ISO datetime, UTC/offset 필수)
+  endsAt: string // 종료 일시(ISO datetime, UTC/offset 필수)
   isPublished?: boolean // 공개 여부(선택)
 }
 
