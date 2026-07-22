@@ -1,6 +1,6 @@
 "use client"
 
-import { zodResolver } from "@hookform/resolvers/zod"
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
@@ -17,7 +17,7 @@ export function LoginFormContainer() {
   const router = useRouter()
   const loginMutation = useLoginForm()
   const form = useForm<LoginInput>({
-    resolver: zodResolver(loginSchema),
+    resolver: standardSchemaResolver(loginSchema),
     mode: "onSubmit",
     defaultValues: { email: "", password: "" },
   })
