@@ -117,7 +117,7 @@ export function AdminLayoutClient({
       {isLoginPage ? (
         <div className="mx-auto max-w-5xl p-4">{children}</div>
       ) : (
-        <div className="mx-auto grid max-w-6xl gap-4 p-4 lg:grid-cols-[256px_1fr]">
+        <div className="mx-auto grid max-w-6xl gap-4 py-4 sm:p-4 lg:grid-cols-[256px_1fr]">
           <div className="hidden lg:block">
             <AdminSidebarContainer />
           </div>
