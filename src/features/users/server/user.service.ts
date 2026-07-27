@@ -33,7 +33,8 @@ export async function createAdminUserAccount(input: CreateAdminUserInputDto) {
     username: normalizedEmail,
     displayName: input.displayName.trim(),
     email: normalizedEmail,
-    role: input.role,
+    role: "ADMIN",
+    menuPermissions: input.menuPermissions,
     passwordHash: await hashPassword(input.password),
     isActive: input.isActive ?? true,
   })
@@ -50,7 +51,7 @@ export async function updateAdminUserAccount(
   return updateAdminUser(id, {
     displayName: input.displayName?.trim(),
     email: input.email === null ? null : input.email?.trim().toLowerCase(),
-    role: input.role,
+    menuPermissions: input.menuPermissions,
     isActive: input.isActive,
     ...(input.resetPassword
       ? { passwordHash: await hashPassword(input.resetPassword) }

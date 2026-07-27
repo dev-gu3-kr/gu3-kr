@@ -1,3 +1,4 @@
+import type { AdminMenuPermission, UserRole } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 // 관리자 사용자 목록을 최근 생성순으로 조회한다.
@@ -9,6 +10,7 @@ export async function findAdminUsers() {
       displayName: true,
       email: true,
       role: true,
+      menuPermissions: true,
       isActive: true,
       createdAt: true,
     },
@@ -30,7 +32,8 @@ export async function createAdminUser(data: {
   username: string
   displayName: string
   email: string
-  role: "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "VIEWER"
+  role: UserRole
+  menuPermissions: AdminMenuPermission[]
   passwordHash: string
   isActive: boolean
 }) {
@@ -43,7 +46,8 @@ export async function updateAdminUser(
   data: {
     displayName?: string
     email?: string | null
-    role?: "SUPER_ADMIN" | "ADMIN" | "EDITOR" | "VIEWER"
+    role?: UserRole
+    menuPermissions?: AdminMenuPermission[]
     isActive?: boolean
     passwordHash?: string
   },

@@ -1,169 +1,212 @@
 "use client"
 
-import type { UserRole } from "@prisma/client"
-import { useCallback, useEffect, useState } from "react"
-import type { AdminUserListItemDto } from "@/features/users/isomorphic"
-import { apiFetch } from "@/lib/api"
+import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { toast } from "sonner"
+import {
+  ADMIN_MENU_PERMISSION_VALUES,
+  type AdminMenuPermission,
+  ASSIGNABLE_ADMIN_MENU_ITEMS,
+} from "@/features/admin/isomorphic"
+import {
+  type CreateAdminUserInputDto,
+  createAdminUserSchema,
+  type UpdateAdminUserMenuPermissionsInputDto,
+  updateAdminUserMenuPermissionsSchema,
+  useAdminUsers,
+  useCreateAdminUser,
+  useDeleteAdminUser,
+  useUpdateAdminUser,
+} from "@/features/users/isomorphic"
 import { UserManagerView } from "./UserManagerView"
 
-type UserListResponse = {
-  ok?: boolean
-  items?: AdminUserListItemDto[]
-  message?: string
+const createFormDefaults: CreateAdminUserInputDto = {
+  displayName: "",
+  email: "",
+  password: "",
+  menuPermissions: [],
+  isActive: true,
 }
 
-const roleOptions: UserRole[] = ["ADMIN", "EDITOR", "VIEWER"]
+function updatePermissionSelection(
+  current: readonly AdminMenuPermission[],
+  permission: AdminMenuPermission,
+  checked: boolean,
+) {
+  const next = new Set(current)
+  if (checked) next.add(permission)
+  else next.delete(permission)
+
+  return ADMIN_MENU_PERMISSION_VALUES.filter((value) => next.has(value))
+}
 
 export function UserManagerContainer() {
-  const [items, setItems] = useState<AdminUserListItemDto[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [message, setMessage] = useState<string | null>(null)
+  const usersQuery = useAdminUsers()
+  const createMutation = useCreateAdminUser()
+  const permissionMutation = useUpdateAdminUser()
+  const passwordMutation = useUpdateAdminUser()
+  const deleteMutation = useDeleteAdminUser()
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingUserId, setEditingUserId] = useState<string | null>(null)
+  const [operationError, setOperationError] = useState<string | null>(null)
 
-  const [displayName, setDisplayName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [role, setRole] = useState<UserRole>("ADMIN")
-  const [deletingUserId, setDeletingUserId] = useState<string | null>(null)
-  const [resettingUserId, setResettingUserId] = useState<string | null>(null)
+  const createForm = useForm<CreateAdminUserInputDto>({
+    resolver: standardSchemaResolver(createAdminUserSchema),
+    mode: "onSubmit",
+    defaultValues: createFormDefaults,
+  })
+  const permissionForm = useForm<UpdateAdminUserMenuPermissionsInputDto>({
+    resolver: standardSchemaResolver(updateAdminUserMenuPermissionsSchema),
+    mode: "onSubmit",
+    defaultValues: { menuPermissions: [] },
+  })
 
-  const resetCreateForm = () => {
-    setDisplayName("")
-    setEmail("")
-    setPassword("")
-    setRole("ADMIN")
-  }
+  const createPermissions = createForm.watch("menuPermissions")
+  const editingPermissions = permissionForm.watch("menuPermissions")
+  const editingUser =
+    usersQuery.data?.find((item) => item.id === editingUserId) ?? null
+  const queryError =
+    usersQuery.error instanceof Error ? usersQuery.error.message : null
 
-  const loadUsers = useCallback(async () => {
-    setIsLoading(true)
-    setMessage(null)
+  const handleCreateSubmit = createForm.handleSubmit(async (input) => {
+    setOperationError(null)
     try {
-      const response = await apiFetch.get("/api/admin/users").send()
-      const json = (await response
-        .json()
-        .catch(() => null)) as UserListResponse | null
-      if (!response.ok || !json?.ok || !Array.isArray(json.items)) {
-        throw new Error(json?.message ?? "사용자 목록을 불러오지 못했습니다.")
-      }
-      setItems(json.items)
+      await createMutation.mutateAsync(input)
+      toast.success("사용자를 등록했습니다.")
+      createForm.reset(createFormDefaults)
+      setIsCreateModalOpen(false)
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "오류가 발생했습니다.",
-      )
-    } finally {
-      setIsLoading(false)
+      const message =
+        error instanceof Error ? error.message : "사용자 등록에 실패했습니다."
+      setOperationError(message)
+      toast.error(message)
     }
-  }, [])
+  })
 
-  useEffect(() => {
-    void loadUsers()
-  }, [loadUsers])
+  const handlePermissionSubmit = permissionForm.handleSubmit(async (input) => {
+    if (!editingUserId) return
 
-  async function handleCreate() {
-    setMessage(null)
-
-    if (!email.trim()) {
-      setMessage("로그인 이메일은 필수입니다.")
-      return
+    setOperationError(null)
+    try {
+      await permissionMutation.mutateAsync({ id: editingUserId, input })
+      toast.success("메뉴 권한을 저장했습니다.")
+      setEditingUserId(null)
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "권한 저장에 실패했습니다."
+      setOperationError(message)
+      toast.error(message)
     }
-
-    const response = await apiFetch
-      .post("/api/admin/users")
-      .json({
-        displayName,
-        email: email.trim(),
-        password,
-        role,
-        isActive: true,
-      })
-      .send()
-
-    const json = (await response.json().catch(() => null)) as {
-      ok?: boolean
-      message?: string
-    } | null
-
-    if (!response.ok || !json?.ok) {
-      setMessage(json?.message ?? "사용자 등록에 실패했습니다.")
-      return
-    }
-
-    resetCreateForm()
-    setIsCreateModalOpen(false)
-    setMessage("사용자를 등록했습니다.")
-    await loadUsers()
-  }
+  })
 
   async function handleDelete(id: string) {
     if (!window.confirm("정말 삭제하시겠습니까?")) return
 
-    setDeletingUserId(id)
+    setOperationError(null)
     try {
-      const response = await apiFetch.del(`/api/admin/users/${id}`).send()
-      const json = (await response.json().catch(() => null)) as {
-        ok?: boolean
-        message?: string
-      } | null
-
-      if (!response.ok || !json?.ok) {
-        setMessage(json?.message ?? "삭제에 실패했습니다.")
-        return
-      }
-
-      await loadUsers()
-    } finally {
-      setDeletingUserId(null)
+      await deleteMutation.mutateAsync(id)
+      toast.success("사용자를 삭제했습니다.")
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "사용자 삭제에 실패했습니다."
+      setOperationError(message)
+      toast.error(message)
     }
   }
 
   async function handleResetPassword(id: string) {
-    const next = window.prompt("새 비밀번호를 입력하세요(8자 이상).")
-    if (!next) return
+    const nextPassword = window.prompt("새 비밀번호를 입력하세요(8자 이상).")
+    if (!nextPassword) return
 
-    setResettingUserId(id)
+    setOperationError(null)
     try {
-      const response = await apiFetch
-        .patch(`/api/admin/users/${id}`)
-        .json({ resetPassword: next })
-        .send()
-      const json = (await response.json().catch(() => null)) as {
-        ok?: boolean
-        message?: string
-      } | null
-
-      if (!response.ok || !json?.ok) {
-        setMessage(json?.message ?? "비밀번호 초기화에 실패했습니다.")
-        return
-      }
-
-      setMessage("비밀번호를 초기화했습니다.")
-    } finally {
-      setResettingUserId(null)
+      await passwordMutation.mutateAsync({
+        id,
+        input: { resetPassword: nextPassword },
+      })
+      toast.success("비밀번호를 초기화했습니다.")
+    } catch (error) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "비밀번호 초기화에 실패했습니다."
+      setOperationError(message)
+      toast.error(message)
     }
+  }
+
+  function openPermissionModal(id: string) {
+    const target = usersQuery.data?.find((item) => item.id === id)
+    if (!target || target.role === "SUPER_ADMIN") return
+
+    setOperationError(null)
+    permissionForm.reset({ menuPermissions: target.menuPermissions })
+    setEditingUserId(id)
   }
 
   return (
     <UserManagerView
-      items={items}
-      isLoading={isLoading}
-      message={message}
+      items={usersQuery.data ?? []}
+      permissionOptions={ASSIGNABLE_ADMIN_MENU_ITEMS}
+      isLoading={usersQuery.isLoading}
+      message={operationError ?? queryError}
       isCreateModalOpen={isCreateModalOpen}
-      displayName={displayName}
-      email={email}
-      password={password}
-      role={role}
-      roleOptions={roleOptions}
-      deletingUserId={deletingUserId}
-      resettingUserId={resettingUserId}
+      editingUser={editingUser}
+      createRegister={createForm.register}
+      createErrors={createForm.formState.errors}
+      createPermissions={createPermissions}
+      editingPermissions={editingPermissions}
+      permissionErrors={permissionForm.formState.errors}
+      isCreating={createMutation.isPending}
+      isSavingPermissions={permissionMutation.isPending}
+      deletingUserId={
+        deleteMutation.isPending ? deleteMutation.variables : null
+      }
+      resettingUserId={
+        passwordMutation.isPending
+          ? (passwordMutation.variables?.id ?? null)
+          : null
+      }
       onCreateModalOpenChange={(open) => {
         setIsCreateModalOpen(open)
-        if (!open) resetCreateForm()
+        setOperationError(null)
+        if (!open) createForm.reset(createFormDefaults)
       }}
-      onDisplayNameChange={setDisplayName}
-      onEmailChange={setEmail}
-      onPasswordChange={setPassword}
-      onRoleChange={setRole}
-      onCreate={handleCreate}
+      onPermissionModalOpenChange={(open) => {
+        if (!open) setEditingUserId(null)
+      }}
+      onOpenPermissionModal={openPermissionModal}
+      onCreateSubmit={handleCreateSubmit}
+      onPermissionSubmit={handlePermissionSubmit}
+      onCreatePermissionChange={(permission, checked) => {
+        createForm.setValue(
+          "menuPermissions",
+          updatePermissionSelection(createPermissions, permission, checked),
+          { shouldValidate: true },
+        )
+      }}
+      onCreateAllPermissionsChange={(checked) => {
+        createForm.setValue(
+          "menuPermissions",
+          checked ? [...ADMIN_MENU_PERMISSION_VALUES] : [],
+          { shouldValidate: true },
+        )
+      }}
+      onEditingPermissionChange={(permission, checked) => {
+        permissionForm.setValue(
+          "menuPermissions",
+          updatePermissionSelection(editingPermissions, permission, checked),
+          { shouldValidate: true },
+        )
+      }}
+      onEditingAllPermissionsChange={(checked) => {
+        permissionForm.setValue(
+          "menuPermissions",
+          checked ? [...ADMIN_MENU_PERMISSION_VALUES] : [],
+          { shouldValidate: true },
+        )
+      }}
       onDelete={handleDelete}
       onResetPassword={handleResetPassword}
     />

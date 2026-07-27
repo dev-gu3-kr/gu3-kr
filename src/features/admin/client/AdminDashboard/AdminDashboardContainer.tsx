@@ -1,43 +1,19 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-
-import { ADMIN_MENU_ITEMS } from "@/features/admin/isomorphic"
-import { apiFetch } from "@/lib/api"
+import { useMemo } from "react"
+import { getAccessibleAdminMenuItems } from "@/features/admin/isomorphic"
+import { useAdminSession } from "@/features/auth/isomorphic"
 import { AdminDashboardView } from "./AdminDashboardView"
 
 export function AdminDashboardContainer() {
-  const [role, setRole] = useState<string | null>(null)
-
-  useEffect(() => {
-    const run = async () => {
-      const response = await apiFetch
-        .get("/api/admin/session")
-        .init({ cache: "no-store" })
-        .send()
-      const json = (await response.json().catch(() => null)) as {
-        ok?: boolean
-        role?: string
-      } | null
-
-      if (!response.ok || !json?.ok || !json.role) {
-        setRole(null)
-        return
-      }
-
-      setRole(json.role)
-    }
-
-    void run()
-  }, [])
+  const sessionQuery = useAdminSession()
 
   const menuItems = useMemo(() => {
-    const isSuperAdmin = role === "SUPER_ADMIN"
-
-    return ADMIN_MENU_ITEMS.filter((item) =>
-      item.superAdminOnly ? isSuperAdmin : true,
+    return getAccessibleAdminMenuItems(
+      sessionQuery.data?.role,
+      sessionQuery.data?.menuPermissions ?? [],
     )
-  }, [role])
+  }, [sessionQuery.data])
 
   return <AdminDashboardView menuItems={menuItems} />
 }

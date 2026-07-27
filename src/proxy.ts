@@ -1,10 +1,8 @@
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { isValidAdminAccessToken } from "@/lib/auth/access-token"
-import {
-  ADMIN_ACCESS_COOKIE_KEY,
-  ADMIN_REFRESH_COOKIE_KEY,
-} from "@/lib/auth/cookies"
+import { authService } from "@/features/auth/server"
+import { canAccessAdminPath } from "@/lib/admin/menu-authorization"
+import { ADMIN_REFRESH_COOKIE_KEY } from "@/lib/auth/cookies"
 import { validateAdminCsrfRequest } from "@/lib/auth/csrf"
 
 const PUBLIC_ADMIN_API_PATHS = new Set([
@@ -13,33 +11,35 @@ const PUBLIC_ADMIN_API_PATHS = new Set([
   "/api/admin/refresh",
 ])
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
   const bearerToken = request.headers
     .get("authorization")
     ?.match(/^Bearer\s+(.+)$/i)?.[1]
-  const hasValidBearerToken = isValidAdminAccessToken(bearerToken)
-  const hasValidAccessToken =
-    isValidAdminAccessToken(
-      request.cookies.get(ADMIN_ACCESS_COOKIE_KEY)?.value,
-    ) || hasValidBearerToken
-  const hasRefreshToken = Boolean(
-    request.cookies.get(ADMIN_REFRESH_COOKIE_KEY)?.value,
-  )
+  const refreshToken =
+    request.cookies.get(ADMIN_REFRESH_COOKIE_KEY)?.value ?? null
 
   if (pathname.startsWith("/api/admin")) {
     if (PUBLIC_ADMIN_API_PATHS.has(pathname)) return NextResponse.next()
 
-    if (!hasValidAccessToken) {
+    const author = await authService.getAdminFromAccessToken(request)
+    if (!author) {
       return NextResponse.json(
         { ok: false, message: "인증 갱신이 필요합니다." },
         { status: 401 },
       )
     }
 
-    if (!hasValidBearerToken && !validateAdminCsrfRequest(request)) {
+    if (!bearerToken && !validateAdminCsrfRequest(request)) {
       return NextResponse.json(
         { ok: false, message: "요청 보안 검증에 실패했습니다." },
+        { status: 403 },
+      )
+    }
+
+    if (!canAccessAdminPath(pathname, author.role, author.menuPermissions)) {
+      return NextResponse.json(
+        { ok: false, message: "이 메뉴에 접근할 권한이 없습니다." },
         { status: 403 },
       )
     }
@@ -47,17 +47,25 @@ export function proxy(request: NextRequest) {
     return NextResponse.next()
   }
 
-  if (pathname === "/admin/login" && hasValidAccessToken) {
+  const author =
+    (await authService.getAdminFromAccessToken(request)) ??
+    (await authService.getAdminFromRefreshToken(refreshToken))
+
+  if (pathname === "/admin/login" && author) {
     return NextResponse.redirect(new URL("/admin", request.url))
+  }
+
+  if (pathname.startsWith("/admin") && pathname !== "/admin/login" && !author) {
+    return NextResponse.redirect(new URL("/admin/login", request.url))
   }
 
   if (
     pathname.startsWith("/admin") &&
     pathname !== "/admin/login" &&
-    !hasValidAccessToken &&
-    !hasRefreshToken
+    author &&
+    !canAccessAdminPath(pathname, author.role, author.menuPermissions)
   ) {
-    return NextResponse.redirect(new URL("/admin/login", request.url))
+    return NextResponse.redirect(new URL("/admin", request.url))
   }
 
   return NextResponse.next()

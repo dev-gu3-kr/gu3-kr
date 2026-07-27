@@ -15,6 +15,7 @@ export async function GET(request: Request) {
       ok: true,
       role: author.role,
       displayName: author.displayName,
+      menuPermissions: author.menuPermissions,
     },
     { headers: { "Cache-Control": "private, no-store" } },
   )

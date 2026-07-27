@@ -26,6 +26,7 @@ export async function GET(request: Request) {
       displayName: item.displayName,
       email: item.email ?? "",
       role: item.role,
+      menuPermissions: item.menuPermissions,
       isActive: item.isActive,
       createdAt: item.createdAt.toISOString(),
     })),
