@@ -19,7 +19,7 @@ export function LoginFormContainer() {
   const form = useForm<LoginInput>({
     resolver: standardSchemaResolver(loginSchema),
     mode: "onSubmit",
-    defaultValues: { email: "", password: "" },
+    defaultValues: { username: "", password: "" },
   })
 
   const handleSubmit = async (input: LoginInput) => {

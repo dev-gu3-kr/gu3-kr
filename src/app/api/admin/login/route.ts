@@ -23,13 +23,13 @@ export async function POST(request: Request) {
   }
 
   const user = await authService.authenticateAdmin(
-    parsed.data.email,
+    parsed.data.username,
     parsed.data.password,
   )
 
   if (!user) {
     return NextResponse.json(
-      { ok: false, message: "이메일 또는 비밀번호가 올바르지 않습니다." },
+      { ok: false, message: "아이디 또는 비밀번호가 올바르지 않습니다." },
       { status: 401 },
     )
   }

@@ -15,7 +15,6 @@ async function main() {
     await prisma.user.upsert({
       where: { username: "master" },
       update: {
-        email: "master@gu3.kr",
         username: "master",
         passwordHash: adminPasswordHash,
         displayName: "관리자",
@@ -23,7 +22,6 @@ async function main() {
         isActive: true,
       },
       create: {
-        email: "master@gu3.kr",
         username: "master",
         passwordHash: adminPasswordHash,
         displayName: "Master Admin",

@@ -3,7 +3,7 @@ import type { AdminMenuPermission } from "@/features/admin/isomorphic"
 
 // 로그인 요청 DTO
 export type LoginInput = {
-  email: string // 로그인 이메일
+  username: string // 영문·숫자와 일부 기호로 구성된 관리자 로그인 아이디
   password: string // 로그인 비밀번호
 }
 

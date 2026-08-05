@@ -1,5 +1,13 @@
 import type { FormEventHandler } from "react"
 import type { FieldErrors, UseFormRegister } from "react-hook-form"
+import { Button } from "@/components/ui/button"
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field"
+import { Input } from "@/components/ui/input"
 import type { LoginInput } from "@/features/auth/isomorphic"
 
 type Props = {
@@ -18,64 +26,48 @@ export function LoginFormView({
   errorMessage = null,
 }: Props) {
   return (
-    <form onSubmit={onSubmit} className="space-y-3" noValidate>
-      <div className="space-y-1">
-        <label htmlFor="email" className="text-sm">
-          이메일 <span className="text-red-600">*</span>
-        </label>
-        <input
-          id="email"
-          type="email"
-          autoComplete="username"
-          aria-invalid={Boolean(errors.email)}
-          aria-describedby={errors.email ? "email-error" : undefined}
-          className={`w-full rounded-md border px-3 py-2 ${
-            errors.email ? "border-red-600 outline-red-600" : ""
-          }`}
-          {...register("email")}
-        />
-        {errors.email ? (
-          <p id="email-error" className="text-sm text-red-600">
-            {errors.email.message}
-          </p>
-        ) : null}
-      </div>
+    <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+      <FieldGroup className="gap-4">
+        <Field data-invalid={Boolean(errors.username)}>
+          <FieldLabel htmlFor="username">
+            아이디 <span className="text-destructive">*</span>
+          </FieldLabel>
+          <Input
+            id="username"
+            type="text"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            aria-invalid={Boolean(errors.username)}
+            {...register("username")}
+          />
+          <FieldError>{errors.username?.message}</FieldError>
+        </Field>
 
-      <div className="space-y-1">
-        <label htmlFor="password" className="text-sm">
-          비밀번호 <span className="text-red-600">*</span>
-        </label>
-        <input
-          id="password"
-          type="password"
-          autoComplete="current-password"
-          aria-invalid={Boolean(errors.password)}
-          aria-describedby={errors.password ? "password-error" : undefined}
-          className={`w-full rounded-md border px-3 py-2 ${
-            errors.password ? "border-red-600 outline-red-600" : ""
-          }`}
-          {...register("password")}
-        />
-        {errors.password ? (
-          <p id="password-error" className="text-sm text-red-600">
-            {errors.password.message}
-          </p>
-        ) : null}
-      </div>
+        <Field data-invalid={Boolean(errors.password)}>
+          <FieldLabel htmlFor="password">
+            비밀번호 <span className="text-destructive">*</span>
+          </FieldLabel>
+          <Input
+            id="password"
+            type="password"
+            autoComplete="current-password"
+            aria-invalid={Boolean(errors.password)}
+            {...register("password")}
+          />
+          <FieldError>{errors.password?.message}</FieldError>
+        </Field>
+      </FieldGroup>
 
       {errorMessage ? (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm text-destructive">
           {errorMessage}
         </p>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="rounded-md bg-black px-4 py-2 text-white disabled:opacity-60"
-      >
+      <Button type="submit" disabled={isLoading}>
         {isLoading ? "로그인 중..." : "로그인"}
-      </button>
+      </Button>
     </form>
   )
 }

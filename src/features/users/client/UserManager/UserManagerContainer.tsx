@@ -23,7 +23,7 @@ import { UserManagerView } from "./UserManagerView"
 
 const createFormDefaults: CreateAdminUserInputDto = {
   displayName: "",
-  email: "",
+  username: "",
   password: "",
   menuPermissions: [],
   isActive: true,

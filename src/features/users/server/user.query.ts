@@ -8,7 +8,7 @@ export async function findAdminUsers() {
     select: {
       id: true,
       displayName: true,
-      email: true,
+      username: true,
       role: true,
       menuPermissions: true,
       isActive: true,
@@ -22,16 +22,14 @@ export async function findAdminUserById(id: string) {
   return prisma.user.findUnique({ where: { id } })
 }
 
-// 이메일 기준으로 기존 사용자 존재 여부를 확인한다.
-export async function findAdminUserByEmail(email: string) {
-  return prisma.user.findUnique({ where: { email } })
+export async function findAdminUserByUsername(username: string) {
+  return prisma.user.findUnique({ where: { username } })
 }
 
 // 관리자 사용자 계정을 생성한다.
 export async function createAdminUser(data: {
   username: string
   displayName: string
-  email: string
   role: UserRole
   menuPermissions: AdminMenuPermission[]
   passwordHash: string
@@ -45,7 +43,7 @@ export async function updateAdminUser(
   id: string,
   data: {
     displayName?: string
-    email?: string | null
+    username?: string
     role?: UserRole
     menuPermissions?: AdminMenuPermission[]
     isActive?: boolean

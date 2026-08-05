@@ -250,7 +250,7 @@ export function UserManagerView({
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="flex flex-col gap-1">
                   <p className="font-medium">{item.displayName}</p>
-                  <p className="text-muted-foreground">{item.email}</p>
+                  <p className="text-muted-foreground">{item.username}</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant={isSuperAdmin ? "default" : "secondary"}>
@@ -345,18 +345,20 @@ export function UserManagerView({
                 />
                 <FieldError>{createErrors.displayName?.message}</FieldError>
               </Field>
-              <Field data-invalid={Boolean(createErrors.email)}>
-                <FieldLabel htmlFor="user-email">
-                  로그인 이메일 <span className="text-destructive">*</span>
+              <Field data-invalid={Boolean(createErrors.username)}>
+                <FieldLabel htmlFor="user-username">
+                  로그인 아이디 <span className="text-destructive">*</span>
                 </FieldLabel>
                 <Input
-                  id="user-email"
-                  type="email"
+                  id="user-username"
+                  type="text"
                   autoComplete="username"
-                  aria-invalid={Boolean(createErrors.email)}
-                  {...createRegister("email")}
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  aria-invalid={Boolean(createErrors.username)}
+                  {...createRegister("username")}
                 />
-                <FieldError>{createErrors.email?.message}</FieldError>
+                <FieldError>{createErrors.username?.message}</FieldError>
               </Field>
               <Field data-invalid={Boolean(createErrors.password)}>
                 <FieldLabel htmlFor="user-password">

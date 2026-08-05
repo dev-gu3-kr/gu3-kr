@@ -1,5 +1,6 @@
 import { z } from "zod"
 import { ADMIN_MENU_PERMISSION_VALUES } from "@/features/admin/isomorphic"
+import { adminUsernameSchema } from "@/features/auth/isomorphic"
 
 const menuPermissionsSchema = z
   .array(z.enum(ADMIN_MENU_PERMISSION_VALUES))
@@ -11,11 +12,7 @@ export const createAdminUserSchema = z.object({
     .trim()
     .min(1, "표시 이름을 입력해 주세요.")
     .max(80, "표시 이름은 80자 이하로 입력해 주세요."),
-  email: z
-    .string()
-    .trim()
-    .email("올바른 이메일을 입력해 주세요.")
-    .max(120, "이메일은 120자 이하로 입력해 주세요."),
+  username: adminUsernameSchema,
   password: z
     .string()
     .min(8, "비밀번호는 8자 이상 입력해 주세요.")
@@ -26,7 +23,7 @@ export const createAdminUserSchema = z.object({
 
 export const updateAdminUserSchema = z.object({
   displayName: z.string().trim().min(1).max(80).optional(),
-  email: z.string().trim().email().max(120).nullable().optional(),
+  username: adminUsernameSchema.optional(),
   isActive: z.boolean().optional(),
   resetPassword: z.string().min(8).max(120).optional(),
   menuPermissions: menuPermissionsSchema.optional(),

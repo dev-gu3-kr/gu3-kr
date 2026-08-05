@@ -25,16 +25,19 @@ import {
   createRefreshToken,
   deleteExpiredRefreshTokens,
   findRefreshTokenByHash,
-  findUserByEmail,
   findUserById,
+  findUserByUsername,
   revokeRefreshTokenFamily,
   rotateRefreshToken,
   updateUserPasswordHash,
 } from "./auth.query"
 
 const REFRESH_TOKEN_GRACE_SECONDS = 30
-export async function authenticateAdmin(email: string, plainPassword: string) {
-  const user = await findUserByEmail(email.trim().toLowerCase())
+export async function authenticateAdmin(
+  username: string,
+  plainPassword: string,
+) {
+  const user = await findUserByUsername(username.trim().toLowerCase())
   const verification = await verifyPassword(
     plainPassword,
     user?.passwordHash ?? DUMMY_PASSWORD_HASH,

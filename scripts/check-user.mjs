@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()
 const user = await prisma.user.findUnique({
-  where: { email: "master@gu3.kr" },
+  where: { username: "master" },
 })
 console.log(user)
 await prisma.$disconnect()

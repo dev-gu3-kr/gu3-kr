@@ -6,8 +6,8 @@ import { hashPassword } from "@/lib/auth/password"
 import {
   createAdminUser,
   deleteAdminUser,
-  findAdminUserByEmail,
   findAdminUserById,
+  findAdminUserByUsername,
   findAdminUsers,
   updateAdminUser,
 } from "./user.query"
@@ -22,17 +22,15 @@ export async function getAdminUserById(id: string) {
   return findAdminUserById(id)
 }
 
-// 이메일 중복 검사 후 관리자 사용자를 생성한다.
+// 대소문자를 구분하지 않는 아이디 중복 검사 후 관리자 계정을 생성한다.
 export async function createAdminUserAccount(input: CreateAdminUserInputDto) {
-  const normalizedEmail = input.email.trim().toLowerCase()
-  const existed = await findAdminUserByEmail(normalizedEmail)
-  if (existed) throw new Error("이미 사용 중인 이메일입니다.")
+  const normalizedUsername = input.username.trim().toLowerCase()
+  const existed = await findAdminUserByUsername(normalizedUsername)
+  if (existed) throw new Error("이미 사용 중인 아이디입니다.")
 
-  // 레거시 로그인 호환을 위해 username 필드는 email과 동일하게 저장한다.
   return createAdminUser({
-    username: normalizedEmail,
+    username: normalizedUsername,
     displayName: input.displayName.trim(),
-    email: normalizedEmail,
     role: "ADMIN",
     menuPermissions: input.menuPermissions,
     passwordHash: await hashPassword(input.password),
@@ -48,9 +46,15 @@ export async function updateAdminUserAccount(
   const target = await findAdminUserById(id)
   if (!target) throw new Error("사용자를 찾을 수 없습니다.")
 
+  const normalizedUsername = input.username?.trim().toLowerCase()
+  if (normalizedUsername && normalizedUsername !== target.username) {
+    const existed = await findAdminUserByUsername(normalizedUsername)
+    if (existed) throw new Error("이미 사용 중인 아이디입니다.")
+  }
+
   return updateAdminUser(id, {
     displayName: input.displayName?.trim(),
-    email: input.email === null ? null : input.email?.trim().toLowerCase(),
+    username: normalizedUsername,
     menuPermissions: input.menuPermissions,
     isActive: input.isActive,
     ...(input.resetPassword

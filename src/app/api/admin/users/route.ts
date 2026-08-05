@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     items: items.map((item) => ({
       id: item.id,
       displayName: item.displayName,
-      email: item.email ?? "",
+      username: item.username,
       role: item.role,
       menuPermissions: item.menuPermissions,
       isActive: item.isActive,
