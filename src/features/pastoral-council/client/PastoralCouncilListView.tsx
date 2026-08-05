@@ -5,7 +5,6 @@ import {
   formatPastoralCouncilDisplayName,
   getPastoralCouncilPlaceholderImageSrc,
   type PastoralCouncilListItemDto,
-  pastoralCouncilRoleLabels,
 } from "@/features/pastoral-council/isomorphic"
 
 type PastoralCouncilListViewProps = {
@@ -91,7 +90,7 @@ export function PastoralCouncilListView({
                   <BriefcaseBusiness className="h-4 w-4 text-primary" />
                   <span>
                     <span className="text-neutral-500">직책:</span>{" "}
-                    {pastoralCouncilRoleLabels[item.role]}
+                    {item.positionTitle}
                   </span>
                 </p>
                 <p className="flex items-center gap-1.5">

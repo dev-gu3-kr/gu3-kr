@@ -1,3 +1,4 @@
+export { PastoralCouncilAdminTabs } from "./PastoralCouncilAdmin"
 export { PastoralCouncilCreateButton } from "./PastoralCouncilCreateButton"
 export { PastoralCouncilDeleteButton } from "./PastoralCouncilDeleteButton"
 export { PastoralCouncilFormContainer } from "./PastoralCouncilForm"

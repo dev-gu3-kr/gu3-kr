@@ -9,7 +9,6 @@ import {
   formatPastoralCouncilDisplayName,
   getPastoralCouncilPlaceholderImageSrc,
   pastoralCouncilPlaceholderImageTypeLabels,
-  pastoralCouncilRoleLabels,
   usePastoralCouncilDetailQuery,
 } from "@/features/pastoral-council/isomorphic"
 
@@ -99,7 +98,7 @@ export default function AdminPastoralCouncilViewPage() {
                 <BriefcaseBusiness className="h-5 w-5 text-primary" />
                 <p className="text-sm text-neutral-500">직책</p>
                 <p className="text-lg font-normal text-neutral-900">
-                  {pastoralCouncilRoleLabels[item.role]}
+                  {item.positionTitle}
                 </p>
               </div>
               <div className="grid grid-cols-[24px_88px_1fr] items-center gap-x-3">
@@ -137,7 +136,11 @@ export default function AdminPastoralCouncilViewPage() {
             >
               수정
             </Link>
-            <PastoralCouncilDeleteButton memberId={item.id} />
+            <PastoralCouncilDeleteButton
+              memberId={item.id}
+              positionId={item.positionId}
+              isActive={item.isActive}
+            />
           </div>
         </div>
       </section>

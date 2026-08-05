@@ -42,36 +42,6 @@ enum ClergyType {
   NUN
 }
 
-enum PastoralCouncilRole {
-  PARISH_PRIEST
-  ASSISTANT_PRIEST
-  RELIGIOUS
-  CHAIRPERSON
-  VICE_CHAIRMAN_MALE
-  SECRETARY
-  DISTRICT_CHIEF_MALE
-  LITURGY_DEPARTMENT
-  EDUCATION_YOUTH_DEPARTMENT
-  SOCIAL_PASTORAL_DEPARTMENT
-  FINANCE_DEPARTMENT
-  MISSION_DEPARTMENT
-  FACILITY_MANAGEMENT_DEPARTMENT
-  SENIOR_DEPARTMENT
-  FAMILY_LIFE_ENVIRONMENT_DEPARTMENT
-  MIDDLE_HIGH_DEPARTMENT
-  ELEMENTARY_PR_DEPARTMENT
-  MALE_DISTRICT_1
-  FEMALE_DISTRICT_1
-  MALE_DISTRICT_2
-  FEMALE_DISTRICT_2
-  MALE_DISTRICT_3
-  FEMALE_DISTRICT_3
-  MALE_DISTRICT_4
-  FEMALE_DISTRICT_4
-  MALE_DISTRICT_5
-  FEMALE_DISTRICT_5
-}
-
 enum PastoralCouncilPlaceholderImageType {
   WOMAN
   MAN
@@ -250,10 +220,27 @@ model ClergyProfile {
   @@index([type, isCurrent, sortOrder])
 }
 
+model PastoralCouncilPosition {
+  id                          String                              @id @default(cuid()) // 직책 고유 식별자
+  title                       String // 관리자에게 노출되는 직책명
+  parentId                    String? // 상위 직책 식별자, 최상위 직책이면 null
+  sortOrder                   Int                                 @default(0) // 같은 상위 직책 아래의 노출 순서
+  isActive                    Boolean                             @default(true) // 공개 조직도 노출 여부
+  defaultPlaceholderImageType PastoralCouncilPlaceholderImageType @default(MAN) // 공석 카드의 기본 이미지 유형
+  createdAt                   DateTime                            @default(now()) // 생성 시각
+  updatedAt                   DateTime                            @updatedAt // 수정 시각
+
+  parent   PastoralCouncilPosition?  @relation("PastoralCouncilPositionTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children PastoralCouncilPosition[] @relation("PastoralCouncilPositionTree")
+  members  PastoralCouncilMember[]
+
+  @@index([parentId, isActive, sortOrder])
+}
+
 model PastoralCouncilMember {
   id                   String                              @id @default(cuid()) // 고유 식별자
-  role                 PastoralCouncilRole                 @unique // 직책 enum(필수, 중복 불가)
-  name                 String // 이름 또는 공석 표시명
+  positionId           String // 배정된 직책 식별자
+  name                 String // 이름
   baptismalName        String? // 세례명(선택)
   phone                String? // 연락처(선택)
   imageUrl             String? // 프로필 이미지 URL(선택)
@@ -263,7 +250,9 @@ model PastoralCouncilMember {
   createdAt            DateTime                            @default(now()) // 생성 시각
   updatedAt            DateTime                            @updatedAt // 수정 시각
 
-  @@index([isActive, sortOrder])
+  position PastoralCouncilPosition @relation(fields: [positionId], references: [id], onDelete: Restrict)
+
+  @@index([positionId, isActive, sortOrder])
 }
 
 model Inquiry {

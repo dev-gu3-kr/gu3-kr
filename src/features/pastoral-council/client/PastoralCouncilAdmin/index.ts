@@ -1,0 +1,1 @@
+export { PastoralCouncilAdminTabs } from "./PastoralCouncilAdminTabs"

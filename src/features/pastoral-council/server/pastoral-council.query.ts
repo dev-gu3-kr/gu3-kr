@@ -1,11 +1,8 @@
-import type {
-  PastoralCouncilPlaceholderImageType,
-  PastoralCouncilRole,
-} from "@prisma/client"
+import type { PastoralCouncilPlaceholderImageType } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
-type PastoralCouncilMutationData = {
-  role: PastoralCouncilRole
+type PastoralCouncilMemberMutationData = {
+  positionId: string
   name: string
   baptismalName?: string
   phone: string | null
@@ -15,39 +12,120 @@ type PastoralCouncilMutationData = {
   sortOrder: number
 }
 
+type PastoralCouncilPositionMutationData = {
+  title: string
+  parentId: string | null
+  sortOrder: number
+  isActive: boolean
+  defaultPlaceholderImageType: PastoralCouncilPlaceholderImageType
+}
+
+const memberWithPosition = {
+  position: { select: { id: true, title: true } },
+} as const
+
+const positionWithMemberCount = {
+  _count: {
+    select: { members: { where: { isActive: true } } },
+  },
+} as const
+
 export async function findPastoralCouncilPage(params: {
   take: number
   cursor?: string
 }) {
   return prisma.pastoralCouncilMember.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    include: memberWithPosition,
+    orderBy: [
+      { position: { sortOrder: "asc" } },
+      { sortOrder: "asc" },
+      { createdAt: "desc" },
+    ],
     take: params.take,
     ...(params.cursor ? { cursor: { id: params.cursor }, skip: 1 } : {}),
   })
 }
 
-export async function findPublicPastoralCouncilList() {
+export async function findPublicPastoralCouncilMembers() {
   return prisma.pastoralCouncilMember.findMany({
     where: { isActive: true },
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    include: memberWithPosition,
+    orderBy: [
+      { position: { sortOrder: "asc" } },
+      { sortOrder: "asc" },
+      { createdAt: "desc" },
+    ],
   })
 }
 
 export async function findPastoralCouncilById(id: string) {
-  return prisma.pastoralCouncilMember.findUnique({ where: { id } })
+  return prisma.pastoralCouncilMember.findUnique({
+    where: { id },
+    include: memberWithPosition,
+  })
 }
 
-export async function createPastoralCouncil(data: PastoralCouncilMutationData) {
-  return prisma.pastoralCouncilMember.create({ data })
-}
-
-export async function updatePastoralCouncil(
-  id: string,
-  data: PastoralCouncilMutationData,
+export async function createPastoralCouncilMember(
+  data: PastoralCouncilMemberMutationData,
 ) {
-  return prisma.pastoralCouncilMember.update({ where: { id }, data })
+  return prisma.pastoralCouncilMember.create({
+    data,
+    include: memberWithPosition,
+  })
 }
 
-export async function deletePastoralCouncil(id: string) {
+export async function updatePastoralCouncilMember(
+  id: string,
+  data: PastoralCouncilMemberMutationData,
+) {
+  return prisma.pastoralCouncilMember.update({
+    where: { id },
+    data,
+    include: memberWithPosition,
+  })
+}
+
+export async function deletePastoralCouncilMember(id: string) {
   return prisma.pastoralCouncilMember.delete({ where: { id } })
+}
+
+export async function findPastoralCouncilPositions() {
+  return prisma.pastoralCouncilPosition.findMany({
+    include: positionWithMemberCount,
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  })
+}
+
+export async function findPastoralCouncilPositionById(id: string) {
+  return prisma.pastoralCouncilPosition.findUnique({
+    where: { id },
+    include: {
+      ...positionWithMemberCount,
+      _count: { select: { children: true, members: true } },
+    },
+  })
+}
+
+export async function createPastoralCouncilPosition(
+  data: PastoralCouncilPositionMutationData,
+) {
+  return prisma.pastoralCouncilPosition.create({
+    data,
+    include: positionWithMemberCount,
+  })
+}
+
+export async function updatePastoralCouncilPosition(
+  id: string,
+  data: PastoralCouncilPositionMutationData,
+) {
+  return prisma.pastoralCouncilPosition.update({
+    where: { id },
+    data,
+    include: positionWithMemberCount,
+  })
+}
+
+export async function deletePastoralCouncilPosition(id: string) {
+  return prisma.pastoralCouncilPosition.delete({ where: { id } })
 }

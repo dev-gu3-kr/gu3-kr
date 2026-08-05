@@ -1,22 +1,16 @@
-import {
-  PastoralCouncilCreateButton,
-  PastoralCouncilListContainer,
-} from "@/features/pastoral-council/client"
+import { PastoralCouncilAdminTabs } from "@/features/pastoral-council/client"
 
 export default function AdminPastoralCouncilPage() {
   return (
-    <main className="space-y-6">
-      <section className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">사목협의회 관리</h1>
-          <p className="text-sm text-neutral-600">
-            사목협의회 위원 정보를 확인하고 등록/수정합니다.
-          </p>
-        </div>
-        <PastoralCouncilCreateButton />
+    <main className="flex flex-col gap-6">
+      <section>
+        <h1 className="text-2xl font-semibold">사목협의회 관리</h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          직책 구조와 구성원 배정을 관리하고 공개 화면을 확인합니다.
+        </p>
       </section>
 
-      <PastoralCouncilListContainer />
+      <PastoralCouncilAdminTabs />
     </main>
   )
 }

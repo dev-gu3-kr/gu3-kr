@@ -2,11 +2,20 @@ import { z } from "zod"
 import {
   pastoralCouncilDefaultPlaceholderImageType,
   pastoralCouncilPlaceholderImageTypeValues,
-  pastoralCouncilRoleValues,
 } from "./pastoral-council.types"
 
+export const upsertPastoralCouncilPositionSchema = z.object({
+  title: z.string().trim().min(1).max(80),
+  parentId: z.string().trim().min(1).nullable().optional(),
+  sortOrder: z.number().int().min(0).max(9999).optional(),
+  isActive: z.boolean().optional(),
+  defaultPlaceholderImageType: z
+    .enum(pastoralCouncilPlaceholderImageTypeValues)
+    .default(pastoralCouncilDefaultPlaceholderImageType),
+})
+
 export const upsertPastoralCouncilSchema = z.object({
-  role: z.enum(pastoralCouncilRoleValues),
+  positionId: z.string().trim().min(1),
   name: z.string().trim().min(1).max(80),
   baptismalName: z.string().trim().max(80).optional(),
   phone: z.string().trim().max(30).optional(),
@@ -20,4 +29,8 @@ export const upsertPastoralCouncilSchema = z.object({
 
 export type UpsertPastoralCouncilSchema = z.infer<
   typeof upsertPastoralCouncilSchema
+>
+
+export type UpsertPastoralCouncilPositionSchema = z.infer<
+  typeof upsertPastoralCouncilPositionSchema
 >

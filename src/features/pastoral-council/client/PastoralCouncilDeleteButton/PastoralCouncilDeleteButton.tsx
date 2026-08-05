@@ -2,8 +2,11 @@
 
 import { useQueryClient } from "@tanstack/react-query"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
 import {
   type PastoralCouncilListItemDto,
+  type PastoralCouncilPositionDto,
   pastoralCouncilQueryKeys,
   publicPastoralCouncilQueryKeys,
 } from "@/features/pastoral-council/isomorphic"
@@ -11,8 +14,12 @@ import { apiFetch } from "@/lib/api"
 
 export function PastoralCouncilDeleteButton({
   memberId,
+  positionId,
+  isActive,
 }: {
   memberId: string
+  positionId: string
+  isActive: boolean
 }) {
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -25,43 +32,49 @@ export function PastoralCouncilDeleteButton({
       .del(`/api/admin/pastoral-council/${memberId}`)
       .send()
     if (!response.ok) {
-      window.alert("삭제에 실패했습니다.")
+      toast.error("삭제에 실패했습니다.")
       return
     }
 
-    // 삭제 직후 목록으로 돌아가도 이전 캐시가 보이지 않도록 즉시 동기화한다.
+    queryClient.removeQueries({
+      queryKey: pastoralCouncilQueryKeys.detail(memberId),
+      exact: true,
+    })
     queryClient.setQueryData<PastoralCouncilListItemDto[]>(
       pastoralCouncilQueryKeys.lists(),
       (previous) => previous?.filter((item) => item.id !== memberId) ?? [],
     )
-    queryClient.setQueryData<PastoralCouncilListItemDto[]>(
-      publicPastoralCouncilQueryKeys.lists(),
-      (previous) => previous?.filter((item) => item.id !== memberId) ?? [],
-    )
+    if (isActive) {
+      queryClient.setQueryData<PastoralCouncilPositionDto[]>(
+        pastoralCouncilQueryKeys.positions(),
+        (previous) =>
+          previous?.map((position) =>
+            position.id === positionId
+              ? {
+                  ...position,
+                  memberCount: Math.max(0, position.memberCount - 1),
+                }
+              : position,
+          ) ?? [],
+      )
+    }
 
-    await Promise.all([
-      queryClient.invalidateQueries({
-        queryKey: pastoralCouncilQueryKeys.lists(),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: pastoralCouncilQueryKeys.detail(memberId),
-      }),
-      queryClient.invalidateQueries({
-        queryKey: publicPastoralCouncilQueryKeys.lists(),
-      }),
-    ])
+    router.replace("/admin/pastoral-council")
 
-    router.push("/admin/pastoral-council")
-    router.refresh()
+    void queryClient.invalidateQueries({
+      queryKey: pastoralCouncilQueryKeys.lists(),
+    })
+    void queryClient.invalidateQueries({
+      queryKey: publicPastoralCouncilQueryKeys.detail(),
+    })
+    void queryClient.invalidateQueries({
+      queryKey: pastoralCouncilQueryKeys.positions(),
+    })
   }
 
   return (
-    <button
-      type="button"
-      onClick={handleDelete}
-      className="rounded-md border border-red-200 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-    >
-      삭제
-    </button>
+    <Button type="button" variant="destructive" onClick={handleDelete}>
+      삭제
+    </Button>
   )
 }

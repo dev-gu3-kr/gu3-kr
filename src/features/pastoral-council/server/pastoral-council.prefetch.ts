@@ -1,9 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query"
 import type { ApiResponseDto } from "@/features/notices/isomorphic"
-import type {
-  PastoralCouncilListItemDto,
-  PastoralCouncilPublicPageDto,
-} from "@/features/pastoral-council/isomorphic"
+import type { PastoralCouncilPublicPageDto } from "@/features/pastoral-council/isomorphic"
 import { publicPastoralCouncilQueryKeys } from "@/features/pastoral-council/isomorphic"
 import { serverApiFetch } from "@/lib/api-server"
 
@@ -17,18 +14,22 @@ async function fetchPublicPastoralCouncil() {
     .json()
     .catch(() => null)) as ApiResponseDto<PastoralCouncilPublicPageDto> | null
 
-  if (!json?.ok || !Array.isArray(json.items)) {
+  if (
+    !json?.ok ||
+    !Array.isArray(json.positions) ||
+    !Array.isArray(json.members)
+  ) {
     throw new Error("사목협의회 정보를 불러오지 못했습니다.")
   }
 
-  return json.items as PastoralCouncilListItemDto[]
+  return { positions: json.positions, members: json.members }
 }
 
 export async function prefetchPublicPastoralCouncilList(
   queryClient: QueryClient,
 ) {
   await queryClient.prefetchQuery({
-    queryKey: publicPastoralCouncilQueryKeys.lists(),
+    queryKey: publicPastoralCouncilQueryKeys.detail(),
     queryFn: fetchPublicPastoralCouncil,
   })
 }

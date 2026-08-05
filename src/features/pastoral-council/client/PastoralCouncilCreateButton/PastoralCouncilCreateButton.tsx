@@ -2,27 +2,20 @@
 
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import {
-  getAvailablePastoralCouncilRoles,
-  usePastoralCouncilListQuery,
-} from "@/features/pastoral-council/isomorphic"
+import { usePastoralCouncilPositionsQuery } from "@/features/pastoral-council/isomorphic"
 
 export function PastoralCouncilCreateButton() {
   const router = useRouter()
-  const { data } = usePastoralCouncilListQuery()
-
-  const availableRoles = getAvailablePastoralCouncilRoles({
-    usedRoles: data?.map((item) => item.role) ?? [],
-  })
-  const isDisabled = data !== undefined && availableRoles.length === 0
+  const { data } = usePastoralCouncilPositionsQuery()
+  const isDisabled = data !== undefined && data.length === 0
 
   return (
     <Button
       type="button"
       disabled={isDisabled}
-      title={isDisabled ? "모든 직책이 이미 등록되어 있습니다." : undefined}
+      title={isDisabled ? "먼저 직책을 등록해 주세요." : undefined}
       onClick={() => router.push("/admin/pastoral-council/new")}
-      className="min-w-[92px] bg-black text-white hover:bg-black/90"
+      className="min-w-[92px]"
     >
       + 등록
     </Button>

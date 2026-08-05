@@ -1,517 +1,111 @@
 "use client"
 
-import { UsersRound } from "lucide-react"
 import Image from "next/image"
-import { useLayoutEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Badge } from "@/components/ui/badge"
+import {
+  formatPastoralCouncilDisplayName,
+  getPastoralCouncilPlaceholderImageSrc,
+  type PastoralCouncilListItemDto,
+  type PastoralCouncilPositionTreeNodeDto,
+} from "@/features/pastoral-council/isomorphic"
 import { cn } from "@/lib/utils"
 
-type CouncilLeader = {
-  readonly role: string
-  readonly name: string
-  readonly note?: string
-  readonly imageUrl?: string
-  readonly fallbackImageUrl: string
+const MIN_HORIZONTAL_BRANCH_WIDTH = 240
+const HORIZONTAL_BRANCH_GAP = 16
+const MIN_DESCENDANT_GROUP_WIDTH = 480
+
+type PositionCardNode = {
+  readonly key: string
+  readonly position: PastoralCouncilPositionTreeNodeDto
+  readonly member: PastoralCouncilListItemDto | null
+  readonly memberIndex: number
+  readonly isLastForPosition: boolean
 }
 
-type CouncilBranch = {
-  readonly role: string
-  readonly name: string
-  readonly imageUrl?: string
-  readonly fallbackImageUrl: string
+function toPositionCardNodes(
+  positions: readonly PastoralCouncilPositionTreeNodeDto[],
+): PositionCardNode[] {
+  return positions.flatMap((position) => {
+    const members = position.members.length > 0 ? position.members : [null]
+
+    return members.map((member, memberIndex) => ({
+      key: member?.id ?? `${position.id}-vacant`,
+      position,
+      member,
+      memberIndex,
+      isLastForPosition: memberIndex === members.length - 1,
+    }))
+  })
 }
 
-type ExecutiveLeaders = {
-  readonly parishPriest: CouncilLeader
-  readonly leftWing: CouncilLeader
-  readonly rightWing: CouncilLeader
-  readonly chair: CouncilLeader
-  readonly viceChair: CouncilLeader
-  readonly secretary: CouncilLeader
-  readonly districtChief: CouncilLeader
-}
-
-type PastoralCouncilPageViewProps = {
-  readonly executiveLeaders: ExecutiveLeaders
-  readonly departmentBranches: readonly CouncilBranch[]
-  readonly districtBranches: readonly CouncilBranch[]
-}
-
-type MobileTreeNode = {
-  readonly id: string
-  readonly kind: "leader" | "branch"
-  readonly leader?: CouncilLeader
-  readonly branch?: CouncilBranch
-  readonly showImage?: boolean
-  readonly children?: readonly MobileTreeNode[]
-}
-
-type MobileTreeLineLayout = {
-  readonly childAnchors: readonly {
-    readonly x: number
-    readonly y: number
-  }[]
-  readonly lineX: number
-  readonly parentY: number
-  readonly stemBottomY: number
-}
-
-type BoardLine = {
-  readonly x1: number
-  readonly y1: number
-  readonly x2: number
-  readonly y2: number
-  readonly dashed?: boolean
-}
-
-type CouncilBoardNodeKey =
-  | "parishPriest"
-  | "leftWing"
-  | "rightWing"
-  | "chair"
-  | "viceChair"
-  | "secretary"
-  | "districtChief"
-  | `department-${number}`
-  | `district-${number}`
-
-type CouncilBoardNodeRect = {
-  readonly bottom: number
-  readonly centerX: number
-  readonly centerY: number
-  readonly left: number
-  readonly right: number
-  readonly top: number
-}
-
-function getStackBottom(params: {
-  readonly top: number
-  readonly cardHeight: number
-  readonly gap: number
-  readonly count: number
-  readonly bottomPadding: number
-}) {
-  if (params.count === 0) {
-    return 0
-  }
-
-  return (
-    params.top +
-    params.count * params.cardHeight +
-    Math.max(0, params.count - 1) * params.gap +
-    params.bottomPadding
-  )
-}
-
-function toBoardNodeRect(
-  boardRect: DOMRect,
-  element: HTMLDivElement,
-): CouncilBoardNodeRect {
-  const rect = element.getBoundingClientRect()
-
-  return {
-    bottom: Math.round(rect.bottom - boardRect.top),
-    centerX: Math.round(rect.left - boardRect.left + rect.width / 2),
-    centerY: Math.round(rect.top - boardRect.top + rect.height / 2),
-    left: Math.round(rect.left - boardRect.left),
-    right: Math.round(rect.right - boardRect.left),
-    top: Math.round(rect.top - boardRect.top),
-  }
-}
-
-function buildCouncilBoardLines({
-  boardWidth,
-  departmentRects,
-  districtChiefRect,
-  districtRects,
-  leftWingRect,
-  parishPriestRect,
-  rightWingRect,
-  chairRect,
-  secretaryRect,
-  viceChairRect,
+function PositionCard({
+  position,
+  member,
+  eager = false,
+  featured = false,
+  centered = false,
+  uniform = false,
 }: {
-  readonly boardWidth: number
-  readonly departmentRects: readonly CouncilBoardNodeRect[]
-  readonly districtChiefRect: CouncilBoardNodeRect
-  readonly districtRects: readonly CouncilBoardNodeRect[]
-  readonly leftWingRect: CouncilBoardNodeRect
-  readonly parishPriestRect: CouncilBoardNodeRect
-  readonly rightWingRect: CouncilBoardNodeRect
-  readonly chairRect: CouncilBoardNodeRect
-  readonly secretaryRect: CouncilBoardNodeRect
-  readonly viceChairRect: CouncilBoardNodeRect
-}): readonly BoardLine[] {
-  const columnGap = Math.max(32, Math.round(boardWidth * 0.05))
-  const cardTouchOverlap = Math.max(10, Math.round(boardWidth * 0.008))
-  const districtBridgeLift = Math.max(24, Math.round(boardWidth * 0.025))
-  const leftTrunkX = departmentRects[0].right + columnGap
-  const rightTrunkX = districtRects[0].left - columnGap
-  const topRowY = leftWingRect.centerY
-  const middleRowY = viceChairRect.centerY
-  const districtBridgeY = districtChiefRect.top - districtBridgeLift
-
-  return [
-    {
-      x1: chairRect.centerX,
-      y1: parishPriestRect.bottom,
-      x2: chairRect.centerX,
-      y2: districtChiefRect.centerY,
-    },
-    {
-      x1: leftWingRect.right - cardTouchOverlap,
-      y1: topRowY,
-      x2: rightWingRect.left + cardTouchOverlap,
-      y2: topRowY,
-    },
-    {
-      x1: viceChairRect.right - cardTouchOverlap,
-      y1: middleRowY,
-      x2: secretaryRect.left + cardTouchOverlap,
-      y2: middleRowY,
-    },
-    {
-      x1: leftTrunkX,
-      y1: departmentRects[0].centerY,
-      x2: leftTrunkX,
-      y2: departmentRects[departmentRects.length - 1].centerY,
-    },
-    {
-      x1: rightTrunkX,
-      y1: districtRects[0].centerY,
-      x2: rightTrunkX,
-      y2: districtRects[districtRects.length - 1].centerY,
-    },
-    {
-      x1: leftTrunkX,
-      y1: districtBridgeY,
-      x2: chairRect.centerX,
-      y2: districtBridgeY,
-    },
-    {
-      x1: districtChiefRect.right - cardTouchOverlap,
-      y1: districtChiefRect.centerY,
-      x2: rightTrunkX,
-      y2: districtChiefRect.centerY,
-    },
-    ...departmentRects.map((rect) => ({
-      x1: rect.right - cardTouchOverlap,
-      y1: rect.centerY,
-      x2: leftTrunkX,
-      y2: rect.centerY,
-    })),
-    ...districtRects.map((rect) => ({
-      x1: rightTrunkX,
-      y1: rect.centerY,
-      x2: rect.left + cardTouchOverlap,
-      y2: rect.centerY,
-    })),
-  ]
-}
-
-function useCouncilBoardLines({
-  departmentCount,
-  districtCount,
-}: {
-  readonly departmentCount: number
-  readonly districtCount: number
+  position: PastoralCouncilPositionTreeNodeDto
+  member: PastoralCouncilListItemDto | null
+  eager?: boolean
+  featured?: boolean
+  centered?: boolean
+  uniform?: boolean
 }) {
-  const boardRef = useRef<HTMLDivElement | null>(null)
-  const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({})
-  const [lines, setLines] = useState<readonly BoardLine[]>([])
+  const displayName = member ? formatPastoralCouncilDisplayName(member) : "공석"
+  const placeholderType =
+    member?.placeholderImageType ?? position.defaultPlaceholderImageType
 
-  useLayoutEffect(() => {
-    const measure = () => {
-      const board = boardRef.current
-
-      if (!board) {
-        return
-      }
-
-      const boardRect = board.getBoundingClientRect()
-
-      if (boardRect.width === 0 || boardRect.height === 0) {
-        setLines([])
-        return
-      }
-
-      const parishPriestNode = nodeRefs.current.parishPriest
-      const leftWingNode = nodeRefs.current.leftWing
-      const rightWingNode = nodeRefs.current.rightWing
-      const chairNode = nodeRefs.current.chair
-      const viceChairNode = nodeRefs.current.viceChair
-      const secretaryNode = nodeRefs.current.secretary
-      const districtChiefNode = nodeRefs.current.districtChief
-
-      if (
-        !parishPriestNode ||
-        !leftWingNode ||
-        !rightWingNode ||
-        !chairNode ||
-        !viceChairNode ||
-        !secretaryNode ||
-        !districtChiefNode
-      ) {
-        return
-      }
-
-      const departmentNodes = Array.from(
-        { length: departmentCount },
-        (_, index) => nodeRefs.current[`department-${index}`],
-      )
-      const districtNodes = Array.from(
-        { length: districtCount },
-        (_, index) => nodeRefs.current[`district-${index}`],
-      )
-
-      if (
-        departmentNodes.some((node) => !node) ||
-        districtNodes.some((node) => !node)
-      ) {
-        return
-      }
-
-      const safeDepartmentNodes = departmentNodes.filter(
-        (node): node is HTMLDivElement => node !== null,
-      )
-      const safeDistrictNodes = districtNodes.filter(
-        (node): node is HTMLDivElement => node !== null,
-      )
-
-      const departmentRects = safeDepartmentNodes.map((node) =>
-        toBoardNodeRect(boardRect, node),
-      )
-      const districtRects = safeDistrictNodes.map((node) =>
-        toBoardNodeRect(boardRect, node),
-      )
-
-      setLines(
-        buildCouncilBoardLines({
-          boardWidth: Math.round(boardRect.width),
-          departmentRects,
-          districtChiefRect: toBoardNodeRect(boardRect, districtChiefNode),
-          districtRects,
-          leftWingRect: toBoardNodeRect(boardRect, leftWingNode),
-          parishPriestRect: toBoardNodeRect(boardRect, parishPriestNode),
-          rightWingRect: toBoardNodeRect(boardRect, rightWingNode),
-          chairRect: toBoardNodeRect(boardRect, chairNode),
-          secretaryRect: toBoardNodeRect(boardRect, secretaryNode),
-          viceChairRect: toBoardNodeRect(boardRect, viceChairNode),
-        }),
-      )
-    }
-
-    const animationFrameId = requestAnimationFrame(measure)
-    const resizeObserver = new ResizeObserver(() => {
-      measure()
-    })
-
-    if (boardRef.current) {
-      resizeObserver.observe(boardRef.current)
-    }
-
-    Object.values(nodeRefs.current).forEach((node) => {
-      if (node) {
-        resizeObserver.observe(node)
-      }
-    })
-
-    window.addEventListener("resize", measure)
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-      resizeObserver.disconnect()
-      window.removeEventListener("resize", measure)
-    }
-  }, [departmentCount, districtCount])
-
-  const registerNode =
-    (key: CouncilBoardNodeKey) => (element: HTMLDivElement | null) => {
-      nodeRefs.current[key] = element
-    }
-
-  return {
-    boardRef,
-    lines,
-    registerNode,
-  }
-}
-
-function CouncilBoardLines({
-  lines,
-}: {
-  readonly lines: readonly BoardLine[]
-}) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible"
-    >
-      {lines.map((line, index) => (
-        <line
-          key={`${line.x1}-${line.y1}-${line.x2}-${line.y2}-${index}`}
-          x1={line.x1}
-          y1={line.y1}
-          x2={line.x2}
-          y2={line.y2}
-          stroke="currentColor"
-          strokeWidth="1.25"
-          strokeLinecap="square"
-          strokeDasharray={line.dashed ? "4 4" : undefined}
-          className="text-border"
-        />
-      ))}
-    </svg>
-  )
-}
-
-function CouncilNode({
-  leader,
-  compact = false,
-  fixedImageSize = false,
-  showIcon = true,
-  showImage = false,
-  className,
-}: {
-  readonly leader: CouncilLeader
-  readonly compact?: boolean
-  readonly fixedImageSize?: boolean
-  readonly showIcon?: boolean
-  readonly showImage?: boolean
-  readonly className?: string
-}) {
   return (
     <article
-      data-tree-surface
       className={cn(
-        "relative h-[156px] overflow-hidden rounded-3xl border border-border/70 bg-card shadow-[0_18px_50px_-30px_rgba(15,23,42,0.45)]",
-        compact &&
-          "h-[128px] rounded-2xl shadow-[0_14px_34px_-24px_rgba(15,23,42,0.38)]",
-        className,
+        "relative z-10 flex min-h-30 w-full max-w-96 min-w-0 flex-col justify-center rounded-2xl bg-card p-4 shadow-[0_4px_18px_rgba(0,0,0,0.07)] ring-1 ring-foreground/5",
+        (featured || centered) && "mx-auto",
+        (uniform || (centered && !featured)) && "max-w-80",
+        uniform && "h-full",
+        featured &&
+          "min-h-38 max-w-sm p-5 shadow-[0_8px_28px_rgba(0,0,0,0.09)]",
       )}
     >
       <div
-        className={cn(
-          "relative flex h-full items-center gap-4 p-5",
-          compact && "gap-3 p-3.5",
-          !showIcon && !showImage && "justify-center",
-        )}
+        className={cn("flex min-w-0 items-center gap-3", uniform && "flex-1")}
       >
-        {showImage ? (
-          <div
-            className={cn(
-              "relative h-[96px] w-[78px] shrink-0 overflow-hidden rounded-[12px] border border-border/70 bg-secondary",
-              compact && !fixedImageSize && "h-[64px] w-[52px] rounded-[10px]",
-            )}
-          >
-            <Image
-              src={leader.imageUrl ?? leader.fallbackImageUrl}
-              alt={`${leader.name} 프로필 사진`}
-              fill
-              sizes={compact && !fixedImageSize ? "52px" : "78px"}
-              className="object-cover"
-            />
-          </div>
-        ) : null}
-        {showIcon ? (
-          <div
-            className={cn(
-              "flex size-14 shrink-0 items-center justify-center rounded-2xl border border-border/70 shadow-inner",
-              compact && "size-10 rounded-xl",
-              "bg-secondary text-muted-foreground",
-            )}
-          >
-            <UsersRound className={cn("size-6", compact && "size-[18px]")} />
-          </div>
-        ) : null}
         <div
           className={cn(
-            "flex min-w-0 flex-1 flex-col justify-center gap-2",
-            compact && "gap-1.5",
-          )}
-        >
-          <Badge
-            variant="secondary"
-            className={cn(
-              "inline-flex w-fit rounded-full px-2.5 py-1 text-[11px] font-semibold tracking-[0.14em]",
-              compact && "px-2 py-0.5 text-[10px]",
-              !showIcon && !showImage ? "self-center" : "self-start",
-              "bg-secondary text-muted-foreground",
-            )}
-          >
-            {leader.role}
-          </Badge>
-          <div
-            className={cn(
-              "space-y-1",
-              !showIcon && !showImage && "text-center",
-            )}
-          >
-            <p
-              className={cn(
-                "text-lg font-semibold tracking-[-0.02em]",
-                compact && "text-sm leading-5",
-                "text-foreground",
-              )}
-            >
-              {leader.name}
-            </p>
-          </div>
-        </div>
-      </div>
-    </article>
-  )
-}
-
-function BranchNode({
-  branch,
-  compact = false,
-  fixedImageSize = false,
-}: {
-  readonly branch: CouncilBranch
-  readonly compact?: boolean
-  readonly fixedImageSize?: boolean
-}) {
-  return (
-    <article
-      data-tree-surface
-      className={cn(
-        "h-[156px] rounded-2xl border border-border/70 bg-card px-5 py-4 shadow-[0_16px_36px_-28px_rgba(15,23,42,0.38)]",
-        compact &&
-          "h-[128px] rounded-xl px-3.5 py-3 shadow-[0_12px_30px_-24px_rgba(15,23,42,0.35)]",
-      )}
-    >
-      <div className={cn("flex h-full items-center gap-4", compact && "gap-3")}>
-        <div
-          className={cn(
-            "relative h-[96px] w-[78px] shrink-0 overflow-hidden rounded-[12px] border border-border/70 bg-secondary",
-            compact && !fixedImageSize && "h-[64px] w-[52px] rounded-[10px]",
+            "relative aspect-square min-h-20 min-w-20 shrink-0 self-stretch overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/5",
+            featured && "min-h-24 min-w-24",
           )}
         >
           <Image
-            src={branch.imageUrl ?? branch.fallbackImageUrl}
-            alt={`${branch.role} ${branch.name} 프로필 사진`}
+            src={
+              member?.imageUrl ??
+              getPastoralCouncilPlaceholderImageSrc(placeholderType)
+            }
+            alt={
+              member
+                ? `${displayName} 프로필 사진`
+                : `${position.title} 공석 대체 이미지`
+            }
             fill
-            sizes={compact && !fixedImageSize ? "52px" : "78px"}
+            sizes={featured ? "80px" : "56px"}
+            loading={eager ? "eager" : "lazy"}
             className="object-cover"
           />
         </div>
-        <div className="min-w-0 flex-1">
+        <div className="flex min-w-0 flex-col items-start gap-2">
+          <Badge variant="secondary" className="max-w-full rounded-full">
+            <span className="truncate">{position.title}</span>
+          </Badge>
           <p
             className={cn(
-              "text-[15px] font-semibold tracking-[-0.02em] text-muted-foreground",
-              compact && "text-[13px] leading-5",
+              "min-w-0 break-keep font-semibold tracking-tight",
+              featured && "text-xl",
+              !member && "text-muted-foreground",
             )}
           >
-            {branch.role}
-          </p>
-          <p
-            className={cn(
-              "mt-1 text-sm leading-6 text-foreground",
-              compact && "text-[13px] leading-5",
-            )}
-          >
-            {branch.name}
+            {displayName}
           </p>
         </div>
       </div>
@@ -519,577 +113,410 @@ function BranchNode({
   )
 }
 
-function MobileSectionTitle({ title }: { readonly title: string }) {
+function PositionCardGroup({
+  position,
+  featured = false,
+  centered = false,
+  uniform = false,
+}: {
+  position: PastoralCouncilPositionTreeNodeDto
+  featured?: boolean
+  centered?: boolean
+  uniform?: boolean
+}) {
+  const members = position.members.length > 0 ? position.members : [null]
+
   return (
-    <div className="space-y-2">
-      <h3 className="text-lg font-bold tracking-[-0.02em] text-[#252629]">
-        {title}
-      </h3>
-      <div className="h-px bg-border/70" />
+    <div
+      data-position-card-group={position.id}
+      className={cn(
+        "flex w-full min-w-0 flex-col gap-3",
+        centered && "mx-auto",
+      )}
+    >
+      {members.map((member, index) => (
+        <PositionCard
+          key={member?.id ?? `${position.id}-vacant`}
+          position={position}
+          member={member}
+          eager={featured && index === 0}
+          featured={featured}
+          centered={centered}
+          uniform={uniform}
+        />
+      ))}
     </div>
   )
 }
 
-function MobileTreeItem({
-  node,
-  isRoot = false,
-  depth = 1,
+function useObservedWidth() {
+  const elementRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  useEffect(() => {
+    const element = elementRef.current
+    if (!element) return
+
+    const updateWidth = () => {
+      const nextWidth = Math.round(element.clientWidth)
+      setWidth((previous) => (previous === nextWidth ? previous : nextWidth))
+    }
+
+    updateWidth()
+    const observer = new ResizeObserver(updateWidth)
+    observer.observe(element)
+
+    return () => observer.disconnect()
+  }, [])
+
+  return { elementRef, width }
+}
+
+function OrganizationNode({
+  position,
+  featured = false,
+  centered = false,
 }: {
-  readonly node: MobileTreeNode
-  readonly isRoot?: boolean
-  readonly depth?: number
+  position: PastoralCouncilPositionTreeNodeDto
+  featured?: boolean
+  centered?: boolean
 }) {
-  const children = node.children ?? []
-  const isThirdDepthOrDeeper = depth >= 3
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const cardRef = useRef<HTMLDivElement | null>(null)
-  const childItemRefs = useRef<Array<HTMLDivElement | null>>([])
-  const [lineLayout, setLineLayout] = useState<MobileTreeLineLayout | null>(
-    null,
+  return (
+    <div className="w-full min-w-0">
+      <PositionCardGroup
+        position={position}
+        featured={featured}
+        centered={centered}
+      />
+      <ChildrenLayout positions={position.children} />
+    </div>
   )
+}
 
-  useLayoutEffect(() => {
-    if (!children.length) {
-      setLineLayout(null)
-      return
-    }
-
-    const childIndentX = 17
-    const nestedStemInsetX = 12
-
-    const measure = () => {
-      const container = containerRef.current
-      const card = cardRef.current
-
-      if (!container || !card) {
-        return
-      }
-
-      const containerRect = container.getBoundingClientRect()
-      const cardRect = card.getBoundingClientRect()
-      const lineX = isRoot ? childIndentX : childIndentX + nestedStemInsetX
-      const parentY = Math.round(
-        isRoot
-          ? cardRect.top - containerRect.top + cardRect.height / 2
-          : cardRect.bottom - containerRect.top,
-      )
-
-      const childAnchors = childItemRefs.current
-        .slice(0, children.length)
-        .map((childItem) => {
-          const childCard = childItem?.querySelector<HTMLElement>(
-            "[data-tree-surface]",
-          )
-
-          if (!childCard) {
-            return null
-          }
-
-          const childRect = childCard.getBoundingClientRect()
-
-          return {
-            x: Math.round(childRect.left - containerRect.left),
-            y: Math.round(
-              childRect.top - containerRect.top + childRect.height / 2,
-            ),
-          }
-        })
-        .filter(
-          (
-            value,
-          ): value is {
-            readonly x: number
-            readonly y: number
-          } => value !== null,
-        )
-
-      if (childAnchors.length !== children.length) {
-        return
-      }
-
-      const nextLayout = {
-        childAnchors,
-        lineX,
-        parentY,
-        stemBottomY: childAnchors[childAnchors.length - 1].y,
-      } satisfies MobileTreeLineLayout
-
-      setLineLayout((previousLayout) => {
-        if (
-          previousLayout &&
-          previousLayout.lineX === nextLayout.lineX &&
-          previousLayout.parentY === nextLayout.parentY &&
-          previousLayout.stemBottomY === nextLayout.stemBottomY &&
-          previousLayout.childAnchors.length ===
-            nextLayout.childAnchors.length &&
-          previousLayout.childAnchors.every(
-            (value, index) =>
-              value.x === nextLayout.childAnchors[index]?.x &&
-              value.y === nextLayout.childAnchors[index]?.y,
-          )
-        ) {
-          return previousLayout
-        }
-
-        return nextLayout
-      })
-    }
-
-    measure()
-
-    const resizeObserver = new ResizeObserver(() => {
-      measure()
-    })
-
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current)
-    }
-
-    if (cardRef.current) {
-      resizeObserver.observe(cardRef.current)
-    }
-
-    childItemRefs.current.forEach((childItem) => {
-      if (childItem) {
-        resizeObserver.observe(childItem)
-      }
-    })
-
-    window.addEventListener("resize", measure)
-
-    return () => {
-      resizeObserver.disconnect()
-      window.removeEventListener("resize", measure)
-    }
-  }, [children.length, isRoot])
+function HorizontalChildren({
+  positions,
+  width,
+}: {
+  positions: readonly PastoralCouncilPositionTreeNodeDto[]
+  width: number
+}) {
+  const cards = toPositionCardNodes(positions)
+  const descendants = positions.filter(
+    (position) => position.children.length > 0,
+  )
+  const columnWidth =
+    (width - (cards.length - 1) * HORIZONTAL_BRANCH_GAP) / cards.length
+  const descendantColumnWidth =
+    descendants.length > 0
+      ? (width - (descendants.length - 1) * HORIZONTAL_BRANCH_GAP) /
+        descendants.length
+      : 0
 
   return (
-    <div ref={containerRef} className="relative">
-      {children.length && lineLayout ? (
-        <svg
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible"
-        >
-          <path
-            d={`M${lineLayout.lineX} ${lineLayout.parentY} V ${lineLayout.stemBottomY}`}
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1"
-            className="text-border/70"
-          />
-
-          {lineLayout.childAnchors.map((childAnchor, index) => (
-            <path
-              key={`${node.id}-${index}-${childAnchor.x}-${childAnchor.y}`}
-              d={`M${lineLayout.lineX} ${childAnchor.y} H ${childAnchor.x}`}
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1"
-              className="text-border/70"
-            />
-          ))}
-        </svg>
-      ) : null}
-
-      <div
-        ref={cardRef}
-        data-tree-card
-        className={cn("relative z-10", !isRoot && "ml-[17px] mt-3")}
+    <>
+      <ol
+        data-layout="horizontal"
+        className="relative flex items-stretch gap-4 before:absolute before:top-0 before:left-1/2 before:h-4 before:w-px before:-translate-x-1/2 before:bg-border"
       >
-        {node.kind === "leader" && node.leader ? (
-          <CouncilNode
-            leader={node.leader}
-            compact={!isRoot}
-            fixedImageSize
-            showIcon={!node.showImage}
-            showImage={node.showImage}
+        {cards.map((card, index) => (
+          <li
+            key={card.key}
             className={cn(
-              "w-full",
-              isThirdDepthOrDeeper && "ml-auto w-[calc(100%-17px)]",
-            )}
-          />
-        ) : null}
-
-        {node.kind === "branch" && node.branch ? (
-          <div
-            className={cn(
-              isThirdDepthOrDeeper && "ml-auto w-[calc(100%-17px)]",
+              "relative flex min-w-0 flex-1 flex-col pt-8 before:absolute before:top-4 before:left-1/2 before:h-4 before:w-px before:-translate-x-1/2 before:bg-border",
+              index > 0 &&
+                "after:absolute after:top-4 after:right-1/2 after:-left-2 after:h-px after:bg-border",
             )}
           >
-            <BranchNode branch={node.branch} compact fixedImageSize />
-          </div>
-        ) : null}
-      </div>
+            {index < cards.length - 1 ? (
+              <span
+                aria-hidden="true"
+                className="absolute top-4 -right-2 left-1/2 h-px bg-border"
+              />
+            ) : null}
+            <PositionCard
+              position={card.position}
+              member={card.member}
+              centered
+              uniform
+            />
+          </li>
+        ))}
+      </ol>
 
-      {children.length ? (
-        <div className="ml-[17px]">
-          {children.map((child, index) => (
-            <div
-              key={child.id}
-              ref={(element) => {
-                childItemRefs.current[index] = element
-              }}
-              className="relative"
-            >
-              <MobileTreeItem node={child} depth={depth + 1} />
-            </div>
-          ))}
+      {descendants.length > 0 ? (
+        <div>
+          <svg
+            aria-hidden="true"
+            className="block h-10 w-full text-border"
+            viewBox={`0 0 ${width} 40`}
+            preserveAspectRatio="none"
+            shapeRendering="crispEdges"
+          >
+            {descendants.map((position, descendantIndex) => {
+              const sourceIndexes = cards.flatMap((card, cardIndex) =>
+                card.position.id === position.id ? [cardIndex] : [],
+              )
+              const firstSourceIndex = sourceIndexes[0] ?? 0
+              const lastSourceIndex =
+                sourceIndexes[sourceIndexes.length - 1] ?? firstSourceIndex
+              const sourceX =
+                ((firstSourceIndex + lastSourceIndex) / 2) *
+                  (columnWidth + HORIZONTAL_BRANCH_GAP) +
+                columnWidth / 2
+              const targetX =
+                descendantIndex *
+                  (descendantColumnWidth + HORIZONTAL_BRANCH_GAP) +
+                descendantColumnWidth / 2
+
+              return (
+                <path
+                  key={position.id}
+                  d={`M ${sourceX} 0 V 16 H ${targetX} V 40`}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1"
+                  vectorEffect="non-scaling-stroke"
+                />
+              )
+            })}
+          </svg>
+          <div
+            className="grid gap-4"
+            style={{
+              gridTemplateColumns: `repeat(${descendants.length}, minmax(0, 1fr))`,
+            }}
+          >
+            {descendants.map((position) => (
+              <ChildrenLayout key={position.id} positions={position.children} />
+            ))}
+          </div>
         </div>
       ) : null}
+    </>
+  )
+}
+
+function LeafColumnChildren({
+  positions,
+  width,
+  columnCount,
+}: {
+  positions: readonly PastoralCouncilPositionTreeNodeDto[]
+  width: number
+  columnCount: number
+}) {
+  const cards = toPositionCardNodes(positions)
+  const rows = Array.from(
+    { length: Math.ceil(cards.length / columnCount) },
+    (_, rowIndex) =>
+      cards.slice(rowIndex * columnCount, (rowIndex + 1) * columnCount),
+  )
+  const columnWidth =
+    (width - (columnCount - 1) * HORIZONTAL_BRANCH_GAP) / columnCount
+
+  return (
+    <ol data-layout="columns" data-columns={columnCount} className="space-y-4">
+      {rows.map((row, rowIndex) => {
+        const rowWidth =
+          row.length * columnWidth +
+          Math.max(0, row.length - 1) * HORIZONTAL_BRANCH_GAP
+        const rowLeft = (width - rowWidth) / 2
+        const firstCardCenter = rowLeft + columnWidth / 2
+        const lastCardCenter = rowLeft + rowWidth - columnWidth / 2
+        const isLastRow = rowIndex === rows.length - 1
+
+        return (
+          <li
+            key={row[0]?.key ?? `row-${rowIndex}`}
+            className="relative grid gap-4 pt-8"
+            style={{
+              gridTemplateColumns: `repeat(${row.length}, minmax(0, ${columnWidth}px))`,
+              justifyContent: "center",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              className={cn(
+                "absolute top-0 left-1/2 w-px -translate-x-1/2 bg-border",
+                isLastRow ? "h-4" : "-bottom-4",
+              )}
+            />
+            <span
+              aria-hidden="true"
+              className="absolute top-4 h-px bg-border"
+              style={{
+                left: `${firstCardCenter}px`,
+                width: `${lastCardCenter - firstCardCenter}px`,
+              }}
+            />
+            {row.map((card) => (
+              <div
+                key={card.key}
+                className="relative min-w-0 before:absolute before:-top-4 before:left-1/2 before:h-4 before:w-px before:-translate-x-1/2 before:bg-border"
+              >
+                <PositionCard
+                  position={card.position}
+                  member={card.member}
+                  uniform
+                />
+              </div>
+            ))}
+          </li>
+        )
+      })}
+    </ol>
+  )
+}
+
+function VerticalChildren({
+  positions,
+}: {
+  positions: readonly PastoralCouncilPositionTreeNodeDto[]
+}) {
+  const cards = toPositionCardNodes(positions)
+
+  return (
+    <>
+      <div
+        data-connector="vertical"
+        aria-hidden="true"
+        className="relative h-8"
+      >
+        <span className="absolute top-0 left-1/2 h-4 w-px -translate-x-1/2 bg-border" />
+        <span className="absolute top-4 right-1/2 left-4 h-px bg-border" />
+        <span className="absolute top-4 left-4 h-4 w-px bg-border" />
+      </div>
+      <ol data-layout="vertical" className="ml-4 space-y-3 pt-4 pl-5">
+        {cards.map((card, index) => (
+          <li key={card.key} className="relative min-w-0">
+            <span
+              aria-hidden="true"
+              className="absolute -top-4 -left-5 h-12 w-px bg-border"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute top-8 -left-5 h-px w-5 bg-border"
+            />
+            {index < cards.length - 1 ? (
+              <span
+                aria-hidden="true"
+                className="absolute top-8 -bottom-3 -left-5 w-px bg-border"
+              />
+            ) : null}
+            <PositionCard position={card.position} member={card.member} />
+            {card.isLastForPosition ? (
+              <ChildrenLayout positions={card.position.children} />
+            ) : null}
+          </li>
+        ))}
+      </ol>
+    </>
+  )
+}
+
+function SingleChild({ card }: { card: PositionCardNode }) {
+  return (
+    <div data-layout="single">
+      <span aria-hidden="true" className="mx-auto block h-8 w-px bg-border" />
+      <PositionCard position={card.position} member={card.member} centered />
+      <ChildrenLayout positions={card.position.children} />
+    </div>
+  )
+}
+
+function ChildrenLayout({
+  positions,
+}: {
+  positions: readonly PastoralCouncilPositionTreeNodeDto[]
+}) {
+  const { elementRef, width } = useObservedWidth()
+
+  if (positions.length === 0) return null
+
+  const cards = toPositionCardNodes(positions)
+  const descendantCount = positions.filter(
+    (position) => position.children.length > 0,
+  ).length
+  const requiredRowWidth =
+    cards.length * MIN_HORIZONTAL_BRANCH_WIDTH +
+    (cards.length - 1) * HORIZONTAL_BRANCH_GAP
+  const requiredDescendantWidth =
+    descendantCount * MIN_DESCENDANT_GROUP_WIDTH +
+    Math.max(0, descendantCount - 1) * HORIZONTAL_BRANCH_GAP
+  const canUseHorizontalRow =
+    cards.length > 1 &&
+    width >= requiredRowWidth &&
+    (descendantCount <= 1 || width >= requiredDescendantWidth)
+  const allLeaves = positions.every(
+    (position) => position.children.length === 0,
+  )
+  const leafColumnCount = Math.max(
+    1,
+    Math.min(
+      4,
+      cards.length,
+      Math.floor(
+        (width + HORIZONTAL_BRANCH_GAP) /
+          (MIN_HORIZONTAL_BRANCH_WIDTH + HORIZONTAL_BRANCH_GAP),
+      ),
+    ),
+  )
+
+  return (
+    <div ref={elementRef} className="w-full min-w-0">
+      {width === 0 ? (
+        <VerticalChildren positions={positions} />
+      ) : cards.length === 1 ? (
+        <SingleChild card={cards[0]} />
+      ) : canUseHorizontalRow ? (
+        <HorizontalChildren positions={positions} width={width} />
+      ) : allLeaves ? (
+        <LeafColumnChildren
+          positions={positions}
+          width={width}
+          columnCount={leafColumnCount}
+        />
+      ) : (
+        <VerticalChildren positions={positions} />
+      )}
     </div>
   )
 }
 
 export function PastoralCouncilPageView({
-  executiveLeaders,
-  departmentBranches,
-  districtBranches,
-}: PastoralCouncilPageViewProps) {
-  const desktopMinHeight = Math.max(
-    1640,
-    getStackBottom({
-      top: 560,
-      cardHeight: 156,
-      gap: 16,
-      count: departmentBranches.length,
-      bottomPadding: 48,
-    }),
-    getStackBottom({
-      top: 560,
-      cardHeight: 156,
-      gap: 16,
-      count: districtBranches.length,
-      bottomPadding: 48,
-    }),
-    940 + 156 + 48,
-  )
-  const tabletMinHeight = Math.max(
-    1560,
-    getStackBottom({
-      top: 452,
-      cardHeight: 128,
-      gap: 12,
-      count: departmentBranches.length,
-      bottomPadding: 48,
-    }),
-    getStackBottom({
-      top: 452,
-      cardHeight: 128,
-      gap: 12,
-      count: districtBranches.length,
-      bottomPadding: 48,
-    }),
-    720 + 128 + 48,
-  )
-  const desktopBoard = useCouncilBoardLines({
-    departmentCount: departmentBranches.length,
-    districtCount: districtBranches.length,
-  })
-  const tabletBoard = useCouncilBoardLines({
-    departmentCount: departmentBranches.length,
-    districtCount: districtBranches.length,
-  })
-
-  const mobileTree: MobileTreeNode = {
-    id: "parish-priest",
-    kind: "leader",
-    leader: executiveLeaders.parishPriest,
-    showImage: true,
-    children: [
-      {
-        id: "assistant-priest",
-        kind: "leader",
-        leader: executiveLeaders.leftWing,
-        showImage: true,
-      },
-      {
-        id: "religious",
-        kind: "leader",
-        leader: executiveLeaders.rightWing,
-        showImage: true,
-      },
-      {
-        id: "chair",
-        kind: "leader",
-        leader: executiveLeaders.chair,
-        showImage: true,
-        children: [
-          {
-            id: "vice-chair",
-            kind: "leader",
-            leader: executiveLeaders.viceChair,
-            showImage: true,
-          },
-          {
-            id: "secretary",
-            kind: "leader",
-            leader: executiveLeaders.secretary,
-            showImage: true,
-          },
-        ],
-      },
-    ],
-  }
-  const mobileDistrictTree: MobileTreeNode = {
-    id: "district-chief",
-    kind: "leader",
-    leader: executiveLeaders.districtChief,
-    showImage: true,
-    children: districtBranches.map((branch) => ({
-      id: `district-${branch.role}`,
-      kind: "branch" as const,
-      branch,
-    })),
+  roots,
+  compact = false,
+}: {
+  roots: readonly PastoralCouncilPositionTreeNodeDto[]
+  compact?: boolean
+}) {
+  if (roots.length === 0) {
+    return (
+      <div className="mt-8 rounded-3xl border border-dashed p-10 text-center text-sm text-muted-foreground">
+        공개 중인 사목협의회 직책이 없습니다.
+      </div>
+    )
   }
 
   return (
-    <section className="mx-auto w-full max-w-[1200px] px-5 pb-10 md:px-8 md:pb-14">
-      <div className="space-y-10">
-        <div className="hidden xl:block">
-          <div
-            ref={desktopBoard.boardRef}
-            className="relative"
-            style={{ minHeight: `${desktopMinHeight}px` }}
-          >
-            <CouncilBoardLines lines={desktopBoard.lines} />
+    <div
+      className={cn(
+        "mx-auto mt-8 w-full max-w-[1200px] px-5 pb-16 md:px-8 md:pb-24",
+        compact && "mt-0 pb-0 md:pb-0",
+      )}
+    >
+      <h2 className="sr-only">사목협의회 조직도</h2>
 
-            <div
-              ref={desktopBoard.registerNode("parishPriest")}
-              className="absolute left-1/2 top-0 w-[280px] -translate-x-1/2"
-            >
-              <CouncilNode
-                leader={executiveLeaders.parishPriest}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={desktopBoard.registerNode("leftWing")}
-              className="absolute left-[24px] top-[150px] w-[280px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.leftWing}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={desktopBoard.registerNode("chair")}
-              className="absolute left-1/2 top-[258px] w-[280px] -translate-x-1/2"
-            >
-              <CouncilNode
-                leader={executiveLeaders.chair}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={desktopBoard.registerNode("rightWing")}
-              className="absolute right-[24px] top-[150px] w-[280px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.rightWing}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={desktopBoard.registerNode("viceChair")}
-              className="absolute left-[88px] top-[376px] w-[280px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.viceChair}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={desktopBoard.registerNode("secretary")}
-              className="absolute right-[88px] top-[376px] w-[280px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.secretary}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div className="absolute left-0 top-[560px] w-[280px] space-y-4">
-              {departmentBranches.map((branch, index) => (
-                <div
-                  key={branch.role}
-                  ref={desktopBoard.registerNode(`department-${index}`)}
-                >
-                  <BranchNode branch={branch} />
-                </div>
-              ))}
-            </div>
-
-            <div
-              ref={desktopBoard.registerNode("districtChief")}
-              className="absolute left-[57%] top-[940px] w-[280px] -translate-x-1/2"
-            >
-              <CouncilNode
-                leader={executiveLeaders.districtChief}
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div className="absolute right-0 top-[560px] w-[280px] space-y-4">
-              {districtBranches.map((branch, index) => (
-                <div
-                  key={branch.role}
-                  ref={desktopBoard.registerNode(`district-${index}`)}
-                >
-                  <BranchNode branch={branch} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="hidden md:block xl:hidden">
-          <div
-            ref={tabletBoard.boardRef}
-            className="relative"
-            style={{ minHeight: `${tabletMinHeight}px` }}
-          >
-            <CouncilBoardLines lines={tabletBoard.lines} />
-
-            <div
-              ref={tabletBoard.registerNode("parishPriest")}
-              className="absolute left-1/2 top-0 w-[192px] -translate-x-1/2"
-            >
-              <CouncilNode
-                leader={executiveLeaders.parishPriest}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={tabletBoard.registerNode("leftWing")}
-              className="absolute left-0 top-[116px] w-[192px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.leftWing}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={tabletBoard.registerNode("chair")}
-              className="absolute left-1/2 top-[210px] w-[192px] -translate-x-1/2"
-            >
-              <CouncilNode
-                leader={executiveLeaders.chair}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={tabletBoard.registerNode("rightWing")}
-              className="absolute right-0 top-[116px] w-[192px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.rightWing}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={tabletBoard.registerNode("viceChair")}
-              className="absolute left-[16px] top-[296px] w-[192px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.viceChair}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div
-              ref={tabletBoard.registerNode("secretary")}
-              className="absolute right-[16px] top-[296px] w-[192px]"
-            >
-              <CouncilNode
-                leader={executiveLeaders.secretary}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div className="absolute left-0 top-[452px] w-[192px] space-y-3">
-              {departmentBranches.map((branch, index) => (
-                <div
-                  key={branch.role}
-                  ref={tabletBoard.registerNode(`department-${index}`)}
-                >
-                  <BranchNode branch={branch} compact />
-                </div>
-              ))}
-            </div>
-
-            <div
-              ref={tabletBoard.registerNode("districtChief")}
-              className="absolute left-[55%] top-[720px] w-[192px] -translate-x-1/2"
-            >
-              <CouncilNode
-                leader={executiveLeaders.districtChief}
-                compact
-                showIcon={false}
-                showImage
-              />
-            </div>
-
-            <div className="absolute right-0 top-[452px] w-[192px] space-y-3">
-              {districtBranches.map((branch, index) => (
-                <div
-                  key={branch.role}
-                  ref={tabletBoard.registerNode(`district-${index}`)}
-                >
-                  <BranchNode branch={branch} compact />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="md:hidden">
-          <div className="space-y-8">
-            <MobileTreeItem node={mobileTree} isRoot />
-
-            <section className="space-y-4">
-              <MobileSectionTitle title="분과 담당" />
-              <div className="space-y-3">
-                {departmentBranches.map((branch) => (
-                  <BranchNode key={branch.role} branch={branch} />
-                ))}
-              </div>
-            </section>
-
-            <section className="space-y-4">
-              <MobileSectionTitle title="구역/지역 담당" />
-              <MobileTreeItem node={mobileDistrictTree} isRoot />
-            </section>
-          </div>
-        </div>
-      </div>
-    </section>
+      <ol
+        className="mx-auto w-full space-y-6"
+        aria-label="사목협의회 직책 연결 구조"
+      >
+        {roots.map((root) => (
+          <li key={root.id} className="w-full">
+            <OrganizationNode position={root} featured={!compact} centered />
+          </li>
+        ))}
+      </ol>
+    </div>
   )
 }

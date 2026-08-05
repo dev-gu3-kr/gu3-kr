@@ -3,14 +3,15 @@ import type { ApiResponseDto } from "@/features/notices/isomorphic"
 import type { PastoralCouncilPublicPageDto } from "@/features/pastoral-council/isomorphic"
 import { pastoralCouncilService } from "@/features/pastoral-council/server"
 
-function mapItem(
+function mapMember(
   item: Awaited<
-    ReturnType<typeof pastoralCouncilService.getPublicPastoralCouncilList>
-  >[number],
+    ReturnType<typeof pastoralCouncilService.getPublicPastoralCouncil>
+  >["members"][number],
 ) {
   return {
     id: item.id,
-    role: item.role,
+    positionId: item.positionId,
+    positionTitle: item.position.title,
     name: item.name,
     baptismalName: item.baptismalName,
     phone: item.phone,
@@ -22,12 +23,29 @@ function mapItem(
   }
 }
 
-export async function GET() {
-  const items = await pastoralCouncilService.getPublicPastoralCouncilList()
+function mapPosition(
+  position: Awaited<
+    ReturnType<typeof pastoralCouncilService.getPublicPastoralCouncil>
+  >["positions"][number],
+) {
+  return {
+    id: position.id,
+    title: position.title,
+    parentId: position.parentId,
+    sortOrder: position.sortOrder,
+    isActive: position.isActive,
+    defaultPlaceholderImageType: position.defaultPlaceholderImageType,
+    memberCount: position._count.members,
+    createdAt: position.createdAt.toISOString(),
+  }
+}
 
+export async function GET() {
+  const result = await pastoralCouncilService.getPublicPastoralCouncil()
   const response: ApiResponseDto<PastoralCouncilPublicPageDto> = {
     ok: true,
-    items: items.map(mapItem),
+    positions: result.positions.map(mapPosition),
+    members: result.members.map(mapMember),
   }
 
   return NextResponse.json(response)

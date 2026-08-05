@@ -22,12 +22,12 @@ if (!prismaConfig.includes('seed: "tsx ./prisma/seed.ts"')) {
 
 if (
   !pastoralSeed.includes("createMany") ||
-  !pastoralSeed.includes("skipDuplicates: true") ||
+  !pastoralSeed.includes("assignedPositionIds") ||
   pastoralSeed.includes(".upsert(") ||
   pastoralSeed.includes(".update(")
 ) {
   violations.push(
-    "The pastoral council seed must remain insert-only with duplicate roles skipped",
+    "The pastoral council seed must remain insert-only with assigned positions skipped",
   )
 }
 

@@ -8,7 +8,8 @@
 - **Event**: 본당 일정(달력/다가오는 일정)
 - **MassSchedule**: 미사시간 고정/반고정 콘텐츠
 - **ClergyProfile**: 신부님/수녀님 소개
-- **PastoralCouncilMember**: 사목협의회 인원
+- **PastoralCouncilPosition**: 상위 직책과 정렬 순서를 가지는 사목협의회 직책 노드
+- **PastoralCouncilMember**: 직책에 배정되는 사목협의회 구성원
 - **Inquiry**: 1:1 문의 (단일 processingMemo 필드)
 
 ## 관계
@@ -17,6 +18,8 @@
 - Post 1:N PostAsset
 - FileAsset 1:N PostAsset
 - User 1:N Event
+- PastoralCouncilPosition 1:N PastoralCouncilPosition (상위·하위 직책)
+- PastoralCouncilPosition 1:N PastoralCouncilMember
 
 ## 카테고리 정책
 - Post.category
