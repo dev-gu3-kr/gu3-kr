@@ -1,0 +1,4 @@
+interface:
+  display_name: "Onsoa UI Harness"
+  short_description: "온소아 UI를 반응형·접근성 기준으로 구현하고 검증"
+  default_prompt: "Use $onsoa-ui-harness to implement and verify this Onsoa UI across mobile, tablet, and desktop."

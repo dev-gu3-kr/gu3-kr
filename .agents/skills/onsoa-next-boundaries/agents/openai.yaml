@@ -1,0 +1,4 @@
+interface:
+  display_name: "Onsoa Next Boundaries"
+  short_description: "Next.js 16 서버·클라이언트·라우트 경계를 안전하게 점검"
+  default_prompt: "Use $onsoa-next-boundaries to review this Onsoa Next.js change for server, client, action, and route boundaries."

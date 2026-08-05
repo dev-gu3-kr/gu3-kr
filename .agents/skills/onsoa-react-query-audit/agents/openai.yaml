@@ -1,0 +1,4 @@
+interface:
+  display_name: "Onsoa React Query Audit"
+  short_description: "온소아 React Query 캐시·무효화·중복 요청을 점검"
+  default_prompt: "Use $onsoa-react-query-audit to audit these Onsoa React Query hooks and propose focused fixes."
