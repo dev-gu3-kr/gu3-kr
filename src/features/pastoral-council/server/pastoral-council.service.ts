@@ -54,6 +54,8 @@ function toPositionMutationData(input: UpsertPastoralCouncilPositionInputDto) {
     title: input.title.trim(),
     parentId: input.parentId ?? null,
     sortOrder: input.sortOrder ?? 0,
+    childrenLayout: input.childrenLayout ?? "AUTO",
+    childrenColumns: input.childrenColumns ?? 2,
     isActive: input.isActive ?? true,
     defaultPlaceholderImageType:
       input.defaultPlaceholderImageType ??

@@ -1,7 +1,7 @@
 "use client"
 
 import { useQueryClient } from "@tanstack/react-query"
-import { Pencil, Plus, Trash2 } from "lucide-react"
+import { GripVertical, Pencil, Plus, Trash2 } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
@@ -41,9 +41,12 @@ import {
 import { Switch } from "@/components/ui/switch"
 import {
   buildPastoralCouncilPositionTree,
+  type PastoralCouncilChildrenLayoutDto,
   type PastoralCouncilPlaceholderImageTypeDto,
   type PastoralCouncilPositionDto,
   type PastoralCouncilPositionTreeNodeDto,
+  pastoralCouncilChildrenLayoutLabels,
+  pastoralCouncilChildrenLayoutValues,
   pastoralCouncilDefaultPlaceholderImageType,
   pastoralCouncilPlaceholderImageTypeLabels,
   pastoralCouncilPlaceholderImageTypeValues,
@@ -60,33 +63,59 @@ function PositionTreeRows({
   nodes,
   depth = 0,
   onEditAction,
+  onMoveAction,
 }: {
   nodes: readonly PastoralCouncilPositionTreeNodeDto[]
   depth?: number
   onEditAction: (position: PastoralCouncilPositionDto) => void
+  onMoveAction: (positionId: string, parentId: string | null) => void
 }) {
   return nodes.map((node) => (
     <div key={node.id}>
-      <button
-        type="button"
-        onClick={() => onEditAction(node)}
-        className="flex min-h-14 w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{ paddingLeft: `${12 + depth * 24}px` }}
+      <div
+        className="flex min-h-14 w-full items-center gap-1 rounded-lg py-1 pr-1 transition-colors hover:bg-muted"
+        style={{ paddingLeft: `${4 + depth * 24}px` }}
       >
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium">{node.title}</span>
-          <span className="block text-xs text-muted-foreground">
-            구성원 {node.memberCount}명 · 순서 {node.sortOrder}
+        <button
+          type="button"
+          draggable
+          aria-label={`${node.title} 직책 이동`}
+          className="flex size-11 shrink-0 cursor-grab items-center justify-center rounded-md text-muted-foreground active:cursor-grabbing"
+          onDragStart={(event) => {
+            event.dataTransfer.effectAllowed = "move"
+            event.dataTransfer.setData("text/plain", node.id)
+          }}
+        >
+          <GripVertical aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          onClick={() => onEditAction(node)}
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={(event) => {
+            event.preventDefault()
+            const positionId = event.dataTransfer.getData("text/plain")
+            if (positionId) onMoveAction(positionId, node.id)
+          }}
+          className="flex min-h-12 min-w-0 flex-1 items-center gap-3 rounded-md px-2 py-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-medium">{node.title}</span>
+            <span className="block text-xs text-muted-foreground">
+              구성원 {node.memberCount}명 · 순서 {node.sortOrder} ·{" "}
+              {pastoralCouncilChildrenLayoutLabels[node.childrenLayout]}
+            </span>
           </span>
-        </span>
-        {!node.isActive ? <Badge variant="outline">비공개</Badge> : null}
-        <Pencil aria-hidden="true" />
-      </button>
+          {!node.isActive ? <Badge variant="outline">비공개</Badge> : null}
+          <Pencil aria-hidden="true" />
+        </button>
+      </div>
       {node.children.length > 0 ? (
         <PositionTreeRows
           nodes={node.children}
           depth={depth + 1}
           onEditAction={onEditAction}
+          onMoveAction={onMoveAction}
         />
       ) : null}
     </div>
@@ -150,6 +179,8 @@ function PositionFormDialog({
       title: editingPosition?.title ?? "",
       parentId: editingPosition?.parentId ?? null,
       sortOrder: editingPosition?.sortOrder ?? 0,
+      childrenLayout: editingPosition?.childrenLayout ?? "AUTO",
+      childrenColumns: editingPosition?.childrenColumns ?? 2,
       isActive: editingPosition?.isActive ?? true,
       defaultPlaceholderImageType:
         editingPosition?.defaultPlaceholderImageType ??
@@ -165,6 +196,7 @@ function PositionFormDialog({
   const placeholderImageType =
     watch("defaultPlaceholderImageType") ??
     pastoralCouncilDefaultPlaceholderImageType
+  const childrenLayout = watch("childrenLayout") ?? "AUTO"
 
   return (
     <Dialog open={open} onOpenChange={onOpenChangeAction}>
@@ -262,6 +294,64 @@ function PositionFormDialog({
                       {pastoralCouncilPlaceholderImageTypeValues.map((type) => (
                         <SelectItem key={type} value={type}>
                           {pastoralCouncilPlaceholderImageTypeLabels[type]}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field>
+                <FieldLabel htmlFor="position-children-layout">
+                  하위 직책 배치
+                </FieldLabel>
+                <Select
+                  value={childrenLayout}
+                  onValueChange={(value) =>
+                    setValue(
+                      "childrenLayout",
+                      value as PastoralCouncilChildrenLayoutDto,
+                      { shouldDirty: true },
+                    )
+                  }
+                >
+                  <SelectTrigger id="position-children-layout">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {pastoralCouncilChildrenLayoutValues.map((layout) => (
+                        <SelectItem key={layout} value={layout}>
+                          {pastoralCouncilChildrenLayoutLabels[layout]}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="position-children-columns">
+                  한 줄 최대 직책 수
+                </FieldLabel>
+                <Select
+                  value={String(watch("childrenColumns") ?? 2)}
+                  onValueChange={(value) =>
+                    setValue("childrenColumns", Number(value), {
+                      shouldDirty: true,
+                    })
+                  }
+                  disabled={childrenLayout === "COLUMN"}
+                >
+                  <SelectTrigger id="position-children-columns">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {[1, 2, 3, 4].map((columns) => (
+                        <SelectItem key={columns} value={String(columns)}>
+                          {columns}개
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -394,13 +484,65 @@ export function PastoralCouncilPositionManager() {
     }
   }
 
+  async function handleMove(positionId: string, parentId: string | null) {
+    const position = positions.find((item) => item.id === positionId)
+    if (
+      !position ||
+      position.id === parentId ||
+      position.parentId === parentId
+    ) {
+      return
+    }
+
+    const siblingOrders = positions
+      .filter((item) => item.parentId === parentId && item.id !== positionId)
+      .map((item) => item.sortOrder)
+    const nextSortOrder = Math.min(
+      9999,
+      (siblingOrders.length > 0 ? Math.max(...siblingOrders) : 0) + 10,
+    )
+
+    setIsSaving(true)
+    try {
+      const response = await apiFetch
+        .patch(`/api/admin/pastoral-council/positions/${position.id}`)
+        .json({
+          title: position.title,
+          parentId,
+          sortOrder: nextSortOrder,
+          childrenLayout: position.childrenLayout,
+          childrenColumns: position.childrenColumns,
+          isActive: position.isActive,
+          defaultPlaceholderImageType: position.defaultPlaceholderImageType,
+        })
+        .send()
+      const json = (await response.json().catch(() => null)) as {
+        ok?: boolean
+        message?: string
+      } | null
+      if (!response.ok || !json?.ok) {
+        throw new Error(json?.message ?? "직책 이동에 실패했습니다.")
+      }
+
+      await refreshPositionData()
+      toast.success("직책 소속이 변경되었습니다.")
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "직책 이동에 실패했습니다.",
+      )
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <>
       <Card>
         <CardHeader>
           <CardTitle>직책 구조</CardTitle>
           <CardDescription>
-            항목을 선택해 이름·상위 직책·순서를 수정할 수 있습니다.
+            항목을 선택해 배치를 설정하거나, 이동 아이콘을 다른 직책에 끌어
+            하위로 배치할 수 있습니다.
           </CardDescription>
           <CardAction>
             <Button
@@ -427,15 +569,30 @@ export function PastoralCouncilPositionManager() {
               등록된 직책이 없습니다. 첫 직책을 추가해 주세요.
             </div>
           ) : (
-            <div className="divide-y rounded-xl border p-1">
-              <PositionTreeRows
-                nodes={roots}
-                onEditAction={(position) => {
-                  setEditingPosition(position)
-                  setDialogOpen(true)
+            <>
+              <button
+                type="button"
+                className="mb-2 w-full rounded-lg border border-dashed px-3 py-2 text-left text-xs text-muted-foreground"
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => {
+                  event.preventDefault()
+                  const positionId = event.dataTransfer.getData("text/plain")
+                  if (positionId) handleMove(positionId, null)
                 }}
-              />
-            </div>
+              >
+                이 영역에 놓으면 최상위 직책으로 이동합니다.
+              </button>
+              <div role="tree" className="divide-y rounded-xl border p-1">
+                <PositionTreeRows
+                  nodes={roots}
+                  onMoveAction={handleMove}
+                  onEditAction={(position) => {
+                    setEditingPosition(position)
+                    setDialogOpen(true)
+                  }}
+                />
+              </div>
+            </>
           )}
         </CardContent>
       </Card>

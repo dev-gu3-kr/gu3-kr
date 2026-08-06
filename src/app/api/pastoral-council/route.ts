@@ -33,6 +33,8 @@ function mapPosition(
     title: position.title,
     parentId: position.parentId,
     sortOrder: position.sortOrder,
+    childrenLayout: position.childrenLayout,
+    childrenColumns: position.childrenColumns,
     isActive: position.isActive,
     defaultPlaceholderImageType: position.defaultPlaceholderImageType,
     memberCount: position._count.members,

@@ -1,4 +1,7 @@
-import type { PastoralCouncilPlaceholderImageType } from "@prisma/client"
+import type {
+  PastoralCouncilChildrenLayout,
+  PastoralCouncilPlaceholderImageType,
+} from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 
 type PastoralCouncilMemberMutationData = {
@@ -16,6 +19,8 @@ type PastoralCouncilPositionMutationData = {
   title: string
   parentId: string | null
   sortOrder: number
+  childrenLayout: PastoralCouncilChildrenLayout
+  childrenColumns: number
   isActive: boolean
   defaultPlaceholderImageType: PastoralCouncilPlaceholderImageType
 }

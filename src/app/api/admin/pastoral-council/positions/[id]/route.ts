@@ -17,6 +17,8 @@ function mapPosition(position: {
   title: string
   parentId: string | null
   sortOrder: number
+  childrenLayout: "AUTO" | "ROW" | "COLUMN" | "GRID"
+  childrenColumns: number
   isActive: boolean
   defaultPlaceholderImageType: "WOMAN" | "MAN" | "NUN" | "PRIEST"
   createdAt: Date
@@ -27,6 +29,8 @@ function mapPosition(position: {
     title: position.title,
     parentId: position.parentId,
     sortOrder: position.sortOrder,
+    childrenLayout: position.childrenLayout,
+    childrenColumns: position.childrenColumns,
     isActive: position.isActive,
     defaultPlaceholderImageType: position.defaultPlaceholderImageType,
     memberCount: position._count.members,

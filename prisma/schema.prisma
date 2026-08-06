@@ -49,6 +49,13 @@ enum PastoralCouncilPlaceholderImageType {
   PRIEST
 }
 
+enum PastoralCouncilChildrenLayout {
+  AUTO
+  ROW
+  COLUMN
+  GRID
+}
+
 enum InquiryStatus {
   RECEIVED // 접수됨(아직 답변/처리 전)
   IN_PROGRESS // 담당자 확인/처리 중
@@ -225,6 +232,8 @@ model PastoralCouncilPosition {
   title                       String // 관리자에게 노출되는 직책명
   parentId                    String? // 상위 직책 식별자, 최상위 직책이면 null
   sortOrder                   Int                                 @default(0) // 같은 상위 직책 아래의 노출 순서
+  childrenLayout              PastoralCouncilChildrenLayout       @default(AUTO) // 하위 직책을 화면 너비에 맞춰 배치하는 방식
+  childrenColumns             Int                                 @default(2) // 그리드 배치에서 한 줄에 표시할 하위 직책 수
   isActive                    Boolean                             @default(true) // 공개 조직도 노출 여부
   defaultPlaceholderImageType PastoralCouncilPlaceholderImageType @default(MAN) // 공석 카드의 기본 이미지 유형
   createdAt                   DateTime                            @default(now()) // 생성 시각

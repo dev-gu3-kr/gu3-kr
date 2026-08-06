@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest"
 import {
   buildPastoralCouncilPositionTree,
   createsPastoralCouncilPositionCycle,
+  isPastoralCouncilPositionVisible,
   type PastoralCouncilListItemDto,
   type PastoralCouncilPositionDto,
 } from "./pastoral-council.types"
@@ -16,6 +17,8 @@ function position(
     title: id,
     parentId,
     sortOrder,
+    childrenLayout: "AUTO",
+    childrenColumns: 2,
     isActive: true,
     defaultPlaceholderImageType: "MAN",
     memberCount: 0,
@@ -66,6 +69,33 @@ describe("buildPastoralCouncilPositionTree", () => {
       "member-a",
       "member-b",
     ])
+  })
+
+  it("실제 구성원이 있는 하위 경로만 유지하고 공석뿐인 가지는 숨긴다", () => {
+    const roots = buildPastoralCouncilPositionTree({
+      positions: [
+        position("middle", null, 0),
+        position("vacant-leaf", "middle", 0),
+        position("occupied-leaf", "middle", 1),
+        position("vacant-middle", "middle", 2),
+        position("vacant-grandchild", "vacant-middle", 0),
+      ],
+      members: [member("occupied-member", "occupied-leaf", 0)],
+    })
+    const root = roots[0]
+    const vacantMiddle = root?.children.find(
+      (node) => node.id === "vacant-middle",
+    )
+
+    expect(root && isPastoralCouncilPositionVisible(root)).toBe(true)
+    expect(
+      root?.children
+        .filter(isPastoralCouncilPositionVisible)
+        .map((node) => node.id),
+    ).toEqual(["occupied-leaf"])
+    expect(vacantMiddle && isPastoralCouncilPositionVisible(vacantMiddle)).toBe(
+      false,
+    )
   })
 })
 

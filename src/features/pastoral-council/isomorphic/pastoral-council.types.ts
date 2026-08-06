@@ -11,6 +11,26 @@ export type PastoralCouncilPlaceholderImageTypeDto =
 export const pastoralCouncilDefaultPlaceholderImageType =
   "MAN" as const satisfies PastoralCouncilPlaceholderImageTypeDto
 
+export const pastoralCouncilChildrenLayoutValues = [
+  "AUTO",
+  "ROW",
+  "COLUMN",
+  "GRID",
+] as const
+
+export type PastoralCouncilChildrenLayoutDto =
+  (typeof pastoralCouncilChildrenLayoutValues)[number]
+
+export const pastoralCouncilChildrenLayoutLabels: Record<
+  PastoralCouncilChildrenLayoutDto,
+  string
+> = {
+  AUTO: "화면에 맞게 자동",
+  ROW: "한 줄 가로 배치",
+  COLUMN: "한 줄 세로 배치",
+  GRID: "여러 줄 그리드",
+}
+
 export const pastoralCouncilPlaceholderImageTypeLabels: Record<
   PastoralCouncilPlaceholderImageTypeDto,
   string
@@ -37,6 +57,8 @@ export type PastoralCouncilPositionDto = {
   title: string // 화면에 표시할 직책명
   parentId: string | null // 최상위 직책이면 null
   sortOrder: number // 같은 상위 직책 아래의 노출 순서
+  childrenLayout: PastoralCouncilChildrenLayoutDto // 하위 직책 배치 방식
+  childrenColumns: number // 그리드 한 줄의 하위 직책 수(1~4)
   isActive: boolean // 공개 조직도 노출 여부
   defaultPlaceholderImageType: PastoralCouncilPlaceholderImageTypeDto // 공석 카드 이미지 유형
   memberCount: number // 현재 배정된 활성 구성원 수
@@ -48,6 +70,8 @@ export type UpsertPastoralCouncilPositionInputDto = {
   title: string // 직책명
   parentId?: string | null // 상위 직책, 최상위이면 null
   sortOrder?: number // 같은 상위 직책 아래의 노출 순서
+  childrenLayout?: PastoralCouncilChildrenLayoutDto // 하위 직책 배치 방식
+  childrenColumns?: number // 그리드 한 줄의 하위 직책 수(1~4)
   isActive?: boolean // 공개 조직도 노출 여부
   defaultPlaceholderImageType?: PastoralCouncilPlaceholderImageTypeDto // 공석 카드 이미지 유형
 }
@@ -96,6 +120,16 @@ export type PastoralCouncilPositionTreeNodeDto = PastoralCouncilPositionDto & {
   children: PastoralCouncilPositionTreeNodeDto[] // 하위 직책
 }
 
+// 본인 또는 하위 경로에 실제 구성원이 있는 직책만 공개 트리에 표시한다.
+export function isPastoralCouncilPositionVisible(
+  position: PastoralCouncilPositionTreeNodeDto,
+) {
+  return (
+    position.members.length > 0 ||
+    position.children.some(isPastoralCouncilPositionVisible)
+  )
+}
+
 export function formatPastoralCouncilDisplayName(params: {
   name: string
   baptismalName?: string | null
@@ -129,7 +163,8 @@ export function buildPastoralCouncilPositionTree(params: {
   const nodeById = new Map<string, PastoralCouncilPositionTreeNodeDto>()
   const sortedPositions = [...params.positions].sort(
     (left, right) =>
-      left.sortOrder - right.sortOrder || left.title.localeCompare(right.title),
+      left.sortOrder - right.sortOrder ||
+      (left.title === right.title ? 0 : left.title < right.title ? -1 : 1),
   )
 
   for (const position of sortedPositions) {

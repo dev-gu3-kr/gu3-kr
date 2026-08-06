@@ -1,5 +1,6 @@
 import { z } from "zod"
 import {
+  pastoralCouncilChildrenLayoutValues,
   pastoralCouncilDefaultPlaceholderImageType,
   pastoralCouncilPlaceholderImageTypeValues,
 } from "./pastoral-council.types"
@@ -8,6 +9,8 @@ export const upsertPastoralCouncilPositionSchema = z.object({
   title: z.string().trim().min(1).max(80),
   parentId: z.string().trim().min(1).nullable().optional(),
   sortOrder: z.number().int().min(0).max(9999).optional(),
+  childrenLayout: z.enum(pastoralCouncilChildrenLayoutValues).default("AUTO"),
+  childrenColumns: z.number().int().min(1).max(4).default(2),
   isActive: z.boolean().optional(),
   defaultPlaceholderImageType: z
     .enum(pastoralCouncilPlaceholderImageTypeValues)
