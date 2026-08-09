@@ -3,6 +3,13 @@ import { SubLanding } from "@/components/SubLanding"
 import { PastoralCouncilPageContainer } from "@/features/pastoral-council/client"
 import { pastoralCouncilPrefetch } from "@/features/pastoral-council/server"
 import { getQueryClient } from "@/lib/react-query"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "사목협의회",
+  description: "구로3동성당 사목협의회의 구성과 조직을 안내합니다.",
+  path: "/community/pastoral-council",
+})
 
 function CouncilOrganizationTitleBar() {
   return (

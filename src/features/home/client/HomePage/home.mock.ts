@@ -126,22 +126,27 @@ export const homePageMock: HomePageViewModel = {
       title: "공지사항",
       items: [
         {
+          id: "notice-1",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "notice-2",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "notice-3",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "notice-4",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "notice-5",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
@@ -151,22 +156,27 @@ export const homePageMock: HomePageViewModel = {
       title: "청소년 블로그",
       items: [
         {
+          id: "youth-blog-1",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "youth-blog-2",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "youth-blog-3",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "youth-blog-4",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "youth-blog-5",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
@@ -176,22 +186,27 @@ export const homePageMock: HomePageViewModel = {
       title: "본당 주보",
       items: [
         {
+          id: "weekly-bulletin-1",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "weekly-bulletin-2",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "weekly-bulletin-3",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "weekly-bulletin-4",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },
         {
+          id: "weekly-bulletin-5",
           title: "제목이 여기에 들어갑니다. 제목이 길 경우 한 줄까...",
           date: "2026/02/26",
         },

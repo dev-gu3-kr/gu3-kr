@@ -4,6 +4,13 @@ import { SubLanding } from "@/components/SubLanding"
 import { PublicNoticeListContainer } from "@/features/notices/client"
 import { noticePrefetch } from "@/features/notices/server"
 import { getQueryClient } from "@/lib/react-query"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "공지사항",
+  description: "구로3동성당의 새로운 소식과 주요 공지사항을 확인하세요.",
+  path: "/notice/notices",
+})
 
 type PageProps = {
   searchParams?: Promise<{

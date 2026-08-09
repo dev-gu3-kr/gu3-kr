@@ -2,6 +2,14 @@ import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
 import { OfficePhoneIcon } from "@/components/svgs"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "병자성사",
+  description:
+    "구로3동성당 병자성사의 대상, 신청 방법과 준비 사항을 안내합니다.",
+  path: "/office/anointing",
+})
 
 const RECIPIENTS = [
   "- 중병으로 치료 중인 신자",

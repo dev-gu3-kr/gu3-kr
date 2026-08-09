@@ -138,6 +138,7 @@ function mapBoardColumn(
     title,
     href: hrefByTitle[title],
     items: items.map((item) => ({
+      id: item.id,
       title: item.title,
       date: format(new Date(item.createdAt), "yyyy/MM/dd"),
       href: itemHrefByTitle[title]?.(item.id),

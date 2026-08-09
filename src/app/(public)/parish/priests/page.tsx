@@ -3,6 +3,13 @@ import { SubLanding } from "@/components/SubLanding"
 import { PriestIntroPageContainer } from "@/features/clergy-priests/client"
 import { priestPrefetch } from "@/features/clergy-priests/server"
 import { getQueryClient } from "@/lib/react-query"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "신부님 소개",
+  description: "구로3동성당에서 사목하는 신부님을 소개합니다.",
+  path: "/parish/priests",
+})
 
 export default async function PriestsPage() {
   const queryClient = getQueryClient()

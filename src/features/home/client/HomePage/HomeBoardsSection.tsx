@@ -187,10 +187,7 @@ function BoardItemsList({
       </div>
       <ul className="space-y-3">
         {column.items.map((item) => (
-          <li
-            key={`${column.title}-${item.href ?? item.title}-${item.date}`}
-            className="min-w-0 overflow-hidden"
-          >
+          <li key={item.id} className="min-w-0 overflow-hidden">
             <BoardListItem columnTitle={column.title} item={item} />
           </li>
         ))}

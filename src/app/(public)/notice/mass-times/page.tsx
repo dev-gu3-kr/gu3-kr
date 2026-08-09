@@ -1,6 +1,13 @@
 import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "미사 시간",
+  description: "구로3동성당의 주일 미사와 평일 미사 시간을 안내합니다.",
+  path: "/notice/mass-times",
+})
 
 type MassTimeChip = {
   time: string

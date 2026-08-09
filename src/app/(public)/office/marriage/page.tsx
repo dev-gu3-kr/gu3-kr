@@ -2,6 +2,14 @@ import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
 import { OfficePhoneIcon } from "@/components/svgs"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "혼인성사",
+  description:
+    "구로3동성당 혼인성사 신청, 혼인 면담, 교육과 준비 서류를 안내합니다.",
+  path: "/office/marriage",
+})
 
 const COURSE_TOPICS = [
   "- 그리스도교적 혼인의 의미",

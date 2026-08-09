@@ -2,6 +2,14 @@ import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
 import { OfficePhoneIcon } from "@/components/svgs"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "선종 안내",
+  description:
+    "선종 시 구로3동성당에 알리는 방법과 천주교 장례 절차를 안내합니다.",
+  path: "/office/funeral-guide",
+})
 
 const PROCEDURE_STEPS = [
   "1. 본당 사무실에 선종 사실을 먼저 알려주십시오.",

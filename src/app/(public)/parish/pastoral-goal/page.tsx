@@ -1,5 +1,13 @@
 import Image from "next/image"
 import { SubLanding } from "@/components/SubLanding"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "사목 목표",
+  description:
+    "구로3동성당 공동체가 함께 실천하는 사목 목표와 방향을 안내합니다.",
+  path: "/parish/pastoral-goal",
+})
 
 const PRACTICE_AREAS = [
   {

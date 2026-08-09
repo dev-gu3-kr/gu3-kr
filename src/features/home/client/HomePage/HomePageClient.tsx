@@ -7,6 +7,10 @@ import { HomeEventsSection } from "./HomeEventsSection"
 import { HomeFooter } from "./HomeFooter"
 import { HomeHeader } from "./HomeHeader"
 import { HomeHeroSection } from "./HomeHeroSection"
+import {
+  HomePageDataErrorState,
+  HomePageDataLoadingState,
+} from "./HomePageDataState"
 import { HomeSchedulerSection } from "./HomeSchedulerSection"
 import { homePageMock } from "./home.mock"
 
@@ -30,7 +34,9 @@ export function HomePageClient() {
   const [schedulerResetMode, setSchedulerResetMode] = React.useState<
     "active" | "start" | "end"
   >("active")
-  const { data, isFetching } = useHomePageQuery(schedulerWindowCenterKey)
+  const { data, isError, isFetching, isPending, refetch } = useHomePageQuery(
+    schedulerWindowCenterKey,
+  )
 
   const schedulerMonthData = data?.schedulerByMonth[schedulerMonthKey]
 
@@ -44,7 +50,7 @@ export function HomePageClient() {
         eventCards: data.eventCards,
         boardColumns: data.boardColumns,
       }
-    : homePageMock
+    : null
 
   const moveMonth = React.useCallback(
     (offset: number, resetMode: "start" | "end") => {
@@ -73,23 +79,31 @@ export function HomePageClient() {
   return (
     <main className="min-h-screen bg-white text-[#252629]">
       <div className="relative">
-        <HomeHeader navItems={viewModel.navItems} />
-        <HomeHeroSection quickLinks={viewModel.quickLinks} />
+        <HomeHeader navItems={homePageMock.navItems} />
+        <HomeHeroSection quickLinks={homePageMock.quickLinks} />
       </div>
-      <HomeSchedulerSection
-        monthLabel={viewModel.schedulerMonthLabel}
-        items={viewModel.schedulerItems}
-        pageResetMode={schedulerResetMode}
-        isNavigatingMonth={isFetching}
-        onRequestPreviousMonth={handleRequestPreviousMonth}
-        onRequestNextMonth={handleRequestNextMonth}
-      />
-      <HomeEventsSection cards={viewModel.eventCards} />
-      <HomeBoardsSection
-        boardColumns={viewModel.boardColumns}
-        shortcutCards={viewModel.shortcutCards}
-      />
-      <HomeFooter massTimes={viewModel.massTimes} />
+      {isPending ? <HomePageDataLoadingState /> : null}
+      {isError && !viewModel ? (
+        <HomePageDataErrorState onRetry={() => void refetch()} />
+      ) : null}
+      {viewModel ? (
+        <>
+          <HomeSchedulerSection
+            monthLabel={viewModel.schedulerMonthLabel}
+            items={viewModel.schedulerItems}
+            pageResetMode={schedulerResetMode}
+            isNavigatingMonth={isFetching}
+            onRequestPreviousMonth={handleRequestPreviousMonth}
+            onRequestNextMonth={handleRequestNextMonth}
+          />
+          <HomeEventsSection cards={viewModel.eventCards} />
+          <HomeBoardsSection
+            boardColumns={viewModel.boardColumns}
+            shortcutCards={viewModel.shortcutCards}
+          />
+        </>
+      ) : null}
+      <HomeFooter massTimes={homePageMock.massTimes} />
     </main>
   )
 }

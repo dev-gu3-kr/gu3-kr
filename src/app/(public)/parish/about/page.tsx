@@ -6,6 +6,13 @@ import {
   ParishMissionPrayerIcon,
   ParishMissionSharingIcon,
 } from "@/components/svgs"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "본당 소개",
+  description: "구로3동성당의 설립 배경, 본당 연혁과 공동체 사명을 소개합니다.",
+  path: "/parish/about",
+})
 
 const MISSION_ITEMS = [
   {

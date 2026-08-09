@@ -3,6 +3,14 @@ import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
 import { OfficePhoneIcon } from "@/components/svgs"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "오시는 길",
+  description:
+    "서울 구로구 디지털로27길 82 구로3동성당의 위치, 교통편과 연락처를 안내합니다.",
+  path: "/parish/directions",
+})
 
 const NAVER_MAP_URL =
   "https://map.naver.com/p/search/%EA%B5%AC%EB%A1%9C3%EB%8F%99%EC%84%B1%EB%8B%B9"

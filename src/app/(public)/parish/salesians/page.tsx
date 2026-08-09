@@ -1,6 +1,14 @@
 import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "살레시오회",
+  description:
+    "성 요한 보스코의 정신을 따르는 살레시오회와 구로3동성당을 소개합니다.",
+  path: "/parish/salesians",
+})
 
 const salesianSpiritIntro = [
   <>

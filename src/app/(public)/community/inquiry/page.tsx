@@ -1,5 +1,12 @@
 import { SubLanding } from "@/components/SubLanding"
 import { PublicInquiryFormContainer } from "@/features/inquiries/client"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "1:1 문의",
+  description: "구로3동성당에 궁금한 사항을 온라인으로 문의할 수 있습니다.",
+  path: "/community/inquiry",
+})
 
 export default function Page() {
   return (

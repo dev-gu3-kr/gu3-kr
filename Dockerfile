@@ -27,7 +27,7 @@ RUN DATABASE_URL="postgresql://docker-build:docker-build@localhost:5432/docker-b
 FROM base AS builder
 
 ARG MINIO_PUBLIC_BASE_URL="http://localhost:9000"
-ARG NEXT_PUBLIC_SITE_URL="http://localhost:3000"
+ARG NEXT_PUBLIC_SITE_URL="https://gu3.kr"
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV MINIO_PUBLIC_BASE_URL="$MINIO_PUBLIC_BASE_URL"

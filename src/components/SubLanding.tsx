@@ -22,6 +22,8 @@ export function SubLanding({
   currentLabel,
   imageUrl,
 }: SubLandingProps) {
+  // 기존 호출부의 빈 title도 현재 메뉴명을 대표 제목과 이미지 설명으로 사용한다.
+  const resolvedTitle = title.trim() || currentLabel
   const resolvedImageUrl =
     imageUrl ??
     sectionImageMap[sectionLabel] ??
@@ -32,7 +34,7 @@ export function SubLanding({
       <section className="relative h-[280px] overflow-hidden md:h-[320px]">
         <Image
           src={resolvedImageUrl}
-          alt={`${title} 서브 비주얼`}
+          alt={`${resolvedTitle} 서브 비주얼`}
           fill
           priority
           sizes="100vw"
@@ -44,7 +46,7 @@ export function SubLanding({
         <div className="absolute inset-x-0 bottom-0 hidden md:block">
           <div className="mx-auto flex w-full max-w-[1380px] items-end justify-between px-5 pb-7 md:px-8">
             <h1 className="text-[28px] font-semibold tracking-[-0.02em] text-white md:text-[34px]">
-              {title}
+              {resolvedTitle}
             </h1>
 
             <div className="inline-flex items-center gap-1.5 text-xs text-white/90 md:text-sm">

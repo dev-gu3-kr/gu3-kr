@@ -1,4 +1,12 @@
 import { SubLanding } from "@/components/SubLanding"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "예비신자 교리",
+  description:
+    "구로3동성당 예비신자 교리 과정과 천주교 입교 절차를 안내합니다.",
+  path: "/office/catechumen-class",
+})
 
 export default async function CatechumenClassPage() {
   return (

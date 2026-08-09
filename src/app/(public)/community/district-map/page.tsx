@@ -1,6 +1,13 @@
 import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "관할 구역도",
+  description: "구로3동성당이 담당하는 관할 구역을 지도로 안내합니다.",
+  path: "/community/district-map",
+})
 
 export default async function Page() {
   return (

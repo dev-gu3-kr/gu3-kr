@@ -3,6 +3,13 @@ import {
   OfficeGuideSummary,
 } from "@/components/office-guide"
 import { SubLanding } from "@/components/SubLanding"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "부속 시설",
+  description: "구로3동성당의 주요 부속 시설과 이용 정보를 안내합니다.",
+  path: "/parish/facilities",
+})
 
 export default async function FacilitiesPage() {
   return (

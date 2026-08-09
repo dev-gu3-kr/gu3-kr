@@ -2,6 +2,14 @@ import Image from "next/image"
 
 import { SubLanding } from "@/components/SubLanding"
 import { OfficePhoneIcon } from "@/components/svgs"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "유아세례",
+  description:
+    "구로3동성당 유아세례 신청 절차, 준비 사항과 대부모 조건을 안내합니다.",
+  path: "/office/infant-baptism",
+})
 
 const STEPS = [
   "1. 본당 사무실에 방문 또는 전화로 신청합니다.",

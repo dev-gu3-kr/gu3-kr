@@ -37,6 +37,7 @@ export type HomeEventCard = {
 }
 
 export type HomeBoardItem = {
+  readonly id: string
   readonly title: string
   readonly date: string
   readonly href?: string

@@ -7,6 +7,13 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion"
+import { createPageMetadata } from "@/lib/seo"
+
+export const metadata = createPageMetadata({
+  title: "가톨릭 교리",
+  description: "가톨릭 신앙의 핵심 교리와 신앙생활에 필요한 내용을 안내합니다.",
+  path: "/faith/catholic-doctrine",
+})
 
 type DoctrineBlock = {
   readonly heading?: string
