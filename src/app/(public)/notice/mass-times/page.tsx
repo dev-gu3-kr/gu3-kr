@@ -28,7 +28,7 @@ const SUNDAY_ROWS: MassTimeRow[] = [
       { time: "06:30", label: "새벽미사" },
       { time: "10:30", label: "교중미사" },
       { time: "12:00", label: "중고등부 미사" },
-      { time: "15:30", label: "유초등부 미사" },
+      { time: "15:00", label: "유초등부 미사" },
       { time: "18:00", label: "청년 미사" },
       { time: "21:00", label: "밤 미사" },
     ],
@@ -41,7 +41,7 @@ const SUNDAY_ROWS: MassTimeRow[] = [
 
 const WEEKDAY_ROWS: MassTimeRow[] = [
   {
-    dayLabel: "월/화/수/금",
+    dayLabel: "월/화/수/목/금",
     isDayEmphasis: true,
     chips: [
       { time: "06:30", label: "평일 새벽미사" },
