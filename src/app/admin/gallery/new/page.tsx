@@ -6,9 +6,9 @@ export default function AdminGalleryNewPage() {
     <main className="space-y-6">
       <section className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">갤러리 등록</h1>
+          <h1 className="text-2xl font-semibold">행사 갤러리 등록</h1>
           <p className="text-sm text-neutral-600">
-            새 갤러리 게시글을 등록합니다.
+            새 행사 갤러리 게시글을 등록합니다.
           </p>
         </div>
         <Link

@@ -21,7 +21,7 @@ export function PublicGalleryDetailView({
   return (
     <section className="mx-auto w-full max-w-[1200px] px-5 py-10 md:px-8 md:py-14">
       <h2 className="hidden text-[30px] font-semibold tracking-[-0.02em] text-[#252629] md:block">
-        본당 갤러리
+        행사 갤러리
       </h2>
 
       <div className="md:hidden">

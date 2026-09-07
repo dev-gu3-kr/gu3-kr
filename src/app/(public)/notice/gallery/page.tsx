@@ -7,7 +7,7 @@ import { getQueryClient } from "@/lib/react-query"
 import { createPageMetadata } from "@/lib/seo"
 
 export const metadata = createPageMetadata({
-  title: "본당 갤러리",
+  title: "행사 갤러리",
   description: "구로3동성당의 미사와 공동체 활동 모습을 사진으로 만나보세요.",
   path: "/notice/gallery",
 })
@@ -29,7 +29,7 @@ export default async function Page({ searchParams }: PageProps) {
 
   return (
     <>
-      <SubLanding title="" sectionLabel="본당알림" currentLabel="본당 갤러리" />
+      <SubLanding title="" sectionLabel="본당알림" currentLabel="행사 갤러리" />
 
       <HydrationBoundary state={dehydrate(queryClient)}>
         <PublicGalleryListContainer />

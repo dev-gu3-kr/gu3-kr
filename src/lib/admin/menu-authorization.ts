@@ -49,6 +49,10 @@ const PAGE_RULES: readonly AdminPathRule[] = [
     requirement: { type: "menu", anyOf: ["YOUTH_BLOG"] },
   },
   {
+    prefix: "/admin/photo-archive",
+    requirement: { type: "menu", anyOf: ["PHOTO_ARCHIVE"] },
+  },
+  {
     prefix: "/admin/inquiries",
     requirement: { type: "menu", anyOf: ["INQUIRIES"] },
   },
@@ -95,6 +99,10 @@ const API_RULES: readonly AdminPathRule[] = [
   {
     prefix: "/api/admin/youth-blog",
     requirement: { type: "menu", anyOf: ["YOUTH_BLOG"] },
+  },
+  {
+    prefix: "/api/admin/photo-archive",
+    requirement: { type: "menu", anyOf: ["PHOTO_ARCHIVE"] },
   },
   {
     prefix: "/api/admin/inquiries",

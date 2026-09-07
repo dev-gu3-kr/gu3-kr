@@ -6,9 +6,9 @@ export default function AdminGalleryPage() {
     <main className="space-y-6">
       <section className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <h1 className="text-2xl font-semibold">갤러리 관리</h1>
+          <h1 className="text-2xl font-semibold">행사 갤러리 관리</h1>
           <p className="text-sm text-neutral-600">
-            카드형 목록으로 갤러리를 관리합니다.
+            카드형 목록으로 행사 갤러리를 관리합니다.
           </p>
         </div>
         <Link

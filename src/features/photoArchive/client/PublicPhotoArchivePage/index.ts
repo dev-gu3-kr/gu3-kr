@@ -1,0 +1,1 @@
+export { PublicPhotoArchivePageContainer } from "./PublicPhotoArchivePageContainer"

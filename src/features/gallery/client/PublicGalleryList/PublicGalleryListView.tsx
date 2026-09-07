@@ -38,7 +38,7 @@ export function PublicGalleryListView({
   return (
     <section className="mx-auto w-full max-w-[1200px] px-5 py-5 md:px-8 md:py-14">
       <h2 className="text-[30px] font-semibold tracking-[-0.02em] text-[#252629]">
-        본당 갤러리
+        행사 갤러리
       </h2>
 
       <div className="mt-7 md:hidden">

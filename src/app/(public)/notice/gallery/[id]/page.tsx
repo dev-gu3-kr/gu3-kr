@@ -17,8 +17,8 @@ export async function generateMetadata({
   const { id } = await params
 
   return createPageMetadata({
-    title: "본당 갤러리",
-    description: "구로3동성당 갤러리의 사진과 자세한 내용을 확인하세요.",
+    title: "행사 갤러리",
+    description: "구로3동성당 행사 갤러리의 사진과 자세한 내용을 확인하세요.",
     path: `/notice/gallery/${id}`,
   })
 }
@@ -31,7 +31,7 @@ export default async function GalleryDetailPage({ params }: DetailPageProps) {
 
   return (
     <>
-      <SubLanding title="" sectionLabel="본당알림" currentLabel="본당 갤러리" />
+      <SubLanding title="" sectionLabel="본당알림" currentLabel="행사 갤러리" />
 
       <HydrationBoundary state={dehydrate(queryClient)}>
         <PublicGalleryDetailContainer />

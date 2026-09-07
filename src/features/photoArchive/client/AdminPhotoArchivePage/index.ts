@@ -1,0 +1,1 @@
+export { AdminPhotoArchivePageContainer } from "./AdminPhotoArchivePageContainer"

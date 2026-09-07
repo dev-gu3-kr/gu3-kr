@@ -49,6 +49,7 @@ type SubMenuKey =
   | "salesians"
   | "directions"
   | "facilities"
+  | "photoArchive"
   | "notices"
   | "massTimes"
   | "weeklyBulletin"
@@ -109,7 +110,12 @@ const SUB_MENU_BY_KEY: Record<TopMenuKey, readonly SubMenuItem[]> = {
       label: "본당 달력",
       url: "/notice/parish-calendar",
     },
-    { key: "gallery", label: "갤러리", url: "/notice/gallery" },
+    { key: "gallery", label: "행사 갤러리", url: "/notice/gallery" },
+    {
+      key: "photoArchive",
+      label: "사진 아카이브",
+      url: "/parish/photo-archive",
+    },
   ],
   office: [
     {

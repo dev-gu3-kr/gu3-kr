@@ -11,6 +11,7 @@ export const ADMIN_MENU_PERMISSION_VALUES = [
   "YOUTH_ABOUT",
   "YOUTH_BLOG",
   "INQUIRIES",
+  "PHOTO_ARCHIVE",
 ] as const
 
 export type AdminMenuPermission = (typeof ADMIN_MENU_PERMISSION_VALUES)[number]
@@ -62,9 +63,9 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     permission: "EVENTS",
   },
   {
-    label: "갤러리 관리",
+    label: "행사 갤러리 관리",
     href: "/admin/gallery",
-    description: "갤러리 게시글과 대표 이미지를 관리한다.",
+    description: "행사 갤러리 게시글과 대표 이미지를 관리한다.",
     permission: "GALLERY",
   },
   {
@@ -90,6 +91,12 @@ export const ADMIN_MENU_ITEMS: AdminMenuItem[] = [
     href: "/admin/youth-blog",
     description: "청소년 마당 블로그 게시글을 관리한다.",
     permission: "YOUTH_BLOG",
+  },
+  {
+    label: "사진 아카이브 관리",
+    href: "/admin/photo-archive",
+    description: "연도별 기록 사진의 원본, 공개 상태와 분류를 관리한다.",
+    permission: "PHOTO_ARCHIVE",
   },
   {
     label: "1:1 문의 확인",

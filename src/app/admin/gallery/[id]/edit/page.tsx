@@ -13,7 +13,7 @@ export default async function AdminGalleryEditPage(props: {
       >
         ← 상세로 돌아가기
       </Link>
-      <h1 className="text-2xl font-semibold">갤러리 수정</h1>
+      <h1 className="text-2xl font-semibold">행사 갤러리 수정</h1>
       <p className="text-sm text-neutral-600">제목/썸네일/내용을 수정합니다.</p>
       <section className="rounded-md border p-4">
         <GalleryEditFormContainer postId={id} />

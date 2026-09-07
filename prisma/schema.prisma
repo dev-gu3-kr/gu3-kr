@@ -25,6 +25,19 @@ enum AdminMenuPermission {
   YOUTH_ABOUT
   YOUTH_BLOG
   INQUIRIES
+  PHOTO_ARCHIVE
+}
+
+enum ArchivePhotoStatus {
+  PUBLISHED
+  HIDDEN
+}
+
+enum FileAssetVariant {
+  GENERAL
+  ORIGINAL
+  DISPLAY
+  THUMBNAIL
 }
 
 enum PostCategory {
@@ -91,8 +104,10 @@ model User {
 
   posts              Post[] // 작성한 게시글 목록
   events             Event[] // 작성한 일정 목록
-  processedInquiries Inquiry[]           @relation("InquiryProcessedBy") // 처리한 문의 목록
+  processedInquiries Inquiry[]                 @relation("InquiryProcessedBy") // 처리한 문의 목록
   fileAssets         FileAsset[] // 업로드한 물리 파일 자산 목록
+  archivePhotos      ArchivePhoto[] // 등록한 사진 아카이브 항목
+  archiveYearChanges ArchivePhotoYearHistory[] // 수행한 사진 연도 변경 이력
   refreshTokens      AdminRefreshToken[] // 관리자 로그인 갱신 토큰 목록
 }
 
@@ -143,23 +158,69 @@ model Post {
 }
 
 model FileAsset {
-  id           String   @id @default(cuid()) // 물리 파일 자산 고유 식별자
+  id           String           @id @default(cuid()) // 물리 파일 자산 고유 식별자
   bucket       String // MinIO 버킷
   objectKey    String // 버킷 내부 객체 키
-  url          String   @unique // 현재 공개 URL이며 파일 식별에는 사용하지 않음
+  url          String           @unique // 현재 공개 URL이며 파일 식별에는 사용하지 않음
   originalName String // 업로드 원본 파일명
   mimeType     String // 저장 객체 MIME 타입
   sizeBytes    Int // 저장 객체 크기(byte)
+  width        Int? // 이미지 가로 크기이며 비이미지 자산은 null
+  height       Int? // 이미지 세로 크기이며 비이미지 자산은 null
+  checksum     String? // 원본 중복 판정과 보존 검증에 사용하는 SHA-256
+  variant      FileAssetVariant @default(GENERAL) // 기존 파일과 아카이브 원본·파생본의 용도 구분
   uploadedById String // 업로드한 관리자 식별자
-  createdAt    DateTime @default(now()) // 업로드 시각 및 미사용 파일 유예 시간 기준
-  updatedAt    DateTime @updatedAt // 메타데이터 변경 시각
+  createdAt    DateTime         @default(now()) // 업로드 시각 및 미사용 파일 유예 시간 기준
+  updatedAt    DateTime         @updatedAt // 메타데이터 변경 시각
 
-  uploadedBy User        @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
-  postUsages PostAsset[] // 게시글 사용처 목록, 비어 있으면 PENDING 자산으로 간주
+  uploadedBy           User          @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  postUsages           PostAsset[] // GENERAL 자산의 게시글 사용처 목록
+  archiveOriginalPhoto ArchivePhoto? @relation("ArchivePhotoOriginal") // 원본으로 연결된 아카이브 사진
+  archiveDisplayPhoto  ArchivePhoto? @relation("ArchivePhotoDisplay") // 표시본으로 연결된 아카이브 사진
 
   @@unique([bucket, objectKey])
+  @@index([checksum, variant])
   @@index([uploadedById, createdAt])
   @@index([createdAt])
+}
+
+model ArchivePhoto {
+  id              String             @id @default(cuid()) // 사진과 객체 키를 함께 식별하는 고유 ID
+  year            Int // 관리자가 확인한 촬영 연도
+  status          ArchivePhotoStatus @default(HIDDEN) // 일반 화면 공개 여부를 나타내는 상태
+  sortOrder       Int                @default(0) // 같은 연도 안의 안정적인 표시 순서
+  caption         String?            @db.Text // 내용을 확인한 경우에만 입력하는 설명
+  altText         String? // 사진 내용을 확인한 경우에만 입력하는 대체 텍스트
+  sourcePath      String?            @unique // 초기 이관 출처를 보존하는 상대 경로
+  originalAssetId String             @unique // 재가공 가능한 보존용 원본 자산
+  displayAssetId  String             @unique // 일반·관리자 화면에 사용하는 WebP 자산
+  uploadedById    String // 등록 관리자 식별자
+  createdAt       DateTime           @default(now()) // 등록 시각
+  updatedAt       DateTime           @updatedAt // 메타데이터 변경 시각
+
+  originalAsset FileAsset                 @relation("ArchivePhotoOriginal", fields: [originalAssetId], references: [id], onDelete: Restrict)
+  displayAsset  FileAsset                 @relation("ArchivePhotoDisplay", fields: [displayAssetId], references: [id], onDelete: Restrict)
+  uploadedBy    User                      @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  yearHistory   ArchivePhotoYearHistory[] // 분류 정정의 이전·새 연도 이력
+
+  @@index([status, year, sortOrder, id])
+  @@index([year, sortOrder, id])
+  @@index([uploadedById, createdAt])
+}
+
+model ArchivePhotoYearHistory {
+  id          String   @id @default(cuid()) // 연도 변경 이력 식별자
+  photoId     String // 변경된 사진 식별자
+  fromYear    Int // 변경 전 연도
+  toYear      Int // 변경 후 연도
+  changedById String // 변경 관리자 식별자
+  createdAt   DateTime @default(now()) // 연도 변경 시각
+
+  photo     ArchivePhoto @relation(fields: [photoId], references: [id], onDelete: Cascade)
+  changedBy User         @relation(fields: [changedById], references: [id], onDelete: Restrict)
+
+  @@index([photoId, createdAt])
+  @@index([changedById, createdAt])
 }
 
 model PostAsset {

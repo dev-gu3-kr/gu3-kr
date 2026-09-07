@@ -38,6 +38,20 @@ describe("canAccessAdminPath", () => {
     ).toBe(true)
   })
 
+  it("사진 아카이브 권한으로 전용 페이지와 API만 허용한다", () => {
+    expect(
+      canAccessAdminPath("/admin/photo-archive", "ADMIN", ["PHOTO_ARCHIVE"]),
+    ).toBe(true)
+    expect(
+      canAccessAdminPath("/api/admin/photo-archive", "ADMIN", [
+        "PHOTO_ARCHIVE",
+      ]),
+    ).toBe(true)
+    expect(
+      canAccessAdminPath("/admin/gallery", "ADMIN", ["PHOTO_ARCHIVE"]),
+    ).toBe(false)
+  })
+
   it("사용자 관리와 미등록 경로는 최고관리자에게만 허용한다", () => {
     expect(canAccessAdminPath("/admin/users", "ADMIN", ["NOTICES"])).toBe(false)
     expect(canAccessAdminPath("/admin/future-menu", "ADMIN", ["NOTICES"])).toBe(

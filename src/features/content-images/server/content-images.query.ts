@@ -61,6 +61,7 @@ export function reconcilePostAssetAssignments(input: {
 export function findCleanupCandidates(input: { before: Date; take: number }) {
   return prisma.fileAsset.findMany({
     where: {
+      variant: "GENERAL",
       postUsages: { none: {} },
       createdAt: { lte: input.before },
     },
@@ -85,14 +86,14 @@ export function findPostReferencingFile(url: string) {
 // 정리 직전에 자산에 사용처가 생기지 않았는지 다시 확인한다.
 export function findUnusedFileAssetById(id: string) {
   return prisma.fileAsset.findFirst({
-    where: { id, postUsages: { none: {} } },
+    where: { id, variant: "GENERAL", postUsages: { none: {} } },
   })
 }
 
 // 실제 객체 삭제가 성공한 미사용 자산 레코드만 제거한다.
 export function deleteUnusedFileAssetById(id: string) {
   return prisma.fileAsset.deleteMany({
-    where: { id, postUsages: { none: {} } },
+    where: { id, variant: "GENERAL", postUsages: { none: {} } },
   })
 }
 
@@ -109,7 +110,11 @@ export function findUnusedFileAssetByReference(input: {
   if (references.length === 0) return Promise.resolve(null)
 
   return prisma.fileAsset.findFirst({
-    where: { OR: references, postUsages: { none: {} } },
+    where: {
+      OR: references,
+      variant: "GENERAL",
+      postUsages: { none: {} },
+    },
   })
 }
 
