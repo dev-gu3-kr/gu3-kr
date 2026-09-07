@@ -224,6 +224,15 @@ export function AdminPhotoArchivePageContainer() {
     })
   }
 
+  function handlePhotoDeleted(id: string) {
+    setSelectedPhotoIds((current) => {
+      const next = new Set(current)
+      next.delete(id)
+      return next
+    })
+    setSelectedPhoto((current) => (current?.id === id ? null : current))
+  }
+
   async function runBulkAction(
     action: "CHANGE_STATUS" | "CHANGE_YEAR",
     options: { year?: number; status?: ArchivePhotoStatusDto },
@@ -324,6 +333,7 @@ export function AdminPhotoArchivePageContainer() {
       onTogglePhoto={togglePhoto}
       onToggleVisiblePhotos={toggleVisiblePhotos}
       onSelectPhoto={setSelectedPhoto}
+      onDeletePhoto={handlePhotoDeleted}
       onClearSelection={() => setSelectedPhotoIds(new Set())}
       onBulkStatusChange={(nextStatus) =>
         bulkStatusForm.setValue("status", nextStatus, {

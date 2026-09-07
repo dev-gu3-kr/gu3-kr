@@ -14,6 +14,7 @@ import type {
   ArchivePhotoAdminFilterDto,
   ArchivePhotoBulkActionDto,
   ArchivePhotoStatusDto,
+  DeleteArchivePhotoResultDto,
   PhotoArchiveApiResponseDto,
   PublicArchivePhotoDto,
   PublicArchivePhotoPageDto,
@@ -220,6 +221,37 @@ export function useUpdateArchivePhotoMutation() {
     },
     onSuccess: async (item) => {
       queryClient.setQueryData(adminPhotoArchiveQueryKeys.detail(item.id), item)
+      await invalidatePhotoArchiveQueries(queryClient)
+    },
+  })
+}
+
+export function useDeleteArchivePhotoMutation() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiFetch
+        .del(`/api/admin/photo-archive/${id}`)
+        .send()
+      const json = (await response
+        .json()
+        .catch(
+          () => null,
+        )) as PhotoArchiveApiResponseDto<DeleteArchivePhotoResultDto> | null
+      if (!response.ok || !json?.ok || !json.id) {
+        throw new Error(json?.message ?? "사진을 삭제하지 못했습니다.")
+      }
+      return { id: json.id, cleanupPending: Boolean(json.cleanupPending) }
+    },
+    onSuccess: async ({ id }) => {
+      queryClient.removeQueries({
+        queryKey: adminPhotoArchiveQueryKeys.detail(id),
+        exact: true,
+      })
+      queryClient.removeQueries({
+        queryKey: publicPhotoArchiveQueryKeys.detail(id),
+        exact: true,
+      })
       await invalidatePhotoArchiveQueries(queryClient)
     },
   })

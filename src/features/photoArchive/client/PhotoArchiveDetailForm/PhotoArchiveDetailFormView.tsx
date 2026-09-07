@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react"
+import { Loader2, Trash2 } from "lucide-react"
 import Image from "next/image"
 import type { FieldErrors, UseFormRegister } from "react-hook-form"
 import { Badge } from "@/components/ui/badge"
@@ -37,21 +37,27 @@ export function PhotoArchiveDetailFormView({
   photo,
   registration,
   errors,
-  isPending,
+  isSaving,
+  isDeleting,
   status,
   onStatusChange,
   onSubmit,
+  onDelete,
   onClose,
 }: {
   photo: AdminArchivePhotoDto
   registration: UseFormRegister<Values>
   errors: FieldErrors<Values>
-  isPending: boolean
+  isSaving: boolean
+  isDeleting: boolean
   status: ArchivePhotoStatusDto
   onStatusChange: (status: ArchivePhotoStatusDto) => void
   onSubmit: () => void
+  onDelete: () => void
   onClose: () => void
 }) {
+  const isPending = isSaving || isDeleting
+
   return (
     <form
       onSubmit={(event) => {
@@ -96,6 +102,7 @@ export function PhotoArchiveDetailFormView({
               min={1800}
               max={new Date().getFullYear()}
               aria-invalid={Boolean(errors.year)}
+              disabled={isPending}
               {...registration("year", {
                 valueAsNumber: true,
                 required: "연도를 입력해 주세요.",
@@ -138,6 +145,7 @@ export function PhotoArchiveDetailFormView({
             <Textarea
               rows={4}
               maxLength={2000}
+              disabled={isPending}
               {...registration("caption")}
               id="photo-archive-detail-caption"
             />
@@ -149,6 +157,7 @@ export function PhotoArchiveDetailFormView({
             </FieldLabel>
             <Input
               maxLength={300}
+              disabled={isPending}
               {...registration("altText")}
               id="photo-archive-detail-alt-text"
             />
@@ -158,22 +167,38 @@ export function PhotoArchiveDetailFormView({
           </Field>
         </FieldGroup>
 
-        <DialogFooter className="mt-auto flex-col-reverse sm:flex-row">
+        <div className="mt-auto flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
-            variant="outline"
-            onClick={onClose}
+            variant="destructive"
+            onClick={onDelete}
             disabled={isPending}
+            className="w-full sm:w-auto"
           >
-            취소
-          </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? (
+            {isDeleting ? (
               <Loader2 data-icon="inline-start" className="animate-spin" />
-            ) : null}
-            변경사항 저장
+            ) : (
+              <Trash2 data-icon="inline-start" />
+            )}
+            사진 삭제
           </Button>
-        </DialogFooter>
+          <DialogFooter className="flex-col-reverse sm:flex-row">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isPending}
+            >
+              취소
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isSaving ? (
+                <Loader2 data-icon="inline-start" className="animate-spin" />
+              ) : null}
+              변경사항 저장
+            </Button>
+          </DialogFooter>
+        </div>
       </div>
     </form>
   )

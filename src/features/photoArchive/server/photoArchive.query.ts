@@ -171,6 +171,38 @@ export function findPublicArchivePhotoById(id: string) {
   })
 }
 
+export async function deleteArchivePhotoRecord(id: string) {
+  return prisma.$transaction(async (transaction) => {
+    const target = await transaction.archivePhoto.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        originalAsset: {
+          select: { id: true, bucket: true, objectKey: true },
+        },
+        displayAsset: {
+          select: { id: true, bucket: true, objectKey: true },
+        },
+      },
+    })
+    if (!target) return null
+
+    await transaction.archivePhoto.delete({ where: { id } })
+    return target
+  })
+}
+
+export function deleteDetachedArchiveAssets(ids: string[]) {
+  return prisma.fileAsset.deleteMany({
+    where: {
+      id: { in: ids },
+      variant: { in: ["ORIGINAL", "DISPLAY"] },
+      archiveOriginalPhoto: { is: null },
+      archiveDisplayPhoto: { is: null },
+    },
+  })
+}
+
 export async function updateArchivePhotoRecord(input: {
   id: string
   changedById: string

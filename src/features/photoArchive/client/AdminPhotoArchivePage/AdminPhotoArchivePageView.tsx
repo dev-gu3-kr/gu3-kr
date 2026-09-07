@@ -78,6 +78,7 @@ type Props = {
   onTogglePhoto: (id: string) => void
   onToggleVisiblePhotos: (checked: boolean) => void
   onSelectPhoto: (photo: AdminArchivePhotoDto | null) => void
+  onDeletePhoto: (id: string) => void
   onClearSelection: () => void
   onBulkStatusChange: (status: ArchivePhotoStatusDto) => void
   onBulkStatusSubmit: () => void
@@ -554,6 +555,7 @@ export function AdminPhotoArchivePageView(props: Props) {
               key={props.selectedPhoto.id}
               photo={props.selectedPhoto}
               onUpdated={props.onSelectPhoto}
+              onDeleted={props.onDeletePhoto}
               onClose={() => props.onSelectPhoto(null)}
             />
           </DialogContent>

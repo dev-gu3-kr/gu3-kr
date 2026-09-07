@@ -57,3 +57,29 @@ export async function PATCH(request: Request, context: RouteContext) {
   }
   return NextResponse.json({ ok: true, item })
 }
+
+export async function DELETE(request: Request, context: RouteContext) {
+  const author = await assertAdminSession(request)
+  if (!author) {
+    return NextResponse.json(
+      { ok: false, message: "로그인이 필요합니다." },
+      { status: 401 },
+    )
+  }
+
+  const { id } = await context.params
+  try {
+    const result = await photoArchiveService.deleteArchivePhoto(id)
+    if (!result) {
+      return NextResponse.json(
+        { ok: false, message: "사진을 찾을 수 없습니다." },
+        { status: 404 },
+      )
+    }
+    return NextResponse.json({ ok: true, ...result })
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "사진을 삭제하지 못했습니다."
+    return NextResponse.json({ ok: false, message }, { status: 500 })
+  }
+}

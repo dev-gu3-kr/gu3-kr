@@ -54,6 +54,12 @@ export type PublicArchivePhotoPageDto = {
 // 다중 선택에서 실행할 수 있는 일괄 작업
 export type ArchivePhotoBulkActionDto = "CHANGE_STATUS" | "CHANGE_YEAR"
 
+// 관리자 사진 삭제 후 저장소 정리 상태
+export type DeleteArchivePhotoResultDto = {
+  id: string // 삭제한 사진 식별자
+  cleanupPending: boolean // MinIO 객체 또는 자산 레코드의 후속 정리가 필요하면 true
+}
+
 // API 공통 응답 계약
 export type PhotoArchiveApiResponseDto<
   T extends object = Record<string, never>,

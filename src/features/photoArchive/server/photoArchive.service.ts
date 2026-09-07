@@ -19,6 +19,8 @@ import {
   type ArchivePhotoRow,
   bulkUpdateArchivePhotos,
   createArchivePhotoRecord,
+  deleteArchivePhotoRecord,
+  deleteDetachedArchiveAssets,
   findAdminArchivePhotoPage,
   findArchivePhotoById,
   findArchiveYears,
@@ -274,6 +276,40 @@ export async function updateArchivePhoto(input: {
 }) {
   const row = await updateArchivePhotoRecord(input)
   return row ? toAdminDto(row) : null
+}
+
+// 공개 노출을 먼저 끊고, 실제 삭제에 성공한 객체의 자산 레코드만 제거해 실패 대상을 추적 가능하게 남긴다.
+export async function deleteArchivePhoto(id: string) {
+  const client = getMinioS3Client()
+  const target = await deleteArchivePhotoRecord(id)
+  if (!target) return null
+
+  const assets = [target.originalAsset, target.displayAsset]
+  const objectResults = await Promise.allSettled(
+    assets.map((asset) =>
+      client.send(
+        new DeleteObjectCommand({
+          Bucket: asset.bucket,
+          Key: asset.objectKey,
+        }),
+      ),
+    ),
+  )
+  const deletedAssetIds = assets.flatMap((asset, index) =>
+    objectResults[index]?.status === "fulfilled" ? [asset.id] : [],
+  )
+  let cleanupPending = deletedAssetIds.length !== assets.length
+
+  if (deletedAssetIds.length > 0) {
+    try {
+      const removed = await deleteDetachedArchiveAssets(deletedAssetIds)
+      cleanupPending ||= removed.count !== deletedAssetIds.length
+    } catch {
+      cleanupPending = true
+    }
+  }
+
+  return { id: target.id, cleanupPending }
 }
 
 export function runBulkArchivePhotoAction(input: {
