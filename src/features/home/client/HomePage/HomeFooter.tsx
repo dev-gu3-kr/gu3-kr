@@ -29,6 +29,7 @@ export function HomeFooter({ massTimes }: HomeFooterProps) {
           <div className="mt-5 space-y-2 text-sm text-[#b6b9c2]">
             <p>전화번호 02-857-8541</p>
             <p>이메일 contact@gu3.kr</p>
+            <p className="break-keep">주소 서울 구로구 디지털로27길 82</p>
           </div>
 
           <div className="mt-10 flex flex-col gap-6 md:flex-row md:items-center md:gap-2">
