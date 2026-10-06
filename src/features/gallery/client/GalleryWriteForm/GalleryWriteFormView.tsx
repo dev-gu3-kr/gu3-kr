@@ -166,6 +166,12 @@ export function GalleryWriteFormView({
       >
         {isLoading ? "저장 중..." : submitLabel}
       </Button>
+      {requireThumbnail ? (
+        <p className="text-sm text-neutral-500">
+          행사 글을 저장한 다음 화면에서 행사 사진을 여러 장 업로드할 수
+          있습니다.
+        </p>
+      ) : null}
     </form>
   )
 }

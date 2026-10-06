@@ -1,5 +1,5 @@
 import { PrismaPg } from "@prisma/adapter-pg"
-import { PrismaClient } from "@prisma/client"
+import { Prisma, PrismaClient } from "@prisma/client"
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
@@ -32,6 +32,15 @@ function createPrismaClient() {
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient()
+
+// PrismaPg의 schema 옵션은 raw SQL 식별자에 적용되지 않으므로 테이블 이름을 명시한다.
+export function prismaPostTable() {
+  const schema = (process.env.DATABASE_SCHEMA || "cathedral").replaceAll(
+    '"',
+    '""',
+  )
+  return Prisma.raw(`"${schema}"."Post"`)
+}
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma

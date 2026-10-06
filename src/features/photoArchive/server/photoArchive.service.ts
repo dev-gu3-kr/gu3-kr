@@ -1,16 +1,11 @@
-import { createHash, randomUUID } from "node:crypto"
+import { randomUUID } from "node:crypto"
 import { DeleteObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3"
 import type { ArchivePhotoStatus } from "@prisma/client"
-import sharp from "sharp"
+import { preparePhotoImage } from "@/lib/admin/photo-image"
 import {
   createMinioPublicObjectUrl,
   getMinioS3Client,
 } from "@/lib/admin/storage"
-import {
-  PHOTO_ARCHIVE_ALLOWED_MIME_TYPES,
-  PHOTO_ARCHIVE_MAX_FILE_BYTES,
-  PHOTO_ARCHIVE_MAX_PIXELS,
-} from "../isomorphic/photoArchive.schema"
 import type {
   AdminArchivePhotoDto,
   PublicArchivePhotoDto,
@@ -29,16 +24,6 @@ import {
   findPublicArchivePhotoPage,
   updateArchivePhotoRecord,
 } from "./photoArchive.query"
-
-const DISPLAY_MAX_EDGE = 2560
-const DISPLAY_WEBP_QUALITY = 84
-
-const FORMAT_CONTRACT = {
-  jpeg: { extension: "jpg", mimeType: "image/jpeg" },
-  png: { extension: "png", mimeType: "image/png" },
-  tiff: { extension: "tif", mimeType: "image/tiff" },
-  webp: { extension: "webp", mimeType: "image/webp" },
-} as const
 
 function toAdminDto(row: ArchivePhotoRow): AdminArchivePhotoDto {
   return {
@@ -69,61 +54,7 @@ function toPublicDto(row: ArchivePhotoRow): PublicArchivePhotoDto {
   }
 }
 
-export async function prepareArchiveImage(file: File) {
-  if (file.size === 0) throw new Error("비어 있는 파일은 등록할 수 없습니다.")
-  if (file.size > PHOTO_ARCHIVE_MAX_FILE_BYTES) {
-    throw new Error("파일 용량은 100MB 이하여야 합니다.")
-  }
-
-  const originalBody = Buffer.from(await file.arrayBuffer())
-  const image = sharp(originalBody, {
-    limitInputPixels: PHOTO_ARCHIVE_MAX_PIXELS,
-  })
-  const metadata = await image.metadata().catch(() => null)
-  const format = metadata?.format as keyof typeof FORMAT_CONTRACT | undefined
-  const contract = format ? FORMAT_CONTRACT[format] : undefined
-
-  if (!metadata?.width || !metadata.height || !contract) {
-    throw new Error("지원하지 않거나 손상된 이미지입니다.")
-  }
-  if (
-    !PHOTO_ARCHIVE_ALLOWED_MIME_TYPES.includes(
-      contract.mimeType as (typeof PHOTO_ARCHIVE_ALLOWED_MIME_TYPES)[number],
-    )
-  ) {
-    throw new Error("지원하지 않는 이미지 형식입니다.")
-  }
-  if (metadata.width * metadata.height > PHOTO_ARCHIVE_MAX_PIXELS) {
-    throw new Error("이미지 해상도는 100메가픽셀 이하여야 합니다.")
-  }
-
-  const displayBody = await sharp(originalBody, {
-    limitInputPixels: PHOTO_ARCHIVE_MAX_PIXELS,
-  })
-    .rotate()
-    .resize({
-      width: DISPLAY_MAX_EDGE,
-      height: DISPLAY_MAX_EDGE,
-      fit: "inside",
-      withoutEnlargement: true,
-    })
-    .webp({ quality: DISPLAY_WEBP_QUALITY, alphaQuality: DISPLAY_WEBP_QUALITY })
-    .toBuffer()
-  const displayMetadata = await sharp(displayBody).metadata()
-
-  return {
-    originalBody,
-    originalExtension: contract.extension,
-    originalMimeType: contract.mimeType,
-    originalWidth: metadata.width,
-    originalHeight: metadata.height,
-    originalChecksum: createHash("sha256").update(originalBody).digest("hex"),
-    displayBody,
-    displayWidth: displayMetadata.width ?? 1,
-    displayHeight: displayMetadata.height ?? 1,
-    displayChecksum: createHash("sha256").update(displayBody).digest("hex"),
-  }
-}
+export { preparePhotoImage as prepareArchiveImage } from "@/lib/admin/photo-image"
 
 export async function uploadArchivePhoto(input: {
   file: File
@@ -131,7 +62,7 @@ export async function uploadArchivePhoto(input: {
   uploadedById: string
   sourcePath?: string
 }) {
-  const prepared = await prepareArchiveImage(input.file)
+  const prepared = await preparePhotoImage(input.file)
   const duplicate = await findOriginalAssetByChecksum(prepared.originalChecksum)
   if (duplicate) {
     return {

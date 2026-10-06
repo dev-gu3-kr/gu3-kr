@@ -33,6 +33,21 @@ enum ArchivePhotoStatus {
   HIDDEN
 }
 
+enum GalleryPhotoStatus {
+  PUBLISHED
+  HIDDEN
+}
+
+enum GalleryUploadStatus {
+  WAITING
+  UPLOADING
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
 enum FileAssetVariant {
   GENERAL
   ORIGINAL
@@ -102,13 +117,14 @@ model User {
   createdAt       DateTime              @default(now()) // 생성 시각
   updatedAt       DateTime              @updatedAt // 수정 시각
 
-  posts              Post[] // 작성한 게시글 목록
-  events             Event[] // 작성한 일정 목록
-  processedInquiries Inquiry[]                 @relation("InquiryProcessedBy") // 처리한 문의 목록
-  fileAssets         FileAsset[] // 업로드한 물리 파일 자산 목록
-  archivePhotos      ArchivePhoto[] // 등록한 사진 아카이브 항목
-  archiveYearChanges ArchivePhotoYearHistory[] // 수행한 사진 연도 변경 이력
-  refreshTokens      AdminRefreshToken[] // 관리자 로그인 갱신 토큰 목록
+  posts                Post[] // 작성한 게시글 목록
+  events               Event[] // 작성한 일정 목록
+  processedInquiries   Inquiry[]                 @relation("InquiryProcessedBy") // 처리한 문의 목록
+  fileAssets           FileAsset[] // 업로드한 물리 파일 자산 목록
+  archivePhotos        ArchivePhoto[] // 등록한 사진 아카이브 항목
+  archiveYearChanges   ArchivePhotoYearHistory[] // 수행한 사진 연도 변경 이력
+  galleryUploadBatches GalleryUploadBatch[] // 등록한 행사 사진 업로드 묶음
+  refreshTokens        AdminRefreshToken[] // 관리자 로그인 갱신 토큰 목록
 }
 
 model AdminRefreshToken {
@@ -148,8 +164,11 @@ model Post {
   createdAt       DateTime     @default(now()) // 생성 시각
   updatedAt       DateTime     @updatedAt // 수정 시각
 
-  author     User        @relation(fields: [authorId], references: [id]) // 작성자(User) 관계
-  fileUsages PostAsset[] // 게시글에서 사용하는 파일과 역할 목록
+  author                User                 @relation(fields: [authorId], references: [id]) // 작성자(User) 관계
+  fileUsages            PostAsset[] // 게시글에서 사용하는 파일과 역할 목록
+  galleryPhotos         GalleryPhoto[] // 행사 게시글에만 소속되는 사진
+  galleryUploadBatches  GalleryUploadBatch[] // 파일별 업로드 및 변환 작업 묶음
+  nextGalleryPhotoOrder Int                  @default(0) // 동시 업로드가 예약하는 다음 사진 순서
 
   @@index([category, isPublished, publishedAt])
   @@index([category, isPublished, sortOrder, createdAt])
@@ -158,30 +177,99 @@ model Post {
 }
 
 model FileAsset {
-  id           String           @id @default(cuid()) // 물리 파일 자산 고유 식별자
-  bucket       String // MinIO 버킷
-  objectKey    String // 버킷 내부 객체 키
-  url          String           @unique // 현재 공개 URL이며 파일 식별에는 사용하지 않음
-  originalName String // 업로드 원본 파일명
-  mimeType     String // 저장 객체 MIME 타입
-  sizeBytes    Int // 저장 객체 크기(byte)
-  width        Int? // 이미지 가로 크기이며 비이미지 자산은 null
-  height       Int? // 이미지 세로 크기이며 비이미지 자산은 null
-  checksum     String? // 원본 중복 판정과 보존 검증에 사용하는 SHA-256
-  variant      FileAssetVariant @default(GENERAL) // 기존 파일과 아카이브 원본·파생본의 용도 구분
-  uploadedById String // 업로드한 관리자 식별자
-  createdAt    DateTime         @default(now()) // 업로드 시각 및 미사용 파일 유예 시간 기준
-  updatedAt    DateTime         @updatedAt // 메타데이터 변경 시각
+  id                    String           @id @default(cuid()) // 물리 파일 자산 고유 식별자
+  bucket                String // MinIO 버킷
+  objectKey             String // 버킷 내부 객체 키
+  url                   String           @unique // 현재 공개 URL이며 파일 식별에는 사용하지 않음
+  originalName          String // 업로드 원본 파일명
+  mimeType              String // 저장 객체 MIME 타입
+  sizeBytes             Int // 저장 객체 크기(byte)
+  width                 Int? // 이미지 가로 크기이며 비이미지 자산은 null
+  height                Int? // 이미지 세로 크기이며 비이미지 자산은 null
+  checksum              String? // 원본 중복 판정과 보존 검증에 사용하는 SHA-256
+  variant               FileAssetVariant @default(GENERAL) // 기존 파일과 아카이브 원본·파생본의 용도 구분
+  uploadedById          String // 업로드한 관리자 식별자
+  createdAt             DateTime         @default(now()) // 업로드 시각 및 미사용 파일 유예 시간 기준
+  updatedAt             DateTime         @updatedAt // 메타데이터 변경 시각
+  galleryCleanupPending Boolean          @default(false) // 행사 사진 삭제·실패 후 객체 정리를 재시도할 대상
 
-  uploadedBy           User          @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
-  postUsages           PostAsset[] // GENERAL 자산의 게시글 사용처 목록
-  archiveOriginalPhoto ArchivePhoto? @relation("ArchivePhotoOriginal") // 원본으로 연결된 아카이브 사진
-  archiveDisplayPhoto  ArchivePhoto? @relation("ArchivePhotoDisplay") // 표시본으로 연결된 아카이브 사진
+  uploadedBy            User               @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  postUsages            PostAsset[] // GENERAL 자산의 게시글 사용처 목록
+  archiveOriginalPhoto  ArchivePhoto?      @relation("ArchivePhotoOriginal") // 원본으로 연결된 아카이브 사진
+  archiveDisplayPhoto   ArchivePhoto?      @relation("ArchivePhotoDisplay") // 표시본으로 연결된 아카이브 사진
+  galleryOriginalPhoto  GalleryPhoto?      @relation("GalleryPhotoOriginal")
+  galleryDisplayPhoto   GalleryPhoto?      @relation("GalleryPhotoDisplay")
+  galleryThumbnailPhoto GalleryPhoto?      @relation("GalleryPhotoThumbnail")
+  galleryUploadItem     GalleryUploadItem? // 변환 전 원본의 업로드 작업
 
   @@unique([bucket, objectKey])
   @@index([checksum, variant])
   @@index([uploadedById, createdAt])
   @@index([createdAt])
+  @@index([galleryCleanupPending, createdAt])
+}
+
+// 행사 사진은 연도별 ArchivePhoto와 독립적으로 등록·조회한다.
+model GalleryPhoto {
+  id               String             @id @default(uuid())
+  postId           String // category=GALLERY 게시글만 서비스에서 허용
+  originalAssetId  String             @unique
+  displayAssetId   String             @unique
+  thumbnailAssetId String             @unique
+  status           GalleryPhotoStatus @default(HIDDEN)
+  sortOrder        Int // 업로드 선택 순서이며 변환 완료 순서와 무관
+  sourceChecksum   String // 같은 행사 안의 원본 중복만 차단
+  caption          String?            @db.Text
+  altText          String?
+  takenAt          DateTime? // 촬영 시각을 확인하지 못하면 null
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+
+  post           Post               @relation(fields: [postId], references: [id], onDelete: Cascade)
+  originalAsset  FileAsset          @relation("GalleryPhotoOriginal", fields: [originalAssetId], references: [id], onDelete: Restrict)
+  displayAsset   FileAsset          @relation("GalleryPhotoDisplay", fields: [displayAssetId], references: [id], onDelete: Restrict)
+  thumbnailAsset FileAsset          @relation("GalleryPhotoThumbnail", fields: [thumbnailAssetId], references: [id], onDelete: Restrict)
+  uploadItem     GalleryUploadItem?
+
+  @@unique([postId, sourceChecksum])
+  @@index([postId, status, sortOrder, id])
+  @@index([postId, sortOrder, id])
+}
+
+model GalleryUploadBatch {
+  id           String              @id @default(uuid())
+  postId       String
+  uploadedById String // 작업을 등록한 관리자 식별자
+  createdAt    DateTime            @default(now())
+  post         Post                @relation(fields: [postId], references: [id], onDelete: Cascade)
+  uploadedBy   User                @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  items        GalleryUploadItem[]
+
+  @@index([postId, createdAt])
+  @@index([uploadedById, createdAt])
+}
+
+model GalleryUploadItem {
+  id              String              @id // 클라이언트가 재시도에 사용하는 UUID
+  batchId         String
+  originalName    String
+  sizeBytes       Int
+  sortOrder       Int
+  status          GalleryUploadStatus @default(WAITING)
+  originalAssetId String?             @unique // 원본 저장 전에는 null
+  photoId         String?             @unique // 변환 완료 전 또는 사진 삭제 후에는 null
+  attempts        Int                 @default(0)
+  error           String? // 사용자가 확인할 처리 실패 이유
+  leaseToken      String? // 이전 작업자가 새 작업 결과를 덮어쓰지 못하게 하는 토큰
+  leaseUntil      DateTime? // 중단된 업로드·변환을 복구할 시각
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  batch           GalleryUploadBatch  @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  originalAsset   FileAsset?          @relation(fields: [originalAssetId], references: [id], onDelete: SetNull)
+  photo           GalleryPhoto?       @relation(fields: [photoId], references: [id], onDelete: SetNull)
+
+  @@index([batchId, sortOrder])
+  @@index([status, leaseUntil, createdAt])
 }
 
 model ArchivePhoto {

@@ -1,4 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react"
+import type { ReactNode } from "react"
 
 import { AppLink as Link } from "@/components/AppLink"
 import { GalleryContentViewer } from "@/features/gallery/client"
@@ -10,11 +11,13 @@ import type {
 type PublicGalleryDetailViewProps = {
   detail: GalleryDetailDto
   navigation: GalleryNavigationDto
+  photos: ReactNode
 }
 
 export function PublicGalleryDetailView({
   detail,
   navigation,
+  photos,
 }: PublicGalleryDetailViewProps) {
   const createdAtLabel = new Date(detail.createdAt).toLocaleDateString("ko-KR")
 
@@ -49,6 +52,8 @@ export function PublicGalleryDetailView({
       <article className="mt-8 border-b border-[#e5e5e5] px-2 py-6 text-[15px] leading-7 text-[#2f2f2f] [&_.toastui-editor-contents]:text-[16px] [&_.toastui-editor-contents]:leading-8">
         <GalleryContentViewer content={detail.content} />
       </article>
+
+      {photos}
 
       <div className="relative mt-5 flex items-center justify-between gap-3 text-sm text-[#444] md:min-h-9 md:block">
         <Link

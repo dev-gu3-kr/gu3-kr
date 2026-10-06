@@ -10,6 +10,7 @@ import {
   GalleryDeleteButton,
 } from "@/features/gallery/client"
 import { useGalleryDetailQuery } from "@/features/gallery/isomorphic"
+import { AdminGalleryPhotosContainer } from "@/features/galleryPhotos/client"
 
 export default function AdminGalleryDetailPage() {
   const params = useParams<{ id: string }>()
@@ -107,6 +108,7 @@ export default function AdminGalleryDetailPage() {
           )}
         </article>
       </section>
+      <AdminGalleryPhotosContainer postId={id} />
       <section className="flex items-center gap-2">
         <Link
           href={`/admin/gallery/${item.id}/edit`}

@@ -199,6 +199,10 @@ export function deleteDetachedArchiveAssets(ids: string[]) {
       variant: { in: ["ORIGINAL", "DISPLAY"] },
       archiveOriginalPhoto: { is: null },
       archiveDisplayPhoto: { is: null },
+      galleryOriginalPhoto: { is: null },
+      galleryDisplayPhoto: { is: null },
+      galleryThumbnailPhoto: { is: null },
+      galleryUploadItem: { is: null },
     },
   })
 }

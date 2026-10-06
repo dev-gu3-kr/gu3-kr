@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma"
+import { prisma, prismaPostTable } from "@/lib/prisma"
 
 type PostImageRecord = {
   url: string
@@ -150,7 +150,38 @@ export async function findGalleryDeleteTargetById(id: string) {
 }
 
 export async function deleteGalleryById(id: string) {
-  return prisma.post.delete({ where: { id } })
+  // 게시글과 변환 작업의 마지막 커밋이 경합해도 모든 행사 자산을 정리 대상으로 남긴다.
+  return prisma.$transaction(async (transaction) => {
+    await transaction.$queryRaw`SELECT id FROM ${prismaPostTable()} WHERE id = ${id} FOR UPDATE`
+    const photos = await transaction.galleryPhoto.findMany({
+      where: { postId: id },
+      select: {
+        originalAssetId: true,
+        displayAssetId: true,
+        thumbnailAssetId: true,
+      },
+    })
+    const uploads = await transaction.galleryUploadItem.findMany({
+      where: { batch: { postId: id } },
+      select: { originalAssetId: true },
+    })
+    const assetIds = [
+      ...photos.flatMap((photo) => [
+        photo.originalAssetId,
+        photo.displayAssetId,
+        photo.thumbnailAssetId,
+      ]),
+      ...uploads.flatMap((item) =>
+        item.originalAssetId ? [item.originalAssetId] : [],
+      ),
+    ]
+    if (assetIds.length)
+      await transaction.fileAsset.updateMany({
+        where: { id: { in: assetIds } },
+        data: { galleryCleanupPending: true },
+      })
+    return transaction.post.delete({ where: { id } })
+  })
 }
 
 export async function countPublishedGalleries(query?: string) {

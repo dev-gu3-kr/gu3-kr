@@ -1,8 +1,9 @@
 "use client"
 
 import { useParams } from "next/navigation"
-
+import { Suspense } from "react"
 import { usePublicGalleryDetailQuery } from "@/features/gallery/isomorphic"
+import { PublicGalleryPhotosContainer } from "@/features/galleryPhotos/client"
 import { PublicGalleryDetailView } from "./PublicGalleryDetailView"
 
 export function PublicGalleryDetailContainer() {
@@ -27,6 +28,14 @@ export function PublicGalleryDetailContainer() {
   }
 
   return (
-    <PublicGalleryDetailView detail={data.item} navigation={data.navigation} />
+    <PublicGalleryDetailView
+      detail={data.item}
+      navigation={data.navigation}
+      photos={
+        <Suspense>
+          <PublicGalleryPhotosContainer postId={id} />
+        </Suspense>
+      }
+    />
   )
 }

@@ -52,6 +52,22 @@ describe("canAccessAdminPath", () => {
     ).toBe(false)
   })
 
+  it("행사 사진 업로드와 관리 API의 권한을 사진 아카이브와 분리한다", () => {
+    for (const path of [
+      "/api/admin/gallery/event/photos",
+      "/api/admin/gallery/event/photos/photo",
+      "/api/admin/gallery/event/photos/bulk",
+      "/api/admin/gallery/event/uploads",
+      "/api/admin/gallery/event/uploads/item",
+    ]) {
+      expect(canAccessAdminPath(path, "ADMIN", ["GALLERY"])).toBe(true)
+      expect(canAccessAdminPath(path, "ADMIN", ["PHOTO_ARCHIVE"])).toBe(false)
+    }
+    expect(
+      canAccessAdminPath("/api/admin/photo-archive", "ADMIN", ["GALLERY"]),
+    ).toBe(false)
+  })
+
   it("사용자 관리와 미등록 경로는 최고관리자에게만 허용한다", () => {
     expect(canAccessAdminPath("/admin/users", "ADMIN", ["NOTICES"])).toBe(false)
     expect(canAccessAdminPath("/admin/future-menu", "ADMIN", ["NOTICES"])).toBe(

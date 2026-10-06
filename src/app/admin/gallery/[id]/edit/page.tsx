@@ -1,5 +1,6 @@
 import { AppLink as Link } from "@/components/AppLink"
 import { GalleryEditFormContainer } from "@/features/gallery/client"
+import { AdminGalleryPhotosContainer } from "@/features/galleryPhotos/client"
 
 export default async function AdminGalleryEditPage(props: {
   params: Promise<{ id: string }>
@@ -18,6 +19,7 @@ export default async function AdminGalleryEditPage(props: {
       <section className="rounded-md border p-4">
         <GalleryEditFormContainer postId={id} />
       </section>
+      <AdminGalleryPhotosContainer postId={id} />
     </main>
   )
 }

@@ -68,7 +68,7 @@ export function GalleryWriteFormContainer() {
       }
       await syncGalleryMutationCache(queryClient, { id: json.id })
       toast.success("갤러리가 저장되었습니다.")
-      router.push(`/admin/gallery/${json.id}`)
+      router.push(`/admin/gallery/${json.id}/edit`)
       router.refresh()
     } catch (error) {
       setIsError(true)
