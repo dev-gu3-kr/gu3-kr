@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-bookworm-slim AS runtime-base
+FROM node:24.22.1-bookworm-slim AS runtime-base
 
 RUN apt-get update \
   && apt-get install --yes --no-install-recommends ca-certificates openssl \

@@ -34,7 +34,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 24
+          node-version: "24.22.1"
           cache: pnpm
 
       - name: Install dependencies
@@ -101,6 +101,7 @@ jobs:
         id: build-app
         uses: docker/build-push-action@v6
         with:
+          pull: true
           context: .
           target: runner
           platforms: linux/amd64
@@ -122,6 +123,7 @@ jobs:
         id: build-migrator
         uses: docker/build-push-action@v6
         with:
+          pull: true
           context: .
           target: migrator
           platforms: linux/amd64
